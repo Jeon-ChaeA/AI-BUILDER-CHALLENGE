@@ -51,6 +51,8 @@
 | `.btn` `.btn-primary/-secondary/-quiet` | 버튼 |
 | `.trial` | 상단 이용권 상태 표시 |
 | `.icon-btn` `#themeToggle` | 다크 모드 토글 |
+| `.segmented` `#localeToggle` | 언어 전환(EN/KO, `i18n.js`) |
+| `.install-btn` `#pwaInstall` | 앱 설치(PWA). 900px 이하는 아이콘만 |
 | `.flow` `.flow-steps li[data-step]` | 진단 진행판(성적 인식·졸업요건 판정·남은 학기 계획·계획 검증, 단계별 소요 시간) |
 | `.intake` `.tabs` | 입력 카드 + 세그먼트 탭(radio + `:has()`, JS 없음) |
 | `.pr` `.rc-top` `.rc-ring` `.rc-big` `.cap-illu` `.rc-foot` | 졸업 리포트 카드(링·수치·졸업모 일러스트) |

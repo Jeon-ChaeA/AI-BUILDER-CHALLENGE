@@ -41,6 +41,8 @@ app/
     engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts, haeyo
     schedule.js             .ics 생성(buildIcs)
     gsap.js, theme.js       화면 연출, 다크 모드 토글
+    i18n.js                 영어 전환(EN 버튼, 기본 한국어)
+    sw.js, manifest.webmanifest  PWA. 서비스 워커는 네트워크 우선, 오프라인일 때만 캐시
     login.html, terms.html, privacy.html
     data/requirements.json  research_notes JSON 그대로
     data/curriculum.json    research_notes JSON 그대로 (+ 구 과목명 별칭)

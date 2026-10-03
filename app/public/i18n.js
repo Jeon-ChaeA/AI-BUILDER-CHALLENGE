@@ -121,7 +121,7 @@
     '부족한 요건 모두 채움': 'All missing requirements covered', '계획에서 해결': 'Addressed in plan',
     '부족': 'short', '학과 사무실에서 확인해 주세요.': 'Confirm with your department office.',
     '학사일정을 불러오지 못했어요': 'Could not load the academic calendar', '잠시 뒤 새로고침해 주세요.': 'Refresh and try again.',
-    '무료 체험을 사용했어요': 'Free demo used', '무료 체험 1회 남음': '1 free demo remaining', '진행 중': 'In progress',
+    '무료 체험을 사용했어요': 'Free demo used', '체험 완료': 'Demo used', '이용권 사용 중': 'Pass active', '무료 체험 1회 남음': '1 free demo remaining', '진행 중': 'In progress',
     '2학기 성적 공시 기간': 'Fall semester grade posting', '2학기 성적 이의신청/정정 기간': 'Fall grade appeal and correction period',
     '2027학년도 1학기 수강신청 기간': 'Spring 2027 course registration', '2027학년도 1학기 등록 기간': 'Spring 2027 tuition payment',
     '동계 계절학기 수강신청': 'Winter session course registration', '동계 계절학기 등록 기간': 'Winter session payment period',
