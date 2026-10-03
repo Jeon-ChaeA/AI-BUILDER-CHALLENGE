@@ -34,6 +34,8 @@
     // 자동화 브라우저(navigator.webdriver: 테스트·평가 도구)도 끈다. 전체 페이지 캡처는 스크롤하지 않아서
     // 스크롤 리빌 전 요소가 빈칸으로 찍히기 때문이다.
     if (!navigator.webdriver && !matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
+    // GSAP CDN이 3초 안에 안 오면 연출 없이 바로 보여 준다(실패뿐 아니라 느린 경우도).
+    setTimeout(() => { if (!window.gsap) document.documentElement.classList.remove('ganim'); }, 3000);
   </script>
 </head>
 <body>
@@ -389,7 +391,7 @@
       addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
     }
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="gsap.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script defer src="gsap.js"></script>
 </body>
 </html>

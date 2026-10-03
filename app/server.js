@@ -243,15 +243,19 @@ app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
   const trace = [];
   let errs = [];
   let draft = null; // 규칙은 지켰지만 품질 지적(vagueTerms)을 받은 초안. 수정안이 규칙을 어기면 이걸 쓴다.
+  let prev = ''; // 재요청할 때 붙이는 이전 계획(과목명·학점만)
   for (let attempt = 1; attempt <= 2; attempt++) {
     const left = deadline - Date.now();
     if (left < 5_000) break;
     try {
-      const text = JSON.stringify(input) + (errs.length ? `\n\n이전 계획에서 다음을 고쳐야 해요. 고쳐서 다시 짜 주세요:\n- ${errs.join('\n- ')}` : '');
+      const text = JSON.stringify(input) + (errs.length ? `\n\n이전 계획: ${prev}\n이전 계획에서 다음을 고쳐야 해요. 고쳐서 다시 짜 주세요:\n- ${errs.join('\n- ')}` : '');
       const out = await ask({ system: ROADMAP_SYSTEM, text, schema: ROADMAP_SCHEMA, timeout: left });
       const plan = tidyPlan(out.plan, courses, ctx, data);
       const ok = { plan, source: 'ai', summary: haeyo(cleanText(out.summary, 400)) };
       errs = verifyPlan(plan, courses, ctx, data);
+      // 주어진 학기보다 길게 짜면 졸업이 늦어진다. verifyPlan은 학기 수를 묻지 않으므로(기본 계획은 늘어날 수 있다) 여기서 막는다.
+      if (plan.length > terms.length) errs.unshift(`계획 학기는 ${terms.join(', ')}만 써야 해요. ${plan.length}개 학기로 짜면 졸업이 늦어져요`);
+      prev = JSON.stringify(plan.map((p) => ({ term: p.term, courses: p.courses.map((c) => `${c.name} ${c.credits}`) })));
       if (!errs.length && attempt === 1) {
         const soft = vagueTerms(plan, courses, ctx, data);
         if (soft.length) {
@@ -308,6 +312,7 @@ app.post('/api/consult', limit, json('256kb'), async (req, res) => {
   };
   try {
     const out = await ask({ system: CONSULT_SYSTEM, text: JSON.stringify(input), schema: CONSULT_SCHEMA, timeout: 25_000 });
+    if (!cleanText(out.subject, 80) || !String(out.body ?? '').trim()) throw new Error('empty mail'); // 빈 초안이면 화면의 기본 문안으로
     res.json({
       subject: cleanText(out.subject, 80),
       body: typeof out.body === 'string' ? out.body.trim().slice(0, 2000) : '',

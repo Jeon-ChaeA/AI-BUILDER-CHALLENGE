@@ -216,7 +216,11 @@
     document.querySelector('#localeToggle').textContent = locale === 'ko' ? 'EN' : 'KO';
     document.querySelector('#localeToggle').setAttribute('aria-label', locale === 'ko' ? 'Switch to English' : '한국어로 전환');
     if (locale === 'ko') {
-      if (previousLocale === 'en') location.reload();
+      if (previousLocale === 'en') {
+        const hasResult = !document.getElementById('log').hidden;
+        if (!hasResult || confirm('한국어로 바꾸려면 화면을 새로 불러와야 해서 지금 진단 결과가 사라져요. 바꿀까요?')) location.reload();
+        else applyLocale('en', true);
+      }
       return;
     }
     document.querySelector('.brand').setAttribute('aria-label', locale === 'en' ? 'GraduationGak home' : '졸업각 처음으로');
@@ -289,7 +293,7 @@
   let installPrompt;
   const installButton = document.querySelector('#pwaInstall');
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  installButton.hidden = standalone;
+  installButton.hidden = true; // beforeinstallprompt가 오면 보인다(설치를 지원하지 않는 브라우저에서 알림창을 띄우지 않게)
   addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     installPrompt = event;

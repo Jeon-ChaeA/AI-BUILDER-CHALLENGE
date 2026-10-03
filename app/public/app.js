@@ -131,13 +131,13 @@ function renderLog() {
         <thead role="rowgroup"><tr role="row"><th role="columnheader">과목명</th><th role="columnheader">학점</th><th role="columnheader">이수구분</th><th role="columnheader">성적</th><th role="columnheader"><span class="sr-only">삭제</span></th></tr></thead>
         <tbody role="rowgroup">${recs.map((r) => {
           const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
-              <option value="">영역 모름</option>${E.AREAS.map((a) => `<option${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
+              <option value="">영역 모름</option>${E.AREAS.map((a) => `<option value="${a}"${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
           const cls = [r.gi.kind === 'fail' && !r.superseded ? 'is-f' : '', r.superseded ? 'is-old' : ''].join(' ').trim();
           return `
           <tr role="row" data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
             <td role="cell" class="c-name">${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
             <td role="cell" class="c-cr"><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
-            <td role="cell" class="c-cat"><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
+            <td role="cell" class="c-cat"><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option value="${x}"${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
             <td role="cell" class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
               ${[...(keepRaw(r) ? [r.grade] : []), ...E.GRADES, ''].map((g) => `<option value="${esc(g)}"${(r.gi.kind === 'prog' ? '' : keepRaw(r) ? r.grade : r.gi.g) === g ? ' selected' : ''}>${g === '' ? '수강 중' : esc(g)}${keepRaw(r) && g === r.grade ? (r.gi.kind === 'void' ? ' (제외)' : ' (읽지 못함)') : ''}</option>`).join('')}
             </select></td>
@@ -209,7 +209,7 @@ function renderPlan() {
     if (!t.total) return `<li class="t-ok"><b>${head}</b> 코드 검증 통과: 학기당 ${max}학점, 중복 수강, 개설 학기·학년, 졸업요건 7개를 모두 지켰어요.</li>`;
     return `<li class="t-bad"><b>${head}</b> 코드 검증에서 위반 ${t.total}건을 찾았어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
   });
-  if (state.kept) steps.push('<li class="t-ok"><b>초안 사용</b> 수정안이 초안보다 낫지 않아, 규칙을 모두 지킨 초안을 그대로 써요.</li>');
+  if (state.kept) steps.push('<li class="t-ok"><b>초안 사용</b> 수정안을 쓰지 못해, 규칙을 모두 지킨 초안을 그대로 써요.</li>');
   if (source === 'fallback') steps.push(state.fallbackOk ? '<li class="t-ok"><b>기본 계획</b> AI 계획을 쓰지 못해 교육과정 순서로 만든 계획으로 바꿨고, 같은 검증을 통과했어요.</li>'
     : '<li class="t-bad"><b>기본 계획</b> 교육과정 순서로 만든 계획도 일부 요건을 채우지 못했어요.</li>');
   $('trace').innerHTML = steps.join('');
@@ -363,7 +363,7 @@ function flowPlanResult() {
     flow.set('verify', 'done', revised ? `${trace[0].soft ? '보완' : '위반'} ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
     return;
   }
-  flow.set('plan', 'warn', 'AI 응답 실패');
+  flow.set('plan', 'warn', trace.some((t) => t.error) || !trace.length ? 'AI 응답 실패' : 'AI 계획 규칙 위반');
   flow.set('verify', fallbackOk ? 'done' : 'fail', fallbackOk ? '기본 계획 통과' : '일부 요건 미달');
 }
 
@@ -371,6 +371,7 @@ function flowPlanResult() {
 async function fetchPlan() {
   try {
     const r = await post('/api/roadmap', { courses: state.courses, ctx: state.ctx, wishes: state.wishes }, 35_000);
+    if (!Array.isArray(r?.plan)) throw new Error('bad plan'); // 아래 기본 계획으로
     Object.assign(state, { plan: r.plan, source: r.source, fallbackOk: r.fallbackOk !== false, summary: r.summary ?? '', trace: r.trace ?? [], kept: r.kept === 'draft' });
   } catch {
     const plan = E.defaultPlan(state.courses, state.ctx, data);
@@ -523,6 +524,9 @@ $('replan').addEventListener('submit', async (e) => {
   flow.set('judge', 'skip', '그대로');
   flow.set('plan', 'run', '희망 사항 반영 중');
   try {
+    state.diag = E.diagnose(state.courses, state.ctx, data); // 표를 고친 뒤 바로 눌러도 진단과 계획이 같은 이수내역을 본다
+    renderLog();
+    renderChecks();
     await fetchPlan();
     flowPlanResult();
     flow.end('계획을 다시 짰어요');
