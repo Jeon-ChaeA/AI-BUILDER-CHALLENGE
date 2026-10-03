@@ -38,7 +38,7 @@ app/
   public/
     index.html, styles.css  첫 화면·결과 섹션(첫 진단 전까지 hidden)·페이월
     app.js                  입력, 진행판, 페이월, 표 수정, 호출 흐름, 렌더링
-    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts
+    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts, haeyo
     schedule.js             .ics 생성(buildIcs)
     gsap.js, theme.js       화면 연출, 다크 모드 토글
     login.html, terms.html, privacy.html

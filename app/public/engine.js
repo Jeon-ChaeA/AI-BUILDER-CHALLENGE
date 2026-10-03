@@ -34,6 +34,20 @@ export function josa(word, pair) {
   return word + (batchim ? withB : without);
 }
 
+// AI가 쓴 문장 끝의 합니다체를 해요체로 바꾼다. 프롬프트로 해요체를 시켜도 '설계했습니다'처럼 섞여 나와서,
+// 화면 말투에 맞춘다. 틀리게 바꾸지 않도록 확실한 끝맺음만 다루고 나머지는 그대로 둔다.
+const HAEYO = { 합니다: '해요', 됩니다: '돼요', 드립니다: '드려요', 바랍니다: '바라요' };
+export function haeyo(text) {
+  return String(text ?? '').replace(/([가-힣]+?)(습니다|니다)(?=[.!?]?(?:\s|$))/g, (m, stem, end) => {
+    if (end === '습니다') {
+      const jong = (stem.charCodeAt(stem.length - 1) - 0xac00) % 28;
+      return jong === 20 || jong === 18 ? `${stem}어요` : m; // ㅆ(했·있·겠), ㅄ(없)
+    }
+    const hit = Object.keys(HAEYO).find((k) => (stem + end).endsWith(k));
+    return hit ? (stem + end).slice(0, -hit.length) + HAEYO[hit] : m;
+  });
+}
+
 // ---------- 학기 ----------
 
 const SEM_ORDER = { 1: 0, 여름: 1, 2: 2, 겨울: 3 };
@@ -443,7 +457,7 @@ export function tidyPlan(plan, courses, ctx, data) {
   const states = [...A.reqStates, ...A.basicStates];
   return (Array.isArray(plan) ? plan : []).slice(0, 8).map((p) => ({
     term: String(p?.term ?? '').slice(0, 9),
-    why: String(p?.why ?? '').slice(0, 300),
+    why: haeyo(String(p?.why ?? '').slice(0, 300)),
     courses: (Array.isArray(p?.courses) ? p.courses : []).slice(0, 12).map((c) => {
       const cat = !c?.generic && P.catalog.find((m) => m.keys.has(nameKey(c?.name)));
       if (!cat) {

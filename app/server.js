@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
 import authRouter, { withUser } from './auth.js';
 import {
-  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, vagueTerms, defaultPlan, termSem, termLabel, consultFacts,
+  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, vagueTerms, defaultPlan, termSem, termLabel, consultFacts, haeyo,
 } from './public/engine.js';
 
 const PORT = process.env.PORT || 3000;
@@ -250,7 +250,7 @@ app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
       const text = JSON.stringify(input) + (errs.length ? `\n\n이전 계획에서 다음을 고쳐야 해요. 고쳐서 다시 짜 주세요:\n- ${errs.join('\n- ')}` : '');
       const out = await ask({ system: ROADMAP_SYSTEM, text, schema: ROADMAP_SCHEMA, timeout: left });
       const plan = tidyPlan(out.plan, courses, ctx, data);
-      const ok = { plan, source: 'ai', summary: cleanText(out.summary, 400) };
+      const ok = { plan, source: 'ai', summary: haeyo(cleanText(out.summary, 400)) };
       errs = verifyPlan(plan, courses, ctx, data);
       if (!errs.length && attempt === 1) {
         const soft = vagueTerms(plan, courses, ctx, data);
@@ -311,7 +311,7 @@ app.post('/api/consult', limit, json('256kb'), async (req, res) => {
     res.json({
       subject: cleanText(out.subject, 80),
       body: typeof out.body === 'string' ? out.body.trim().slice(0, 2000) : '',
-      questions: (Array.isArray(out.questions) ? out.questions : []).map((q) => cleanText(q, 200)).filter(Boolean).slice(0, 6),
+      questions: (Array.isArray(out.questions) ? out.questions : []).map((q) => haeyo(cleanText(q, 200))).filter(Boolean).slice(0, 6),
     });
   } catch (err) {
     console.error('[consult]', err?.message ?? err);
