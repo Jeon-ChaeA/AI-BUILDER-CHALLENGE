@@ -11,9 +11,14 @@
   const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
   const paint = (btn) => {
     const dark = isDark();
+    const english = root.lang === 'en';
     btn.innerHTML = `<i class="ph ${dark ? 'ph-sun' : 'ph-moon'}"></i>`;
-    btn.setAttribute('aria-label', dark ? '라이트 모드로 바꾸기' : '다크 모드로 바꾸기');
+    btn.setAttribute('aria-label', english
+      ? (dark ? 'Switch to light mode' : 'Switch to dark mode')
+      : (dark ? '라이트 모드로 바꾸기' : '다크 모드로 바꾸기'));
     btn.setAttribute('aria-pressed', String(dark));
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = dark ? '#0f1214' : '#f6f7f5';
   };
 
   document.addEventListener('DOMContentLoaded', () => {

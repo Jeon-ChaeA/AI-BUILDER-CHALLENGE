@@ -2,39 +2,53 @@
   const root = document.documentElement;
   const staticEn = new Map([
     ['.hero h1', 'Can I graduate<br><span class="hl">on time</span>?'],
-    ['.hero .lede', 'Share your grades. We compare them with your graduation requirements and show what is missing, what to take next, and which deadlines matter.'],
+    ['.hero .lede', 'Upload your grades. AI reads them, checks graduation requirements, and plans your remaining semesters around your goals, with suggested questions for your department.'],
     ['.tabs legend', 'Choose how to add grades'],
     ['label[for="src-sample"] span', 'Sample student'], ['label[for="src-capture"] span', 'Upload image'], ['label[for="src-paste"] span', 'Paste text'],
-    ['.pane-sample .tag', 'Sample'], ['.pane-sample .muted', '2023 entry year, two semesters on leave in 2025, now in the second semester of year 3.'],
+    ['.pane-sample .tag', 'Sample'], ['.pane-sample .muted', '2023 entry year, two semesters on leave in 2025, now in the second semester of year 3. AI will read the sample grade screenshot.'],
     ['.pane-capture span', 'Drop your ON Kookmin grade screenshot here, or choose a file'], ['.pane-capture small', 'PNG, JPG, or WEBP, up to 5 images'],
+    ['#viewSample', 'View sample grade screenshot'], ['#dropText', 'Drop your ON Kookmin grade screenshot here, or choose a file'],
     ['.pane-paste label', 'Grade text'], ['#paste', 'Select and copy your full ON Kookmin grade page, then paste it here'],
     ['.course-table th:nth-child(1)', 'Course'], ['.course-table th:nth-child(2)', 'Credits'], ['.course-table th:nth-child(3)', 'Type'], ['.course-table th:nth-child(4)', 'Grade'],
     ['.fields .field:first-child .field-label', 'Program'], ['.fields .field:first-child .field-static', 'Software major · 2023 entry'],
     ['label[for="year"]', 'Current year'], ['label[for="term"]', 'Semester'],
+    ['.wish > .field-label', 'Your goals (optional, AI uses these in the plan)'],
+    ['#wishes', 'Example: I want a career in web or security. I would like a lighter final semester.'],
+    ['#flowTitle', 'How GraduationGak checks your progress'],
+    ['[data-step="parse"] .fs-txt b', 'Read your transcript'], ['[data-step="parse"] .fs-txt small', 'AI turns the screenshot or text into a course table'],
+    ['[data-step="judge"] .fs-txt b', 'Check 9 graduation requirements'], ['[data-step="judge"] .fs-txt small', 'The same grades always produce the same result'],
+    ['[data-step="plan"] .fs-txt b', 'Plan your remaining semesters'], ['[data-step="plan"] .fs-txt small', 'Your goals shape the semester-by-semester plan'],
+    ['[data-step="verify"] .fs-txt b', 'Verify the plan'], ['[data-step="verify"] .fs-txt small', 'If a rule fails, AI is asked to revise the plan'],
     ['.hero .btn-primary', 'Check my graduation plan'],
     ['#pwaInstall span', 'Install app'],
     ['.fine', 'Remove your name and student ID before uploading. Grades are not stored and are sent only to Google Gemini for analysis.'],
-    ['.rc-badge', 'On track to graduate · Feb 2028'],
+    ['#heroBadge', 'On track to graduate · Feb 2028'],
     ['.rc-who', 'Kim Kookmin so far'], ['.rc-big span', '/ 136 credits'], ['.rc-left', 'Only 52 credits left to graduate'],
-    ['.rc-foot', 'Just 1 requirement left to resolve'],
-    ['#log-h', 'You have completed 84 credits'],
+    ['#heroFoot', 'Just 1 requirement left to resolve'],
     ['#log .sec-lede', '32 courses across 5 semesters. One F grade is excluded from earned credits.'],
+    ['#logLede', 'Courses completed, credits earned, and your semester-by-semester transcript.'],
     ['#rerun', 'Run diagnosis again'], ['.log-actions .muted', 'Select a cell to correct credits or course type, then run the diagnosis again.'],
-    ['#checks-h', 'One of 9 requirements needs attention'],
-    ['#plan-h', 'A semester-by-semester plan to graduate'],
-    ['#plan .sec-lede', 'AI drafted this plan and code checked it again.'],
-    ['#dates-h', 'Dates you should not miss'], ['#ics', 'Add to calendar (.ics)'],
+    ['#ics', 'Add to calendar (.ics)'],
+    ['#traceBox summary', 'AI plan verification details'], ['.replan .field-label', 'Want to try a different plan?'],
+    ['#wishes2', 'Example: Focus on enterprise software courses and keep Spring of year 4 to about 15 credits.'],
+    ['#replanGo', 'Build another plan with AI'],
+    ['#consult-h', 'AI can draft an email to your department'],
+    ['#consult .sec-lede', 'We selected questions that need a department decision or interpretation. AI drafts an email and meeting questions from these facts.'],
+    ['#consultGo', 'Draft questions with AI'], ['.consult-out h3:first-child', 'Questions for your advisor'],
+    ['.mail > h3', 'Email draft to the academic office'], ['label[for="mailSubject"]', 'Subject'],
+    ['label[for="mailBody"]', 'Message ([name] and [student ID] should be filled in by you)'],
+    ['#copyMail', 'Copy email'], ['#mailto', 'Open in email app'],
     ['.report h2', 'Bring this to your advisor'], ['.report p', 'Your diagnosis, next steps, semester plan, and deadlines in one printable report.'],
     ['#print', 'Print report / Save PDF'], ['.print-note', 'This result is for guidance only. Confirm your requirements with the department office.'],
-    ['.foot-grid > div:first-child .muted', 'An independent student project. Not an official Kookmin University service.'],
-    ['.foot-grid > div:nth-child(2) p:first-child', 'Data: Software major 2023 graduation requirements, Kookmin University academic calendar'],
-    ['.foot-grid > div:nth-child(2) p:last-child', 'This result is for guidance only. Confirm your requirements with the department office.'],
-    ['#reset', 'Reset demo'],
-    ['.foot-copyright', '© 2026 GraduationGak. All rights reserved.'],
-    ['.foot-legal-item:first-child summary', 'Privacy policy'],
-    ['.foot-legal-item:first-child p', 'Grade text and uploaded files are sent to the Google Gemini API for analysis. GraduationGak does not store grade information on its server. Google processes data under its own applicable policies.'],
-    ['.foot-legal-item:last-child summary', 'Terms of use'],
-    ['.foot-legal-item:last-child p', 'GraduationGak is an independent student project and is not an official Kookmin University service. Results are for guidance only and do not guarantee graduation eligibility. Confirm final requirements with your department office.'],
+    ['.top-login span', 'Log in'], ['#signupLink', 'Sign up'], ['#logoutBtn', 'Log out'],
+    ['#sample-h', 'Kim Kookmin’s grade screenshot'], ['.sheet-head .tag', 'Sample student'],
+    ['.paywall .tag', 'Your free demo is used'], ['#pay-h', 'One-semester pass'],
+    ['.perks li:nth-child(1)', 'Unlimited diagnosis and reruns'], ['.perks li:nth-child(2)', 'AI course plan based on your goals'],
+    ['.perks li:nth-child(3)', 'Calendar deadlines (.ics)'], ['.perks li:nth-child(4)', 'AI department email and advising report'],
+    ['.paywall .muted', 'Available through February 28, 2027.'],
+    ['.pay-actions button[value="pay"]', 'Try demo payment (no charge)'], ['.pay-actions button[value="cancel"]', 'Close'],
+    ['.foot-links a:nth-child(1)', 'Terms of use'], ['.foot-links a:nth-child(2)', 'Privacy policy'], ['.foot-links a:nth-child(3)', 'Data sources'],
+    ['.copy', '© 2026 GraduationGak · Made by Team 5'], ['#reset', 'Reset demo'],
   ]);
   const dynamicEn = new Map(Object.entries({
     '통과': 'Complete', '조치 필요': 'Needs attention', '진행 중': 'In progress', '학과 확인': 'Confirm with department',
@@ -43,6 +57,11 @@
     '학부 인증, 졸업논문, 전공능력': 'Major certification, thesis, or competency', '전공선택': 'Major elective', '일반선택': 'Free elective',
     '필수': 'Required', '재수강': 'Retake', '지금 듣는 중': 'In progress', '수강 중': 'in progress', '휴학': 'Leave', '과목': 'courses', '학점': 'credits',
     '이수구분': 'Course type', '성적': 'Grade', '지정': 'designated', '계획': 'planned', '제외': 'excluded',
+    '웹·정보보호 트랙 관심': 'Interested in web and security', 'AI·데이터 트랙 관심': 'Interested in AI and data',
+    '마지막 학기는 가볍게': 'Keep the final semester light', '계절학기도 괜찮아요': 'Summer or winter courses are okay',
+    '샘플 성적 화면 보기': 'View sample grade screenshot', '졸업요건': 'graduation requirements',
+    '졸업까지': 'Until graduation', '남았어요': 'remaining', '가능': 'eligible', '초안': 'draft',
+    '처리 중': 'Processing', '완료': 'Complete', '실패': 'Failed', '저장본 사용': 'Using saved sample',
     '학기당 19학점 이하': 'Up to 19 credits per semester', '이미 들은 과목 없음': 'No completed courses repeated',
     '부족한 요건 모두 채움': 'All missing requirements covered', '계획에서 해결': 'Addressed in plan',
     '부족': 'short', '학과 사무실에서 확인해 주세요.': 'Confirm with your department office.',
@@ -112,6 +131,7 @@
     next = next.replace(/(\d+)학년 ([12])학기/g, 'Year $1 · Semester $2')
       .replace(/(\d+)학점/g, '$1 credits').replace(/(\d+)과목/g, '$1 courses')
       .replace(/(\d+)학기/g, 'Semester $1').replace(/([0-9.]+)\/([0-9.]+)credits/g, '$1 / $2 credits')
+      .replace(/(\d{4})년 (\d{1,2})월 졸업 가능/g, 'Eligible to graduate in $2/$1')
       .replace(/(\d{4})년 (\d{1,2})월 졸업/g, 'Graduate · $2/$1')
       .replace(/([0-9]+)학점 부족/g, '$1 credits short');
     if (next !== original) node.nodeValue = next;
@@ -153,8 +173,13 @@
         el.innerHTML = text;
         continue;
       }
-      if (selector === '#paste') { el.setAttribute('placeholder', text); continue; }
-      if (selector === '.rc-left') { el.innerHTML = 'Only <strong>52 credits</strong> left to graduate'; continue; }
+      if (selector === '#paste' || selector === '#wishes' || selector === '#wishes2') { el.setAttribute('placeholder', text); continue; }
+      if (selector === '.rc-left') {
+        const value = el.querySelector('strong');
+        el.replaceChildren(document.createTextNode('Only '), value, document.createTextNode(' left to graduate'));
+        continue;
+      }
+      if (selector === '#heroFoot') { el.innerHTML = 'Just <strong>1</strong> requirement left to resolve'; continue; }
       if (selector === '.foot-grid > div:nth-child(2) p:first-child') {
         el.innerHTML = 'Data: <a href="https://cs.kookmin.ac.kr/major/graduated/13" target="_blank" rel="noopener">Software major 2023 graduation requirements</a>, <a href="https://www.kookmin.ac.kr/user/scGuid/scSchedule/index.do" target="_blank" rel="noopener">Kookmin academic calendar</a>';
         continue;
@@ -164,13 +189,13 @@
         el.replaceChildren(...(number ? [number, document.createTextNode(` ${text}`)] : [document.createTextNode(text)]));
         continue;
       }
-      if (el.children.length) {
-        const icon = el.querySelector(':scope > i');
-        el.replaceChildren(...(icon ? [icon, document.createTextNode(` ${text}`)] : [...el.children, document.createTextNode(` ${text}`)]));
-      } else el.textContent = text;
+      const textNode = [...el.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim());
+      if (textNode) textNode.nodeValue = textNode.nodeValue.replace(textNode.nodeValue.trim(), text);
+      else if (el.children.length) el.append(document.createTextNode(text));
+      else el.textContent = text;
       }
     }
-    const stepNames = ['Credits completed so far', 'Graduation requirements', 'Your path to graduation', 'Important deadlines'];
+    const stepNames = ['Credits completed so far', 'Graduation requirements', 'Your path to graduation', 'Important deadlines', 'Questions for your department'];
     document.querySelectorAll('.step').forEach((el, i) => {
       const number = el.querySelector('span');
       if (number) el.replaceChildren(number, document.createTextNode(` ${stepNames[i]}`));
@@ -187,26 +212,15 @@
     });
     document.querySelectorAll('.brand-logo img').forEach((img) => img.alt = 'GraduationGak');
     document.querySelectorAll('.pane-sample strong').forEach((el) => { el.textContent = 'Kim Kookmin'; });
-    document.querySelector('#themeToggle .sr-only').textContent = root.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode';
     document.querySelector('#pwaInstall').setAttribute('aria-label', 'Install GraduationGak');
+    document.querySelector('[role="group"]').setAttribute('aria-label', 'Language settings');
+    document.querySelector('#themeToggle').setAttribute('aria-label', root.dataset.locale === 'en'
+      ? (root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
+      : (root.dataset.theme === 'dark' ? '라이트 모드로 바꾸기' : '다크 모드로 바꾸기'));
     translateDynamic();
-    document.querySelector('#themeToggle').setAttribute('aria-label', root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
   }
 
-  function applyTheme(theme) {
-    root.dataset.theme = theme;
-    try { localStorage.setItem('jg.theme', theme); } catch {}
-    document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0f1214' : '#f6f7f5';
-    const button = document.querySelector('#themeToggle');
-    document.querySelectorAll('.brand-logo source').forEach((source) => { source.media = theme === 'dark' ? 'all' : 'not all'; });
-    button.innerHTML = `<i class="ph ${theme === 'dark' ? 'ph-sun' : 'ph-moon'}" aria-hidden="true"></i><span class="sr-only">${theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>`;
-    button.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-    button.setAttribute('aria-pressed', String(theme === 'dark'));
-  }
-
-  applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
   applyLocale(root.dataset.locale === 'en' ? 'en' : 'ko');
-  document.querySelector('#themeToggle').addEventListener('click', () => applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
   document.querySelector('#localeToggle').addEventListener('click', () => applyLocale(root.dataset.locale === 'ko' ? 'en' : 'ko'));
 
   let installPrompt;
@@ -243,5 +257,5 @@
       }
     }
   });
-  observer.observe(document.querySelector('#dateList'), { subtree: true, childList: true });
+  observer.observe(document.body, { subtree: true, childList: true });
 })();
