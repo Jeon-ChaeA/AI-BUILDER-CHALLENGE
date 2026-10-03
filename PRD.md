@@ -201,7 +201,7 @@
 
 - 공개 서비스 URL: https://kaib.sungblab.com (로그인 없이 누구나 열림)
 - 공개 소스 저장소 URL: https://github.com/Jeon-ChaeA/AI-BUILDER-CHALLENGE
-- 최종 커밋 ID: 배포 코드는 저장소 main의 이 절을 추가한 커밋이다. 배포 확인 기록은 `docs/QA.md`에 있다.
+- 최종 커밋 ID: 배포 코드 `85a94e1` (이후 커밋은 문서만 수정). 배포 확인 기록은 `docs/QA.md` '3차 점검'에 있다.
 - 실제 AI 연동 / 데모 여부: 실제 AI 연동 (Google Gemini `gemini-flash-latest`, 구조화 출력). 확인 방법은 세 가지다.
   - `/api/health`가 `{"ok":true,"model":"gemini-flash-latest","ai":true}`를 준다(`ai`는 API 키 설정 여부).
   - 진행판의 AI 단계마다 실제 걸린 시간(성적 읽기 약 10초)이 표시된다.
