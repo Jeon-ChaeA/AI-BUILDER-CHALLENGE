@@ -87,11 +87,32 @@
       <!-- 졸업 리포트 카드 (미리보기) -->
       <aside class="pr" aria-label="샘플 학생 졸업 리포트 미리보기">
         <div class="rc-top">
+          <svg class="cap-illu" viewBox="0 0 128 112" aria-hidden="true">
+            <defs>
+              <linearGradient id="capBoard" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfe9d8"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="64" cy="96" rx="30" ry="6" fill="rgb(0 0 0 / .18)"/>
+            <path d="M40 56v16q0 12 24 12t24-12V56" fill="#bfe3cc"/>
+            <path d="M64 20 120 46 64 72 8 46Z" fill="url(#capBoard)"/>
+            <path d="M64 20 120 46 64 72Z" fill="#eaf6ef"/>
+            <circle cx="64" cy="46" r="4.5" fill="#0f5c31"/>
+            <path d="M64 46 102 40v34" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="102" cy="78" r="5.5" fill="#ffffff"/>
+          </svg>
           <span class="rc-badge"><i class="ph-fill ph-confetti"></i>2028년 2월 졸업 가능</span>
-          <p class="rc-who">김국민님은 지금</p>
-          <div class="rc-big"><strong>84</strong><span>/ 136학점</span></div>
-          <div class="rc-bar"><span style="width:62%"></span></div>
-          <p class="rc-left">졸업까지 <strong>52학점</strong> 남았어요</p>
+          <div class="rc-row">
+            <div class="rc-info">
+              <p class="rc-who">김국민님은 지금</p>
+              <div class="rc-big"><strong>84</strong><span>/ 136학점</span></div>
+              <p class="rc-left">졸업까지 <strong>52학점</strong> 남았어요</p>
+            </div>
+            <div class="rc-ring" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="prog" cx="60" cy="60" r="52"/></svg>
+              <div class="rc-pct"><strong>62</strong><span>%</span></div>
+            </div>
+          </div>
         </div>
         <ol class="checks compact run" id="heroChecks"></ol>
         <p class="rc-foot"><i class="ph-fill ph-seal-check"></i>딱 <strong>1개</strong>만 해결하면 돼요</p>
@@ -100,6 +121,7 @@
 
     <!-- 학점 지도 + 이수내역 -->
     <section class="sec" id="log" aria-labelledby="log-h">
+      <p class="step"><span>01</span>지금까지 들은 학점</p>
       <h2 id="log-h">지금까지 <span class="num">84</span>학점을 들었어요</h2>
       <p class="sec-lede">5개 학기 동안 32과목을 들었고, F 받은 1과목은 학점에서 뺐어요.</p>
       <div class="grass-card">
@@ -118,6 +140,7 @@
 
     <!-- 졸업 체크 -->
     <section class="sec" id="checks" aria-labelledby="checks-h">
+      <p class="step"><span>02</span>졸업요건 체크</p>
       <h2 id="checks-h">체크 9개 중 <span class="num">1</span>개는 지금 손봐야 해요</h2>
       <p class="tally" id="tally"></p>
       <ol class="checks full" id="fullChecks"></ol>
@@ -125,6 +148,7 @@
 
     <!-- 졸업까지 가는 길 -->
     <section class="sec" id="plan" aria-labelledby="plan-h">
+      <p class="step"><span>03</span>졸업까지 가는 길</p>
       <h2 id="plan-h">남은 학기, 이렇게 들으면 졸업해요</h2>
       <p class="sec-lede">AI가 짠 계획을 코드가 한 번 더 확인했어요.</p>
       <ul class="verified">
@@ -137,6 +161,7 @@
 
     <!-- 마감 일정 -->
     <section class="sec" id="dates" aria-labelledby="dates-h">
+      <p class="step"><span>04</span>챙겨야 할 마감</p>
       <h2 id="dates-h">놓치면 안 되는 날짜</h2>
       <ol class="dates" id="dateList"></ol>
       <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가 (.ics)</button>

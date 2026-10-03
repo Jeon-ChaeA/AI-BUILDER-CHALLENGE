@@ -49,7 +49,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
@@ -92,8 +92,15 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 
 /* ---------- 첫 화면 ---------- */
 .hero {
+  position: relative;
   display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
   padding: 72px 0 88px;
+}
+/* 앰비언트 글로우 (깊이감) */
+.hero::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: -60px; right: -80px; width: 520px; height: 520px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--green) 20%, transparent), transparent 68%);
 }
 h1 { font-size: clamp(2.5rem, 1.7rem + 3vw, 4rem); line-height: 1.08; font-weight: 800; }
 .hero h1 b, .hero h1 .hl { color: var(--green); }
@@ -168,17 +175,29 @@ select { min-height: 48px; padding-right: 36px; appearance: none; cursor: pointe
 
 /* ---------- 졸업 리포트 카드 (히어로 우측, 메모리 포인트) ---------- */
 .pr { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--shadow); overflow: hidden; }
-.rc-top { background: var(--green); background-image: var(--grad); color: #fff; padding: 28px 28px 32px; position: relative; }
-.rc-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgb(255 255 255 / .18); color: #fff; font-size: .8125rem; font-weight: 800; backdrop-filter: blur(4px); }
+.rc-top { background: var(--green); background-image: var(--grad); color: #fff; padding: 28px; position: relative; overflow: hidden; }
+/* 장식용 졸업모 일러스트 (우상단, 살짝 바깥으로 흘림) */
+.cap-illu { position: absolute; top: -14px; right: -10px; width: 128px; height: auto; filter: drop-shadow(0 10px 16px rgb(0 0 0 / .22)); transform: rotate(8deg); }
+@media (prefers-reduced-motion: no-preference) { .cap-illu { animation: bob 4.5s ease-in-out infinite; } }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(8deg); } 50% { transform: translateY(-7px) rotate(8deg); } }
+.rc-badge { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgb(255 255 255 / .2); color: #fff; font-size: .8125rem; font-weight: 800; backdrop-filter: blur(4px); }
 .rc-badge i { color: #fff; font-size: 1rem; }
-.rc-who { margin-top: 20px; font-size: .9375rem; opacity: .9; font-weight: 600; }
-.rc-big { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
-.rc-big strong { font-size: 3.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
-.rc-big span { font-size: 1.125rem; font-weight: 700; opacity: .92; }
-.rc-bar { height: 10px; border-radius: 999px; background: rgb(255 255 255 / .25); margin-top: 18px; overflow: hidden; }
-.rc-bar > span { display: block; height: 100%; border-radius: 999px; background: #fff; }
+.rc-row { display: flex; align-items: center; gap: 16px; margin-top: 20px; }
+.rc-info { flex: 1; min-width: 0; }
+.rc-who { font-size: .9375rem; opacity: .9; font-weight: 600; }
+.rc-big { display: flex; align-items: baseline; gap: 7px; margin-top: 2px; }
+.rc-big strong { font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
+.rc-big span { font-size: 1.0625rem; font-weight: 700; opacity: .92; }
 .rc-left { margin-top: 12px; font-size: .9375rem; font-weight: 600; opacity: .95; }
 .rc-left strong { font-weight: 800; }
+/* 원형 진행률 링 */
+.rc-ring { position: relative; width: 112px; height: 112px; flex: none; }
+.rc-ring svg { width: 112px; height: 112px; transform: rotate(-90deg); }
+.rc-ring .track { fill: none; stroke: rgb(255 255 255 / .25); stroke-width: 11; }
+.rc-ring .prog { fill: none; stroke: #fff; stroke-width: 11; stroke-linecap: round; stroke-dasharray: 326.7; stroke-dashoffset: 124.1; }
+.rc-pct { position: absolute; inset: 0; display: grid; place-items: center; line-height: 1; }
+.rc-pct strong { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.03em; }
+.rc-pct span { font-size: 1rem; font-weight: 700; opacity: .9; margin-left: 1px; }
 .rc-foot { display: flex; align-items: center; gap: 9px; padding: 16px 24px; background: var(--green-soft); color: var(--green-ink); font-size: .9375rem; font-weight: 700; }
 .rc-foot i { font-size: 1.25rem; }
 .rc-foot strong { font-weight: 800; }
@@ -215,6 +234,8 @@ select { min-height: 48px; padding-right: 36px; appearance: none; cursor: pointe
 
 /* ---------- 섹션 ---------- */
 .sec { padding: 72px 0; border-top: 1px solid var(--line); }
+.step { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: .9375rem; font-weight: 700; color: var(--ink-3); }
+.step span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; background: var(--green-soft); color: var(--green-ink); font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; }
 .sec h2, .report h2 { font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem); line-height: 1.2; font-weight: 800; }
 .sec h2 .num { color: var(--green); }
 .sec-lede { margin-top: 12px; color: var(--ink-2); font-size: 1.125rem; max-width: 40em; }
