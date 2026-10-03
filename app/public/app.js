@@ -22,8 +22,11 @@ const trialUsed = () => store.get('jg.trialUsed') === '1';
 
 function renderTrial() {
   const pass = hasPass(), used = trialUsed();
-  // 좁은 화면에서는 날짜(.until)를 숨겨 상단바가 넘치지 않게 한다.
-  $('trialText').innerHTML = pass ? `이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
+  // 상단바 배지는 한 줄로 둔다. 480px 이하에서는 짧은 문구(.t-narrow)로 바꿔 로고·버튼과 함께 들어가게 한다.
+  const label = (wide, narrow) => `<span class="t-wide">${wide}</span><span class="t-narrow">${narrow}</span>`;
+  $('trialText').innerHTML = pass ? label(`이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>`, '<i class="ph ph-check"></i>이용권')
+    : used ? label('무료 체험을 사용했어요', '체험 완료') : label('무료 체험 1회 남음', '무료 1회');
+  $('trial').title = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
   $('trial').classList.toggle('used', used && !pass);
   $('trial').classList.toggle('pass', pass);
   // 요금 섹션 버튼도 같은 상태를 보여 준다.
@@ -419,6 +422,7 @@ async function analyze(notice = '') {
   renderPlan();
   renderDates();
   resetConsult();
+  $('printHead').textContent = `졸업각 졸업요건 진단 리포트 · ${data.req.department} ${data.req.admissionYear}학번 · ${E.termLabel(state.ctx.ordinal)}(${state.ctx.termNow}) 기준 · ${todayIso()} 진단`;
   for (const id of ['log', 'checks', 'plan', 'dates', 'consult', 'report']) $(id).hidden = false;
   replay($('fullChecks'));
   setStatus(notice ? 'info' : '', notice);

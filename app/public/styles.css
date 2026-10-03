@@ -109,6 +109,14 @@ i[class*="ph"] { font-size: 1.15em; line-height: 1; }
   border: 1px solid var(--line);
 }
 .trial.used { background: var(--surface-2); color: var(--ink-2); border-color: var(--line); }
+/* 배지는 한 줄. 좁은 화면에서는 짧은 문구로 바꾼다(app.js renderTrial의 .t-wide / .t-narrow). */
+.trial { white-space: nowrap; }
+.trial .t-narrow { display: none; }
+.trial .t-narrow i { margin-right: 3px; vertical-align: -2px; }
+@media (max-width: 480px) {
+  .trial .t-wide { display: none; }
+  .trial .t-narrow { display: inline; }
+}
 .top-actions { display: flex; align-items: center; gap: 8px; }
 .top-login {
   display: inline-flex; align-items: center; gap: 6px; max-width: 220px;
@@ -428,7 +436,7 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
 .copy { color: var(--ink-3); font-size: .75rem; }
 .foot-reset { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: transparent; color: var(--ink-2); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
 .foot-reset:hover { color: var(--ink); border-color: var(--line-2); }
-.print-note { display: none; }
+.print-note, .print-head { display: none; }
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 920px) {
@@ -524,17 +532,17 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
   body { font-size: 11pt; }
   .topbar, .hero, #log, .log-actions, #ics, .report, .foot-links, .foot-bottom, .flow, #why, #pricing, .chev { display: none !important; }
   .node.goal .node-card { background: var(--tint) !important; color: var(--ink) !important; }
-  .node.goal strong { color: var(--tint-ink) !important; }
+  .node.goal strong, .node.goal .load, .node.goal .load b { color: var(--tint-ink) !important; }
   .sec { padding: 18pt 0; break-inside: avoid; }
   details > :not(summary) { display: block !important; }
-  .print-note { display: block; font-weight: 800; }
+  .print-note { display: block; font-weight: 800; max-width: 1160px; margin: 0 auto; padding: 12pt 24px 0; }
+  .print-head { display: block; margin: 0 0 6pt; padding-bottom: 8pt; border-bottom: 2px solid var(--ink); font-size: 10pt; font-weight: 800; }
   .foot { border: 0; padding: 0; }
   *, *::before { animation: none !important; box-shadow: none !important; }
 }
 
 /* GSAP 초기 숨김 — 모션 허용(.ganim)일 때만. gsap.js가 못 뜨면 즉시 해제 */
-.ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr,
-.ganim #branch .node { opacity: 0; }
+.ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr { opacity: 0; }
 /* 스크롤 전이라 숨겨 둔 요소(gsap 인라인 opacity·transform)도 인쇄·PDF에는 보인다 */
 @media print { .ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr, .ganim #branch .node, .ganim [style*="opacity"] { opacity: 1 !important; transform: none !important; } }
 
