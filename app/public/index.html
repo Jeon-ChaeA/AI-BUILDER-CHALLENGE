@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>귀찮음 주식회사</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📎</text></svg>">
+  <style>
+    :root { --bg:#f7f7f5; --fg:#1d1d1b; --muted:#6b6b66; --card:#fff; --line:#e4e4df; --accent:#2f5bea; --err:#c8372d; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+    main { max-width:720px; margin:0 auto; padding:32px 16px 64px; }
+    h1 { font-size:1.5rem; margin:0 0 4px; }
+    .sub { color:var(--muted); margin:0 0 24px; }
+    section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:16px; }
+    label { display:block; font-weight:600; margin-bottom:6px; }
+    textarea { width:100%; min-height:120px; padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; resize:vertical; }
+    input[type=file] { margin:12px 0; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 18px; font:inherit; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.5; cursor:wait; }
+    #error { color:var(--err); margin-top:12px; }
+    #result h2 { font-size:1.15rem; margin:0 0 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>귀찮음 주식회사</h1>
+  <p class="sub">공통 뼈대: 텍스트나 파일을 넣으면 AI가 분석해요.</p>
+
+  <section>
+    <form id="form">
+      <label for="text">텍스트</label>
+      <textarea id="text" placeholder="분석할 내용을 붙여넣어 주세요"></textarea>
+      <label for="files">파일 (이미지·PDF, 최대 10개)</label>
+      <input id="files" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" multiple>
+      <div><button id="run" type="submit">AI 분석</button></div>
+      <p id="error" role="alert"></p>
+    </form>
+  </section>
+
+  <section id="result" hidden aria-live="polite"></section>
+</main>
+
+<script>
+  // 큰 사진은 요청 크기를 줄이려고 긴 변 1600px JPEG로 줄인다.
+  async function toPart(file) {
+    if (file.type === 'application/pdf') {
+      return { mimeType: file.type, data: await readBase64(file) };
+    }
+    const img = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
+    return { mimeType: 'image/jpeg', data: await readBase64(blob) };
+  }
+
+  function readBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result.split(',')[1]);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  async function callAI(task, text, files) {
+    const res = await fetch(`/api/ai/${task}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, files: await Promise.all([...files].map(toPart)) }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `요청 실패 (${res.status})`);
+    return body;
+  }
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('error').textContent = '';
+    $('run').disabled = true;
+    $('run').textContent = '분석 중…';
+    try {
+      const r = await callAI('demo', $('text').value, $('files').files);
+      $('result').innerHTML = `<h2>${esc(r.title)}</h2><ul>${r.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>`;
+      $('result').hidden = false;
+    } catch (err) {
+      $('error').textContent = err.message;
+    } finally {
+      $('run').disabled = false;
+      $('run').textContent = 'AI 분석';
+    }
+  });
+</script>
+</body>
+</html>

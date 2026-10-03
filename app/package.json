@@ -1,0 +1,16 @@
+{
+  "name": "kaib-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env server.js",
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@google/genai": "^2.27.0",
+    "express": "^5.2.1"
+  }
+}
