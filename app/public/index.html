@@ -13,6 +13,10 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // GSAP 연출을 켜는 플래그. reduced-motion이면 켜지 않아 모든 요소가 처음부터 보인다.
+    if (!matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -157,5 +161,8 @@
   </footer>
 
   <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="gsap.js"></script>
 </body>
 </html>
