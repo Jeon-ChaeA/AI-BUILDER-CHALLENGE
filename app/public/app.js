@@ -62,9 +62,19 @@ function renderHero() {
     <li class="check" data-s="${k.s}" style="--i:${i}"${linkAttr(k)} tabindex="0">
       ${status(k.s)}<span class="name">${esc(k.name)}</span><span class="metric">${k.s === 'skip' ? '학과 확인' : metric(k)}</span>
     </li>`).join('');
-  $('heroSub').textContent = `${grad} 졸업 예정, 체크 ${diag.checks.length}개`;
+  // 졸업 리포트 카드: 수치는 모두 엔진 계산값. gsap.js가 jg:hero를 받아 링과 숫자를 움직인다.
+  const total = data.req.totalCredits.min, counted = diag.summary.counted;
+  const pct = Math.min(100, Math.round((counted / total) * 100));
   const f = diag.summary.failCount;
-  $('heroMerge').innerHTML = f ? `<strong>조치 필요 ${f}개</strong>만 해결하면 ${grad}에 졸업할 수 있어요.` : `지금 계획대로면 ${grad}에 졸업할 수 있어요.`;
+  $('heroBadge').textContent = `${grad} 졸업 가능`;
+  $('heroEarned').textContent = counted;
+  $('heroTotal').textContent = `/ ${total}학점`;
+  $('heroLeft').textContent = `${Math.max(0, total - counted)}학점`;
+  $('heroPct').textContent = pct;
+  $('heroFoot').innerHTML = f ? `딱 <strong>${f}개</strong>만 해결하면 돼요` : '손볼 것 없이 순조로워요';
+  const ring = document.querySelector('.rc-ring .prog');
+  if (ring) ring.style.strokeDashoffset = String(2 * Math.PI * 52 * (1 - pct / 100));
+  document.dispatchEvent(new CustomEvent('jg:hero', { detail: { pct, earned: counted } }));
 }
 
 // ---------- 이수내역 ----------
@@ -134,7 +144,7 @@ function renderLog() {
 function renderChecks() {
   const { checks } = state.diag;
   const n = (s) => checks.filter((k) => k.s === s).length;
-  $('checks-h').textContent = n('fail') ? `체크 ${checks.length}개 중 ${n('fail')}개는 지금 손봐야 해요` : `체크 ${checks.length}개 중 지금 손볼 것은 없어요`;
+  $('checks-h').innerHTML = n('fail') ? `체크 ${checks.length}개 중 <span class="num">${n('fail')}</span>개는 지금 손봐야 해요` : `체크 ${checks.length}개 중 지금 손볼 것은 없어요`;
   $('tally').innerHTML = `
     <span class="bad"><i class="ph-fill ph-x-circle"></i>조치 필요 ${n('fail')}</span>
     <span class="mid"><i class="ph ph-circle-dashed"></i>진행 중 ${n('pending')}</span>
@@ -244,15 +254,9 @@ function renderDates() {
   $('ics').disabled = !dates.length;
 }
 
+// .ics는 schedule.js(줄 접기·RFC 5545 이스케이프)가 만든다. 이유 문장은 진단에 맞춘 why를 쓴다.
 function downloadIcs() {
-  const ymd = (iso, plus = 0) => new Date(new Date(`${iso}T00:00Z`).getTime() + plus * DAY).toISOString().slice(0, 10).replaceAll('-', '');
-  const txt = (s) => String(s).replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, '\\n');
-  const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
-  const events = state.dates.map((d) => [
-    'BEGIN:VEVENT', `UID:${d.id}-${d.start}@jolupgak`, `DTSTAMP:${stamp}`,
-    `DTSTART;VALUE=DATE:${ymd(d.start)}`, `DTEND;VALUE=DATE:${ymd(d.end, 1)}`,
-    `SUMMARY:${txt(d.title)}`, `DESCRIPTION:${txt(d.why)}`, 'END:VEVENT'].join('\r\n'));
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//jolupgak//KO', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+  const ics = window.Schedule.buildIcs(state.dates.map((d) => ({ ...d, reason: d.why })));
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: '졸업각-마감일정.ics' });
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);

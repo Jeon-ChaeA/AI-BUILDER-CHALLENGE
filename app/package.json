@@ -6,13 +6,18 @@
     "dev": "node --watch --env-file-if-exists=.env server.js",
     "start": "node --env-file-if-exists=.env server.js",
     "validate:data": "node scripts/validate-data.mjs",
-    "test": "node --test"
+    "test": "node --test test/*.test.js",
+    "test:schedule": "node scripts/test-schedule.mjs",
+    "test:roadmap": "node scripts/test-roadmap.mjs",
+    "test:sample": "node scripts/test-sample.mjs"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
     "@google/genai": "^2.27.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
     "express": "^5.2.1"
   }
 }

@@ -2,6 +2,7 @@ import express from 'express';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import authRouter, { withUser } from './auth.js';
 import {
   AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, termSem, termLabel, consultFacts,
 } from './public/engine.js';
@@ -166,6 +167,8 @@ app.disable('x-powered-by');
 // 앞단 리버스 프록시 한 단계만 믿는다. 프록시가 X-Forwarded-For를 덧붙여야 IP별 제한이 제대로 걸린다.
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '15mb' }));
+app.use(withUser);                     // 로그인 사용자를 req.user에 싣는다
+app.use('/api/auth', authRouter);      // 회원가입/로그인 라우트
 app.use(express.static(fileURLToPath(new URL('./public', import.meta.url))));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, model: MODEL }));
