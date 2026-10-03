@@ -1,12 +1,11 @@
-// 다크 모드 토글. 저장한 선택이 있으면 그걸, 없으면 기기 설정을 따른다.
+// 다크 모드 토글. 저장한 선택이 있으면 그걸, 없으면 라이트로 시작한다(모든 페이지 같은 규칙).
 // 화면이 그려지기 전에 적용하려고 <head>에서 동기로 불러온다. 버튼은 #themeToggle.
 (() => {
   const KEY = 'jg.theme';
   const root = document.documentElement;
   try {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'light' || saved === 'dark') root.dataset.theme = saved;
-  } catch { /* 저장소가 막혀 있으면 기기 설정을 따른다 */ }
+    root.dataset.theme = localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light';
+  } catch { root.dataset.theme = 'light'; /* 저장소가 막혀 있으면 라이트 */ }
 
   const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
   const paint = (btn) => {

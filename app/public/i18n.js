@@ -25,8 +25,6 @@
     ['#heroBadge', 'On track to graduate · Feb 2028'],
     ['.rc-who', 'Kim Kookmin so far'], ['.rc-big span', '/ 136 credits'], ['.rc-left', 'Only 52 credits left to graduate'],
     ['#heroFoot', 'Just 1 requirement left to resolve'],
-    ['#log .sec-lede', '32 courses across 5 semesters. One F grade is excluded from earned credits.'],
-    ['#logLede', 'Courses completed, credits earned, and your semester-by-semester transcript.'],
     ['#rerun', 'Run diagnosis again'], ['.log-actions .muted', 'Select a cell to correct credits or course type, then run the diagnosis again.'],
     ['#ics', 'Add to calendar (.ics)'],
     ['#traceBox summary', 'AI plan verification details'], ['.replan .field-label', 'Want to try a different plan?'],
