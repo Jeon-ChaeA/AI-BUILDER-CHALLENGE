@@ -34,7 +34,7 @@ Graduation requirements are scattered: the department homepage has them by admis
 
 ## Operating Context
 
-- Input is a capture image (PNG, JPG, WEBP) or text pasted from ON국민. There is no login, and the student's school account is never used.
+- Input is a capture image (PNG, JPG, WEBP) or text pasted from ON국민. Login is optional (email sign-up, FR-11) and every feature works without it. The student's school account is never used.
 - Demo scope is fixed to 소프트웨어학부, 2023 admission year.
 - A sample student ('김국민', synthetic) lets anyone try every feature without their own data.
 - The first diagnosis per browser is free. After that a one-semester pass costs 9,900원, paid through a test payment with no real charge.
@@ -43,11 +43,12 @@ Graduation requirements are scattered: the department homepage has them by admis
 
 ## Capabilities and Constraints
 
-- Features: FR-01 to FR-10 in `PRD.md`.
+- Features: FR-01 to FR-11 in `PRD.md`.
   - Required: input and course table, requirement diagnosis with warnings and sources, remaining-semester roadmap, personalized deadlines with .ics, free trial with hard paywall.
-  - Optional: editing the table and re-running the diagnosis, printable report, a roadmap that follows the student's written wishes, a visible AI-draft → code-check → revision log, and an AI-written inquiry email and advisor questions built only from facts the code extracted.
+  - Optional: editing the table and re-running the diagnosis, printable report, a roadmap that follows the student's written wishes, a visible AI-draft → code-check → revision log, and an AI-written inquiry email and advisor questions built only from facts the code extracted, and optional email sign-up and login.
 - Out of scope:
-  - login and real payment
+  - real payment
+  - saving diagnosis history for logged-in users
   - automatic ON국민 scraping
   - other departments or admission years
   - double majors and transfers
@@ -75,6 +76,6 @@ Graduation requirements are scattered: the department homepage has them by admis
 
 1. Code judges, AI assists. Never present an AI guess as a graduation verdict.
 2. Show the source. Every warning carries the requirement's original sentence and a link.
-3. Ask for nothing beyond the grades: no login, no school password, no stored transcripts.
+3. Ask for nothing beyond the grades: no required login, no school password, no stored transcripts.
 4. Every feature is reachable from the sample student in one click, so anyone, including an evaluator, can see the whole product.
 5. Tell the student what to do next, not just what is wrong.
