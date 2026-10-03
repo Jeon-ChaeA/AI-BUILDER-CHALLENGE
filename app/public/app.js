@@ -22,7 +22,8 @@ const trialUsed = () => store.get('jg.trialUsed') === '1';
 
 function renderTrial() {
   const pass = hasPass(), used = trialUsed();
-  $('trialText').textContent = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
+  // 좁은 화면에서는 날짜(.until)를 숨겨 상단바가 넘치지 않게 한다.
+  $('trialText').innerHTML = pass ? `이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
   $('trial').classList.toggle('used', used && !pass);
   $('trial').classList.toggle('pass', pass);
   // 요금 섹션 버튼도 같은 상태를 보여 준다.

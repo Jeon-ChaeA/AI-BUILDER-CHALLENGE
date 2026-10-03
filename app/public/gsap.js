@@ -10,6 +10,9 @@
 
   const { gsap } = window;
   gsap.registerPlugin(ScrollTrigger);
+  // 탭이 뒤에 있거나 화면 갱신이 느린 환경에서도 연출이 제 시간에 끝나게 한다.
+  // (기본값은 프레임이 밀리면 시간을 33ms씩만 진행시켜서, 요소가 반투명한 채로 오래 남는다.)
+  gsap.ticker.lagSmoothing(0);
   const E = 'power2.out';
 
   // 숫자 카운트업
@@ -23,11 +26,12 @@
 
   // 1) 첫 화면 로드 시퀀스
   gsap.set(['.hero h1', '.lede', '.intake', '.pr'], { y: 16 });
-  gsap.timeline({ defaults: { duration: 0.6, ease: E } })
+  const intro = gsap.timeline({ defaults: { duration: 0.6, ease: E } })
     .to('.hero h1', { opacity: 1, y: 0 })
     .to('.lede', { opacity: 1, y: 0 }, '-=0.42')
     .to('.intake', { opacity: 1, y: 0 }, '-=0.42')
     .to('.pr', { opacity: 1, y: 0 }, '-=0.50');
+  setTimeout(() => intro.progress(1), 2500); // 프레임이 아예 안 돌아도 첫 화면은 반드시 보이게
 
   // 2) 리포트 카드: 진행률 링이 차고 숫자가 올라온다. 수치는 app.js가 계산해 jg:hero로 보낸다.
   document.addEventListener('jg:hero', ({ detail: { pct: p, earned: e } }) => {

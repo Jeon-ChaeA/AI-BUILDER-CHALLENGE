@@ -443,7 +443,7 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
   .brand-logo { width: 92px; }
   .top-actions { gap: 6px; }
   .trial, .top-login { padding: 8px 11px; font-size: .8125rem; }
-  .trial > i { display: none; }
+  .trial > i, .trial .until { display: none; }
   .sec { padding: 52px 0; }
   .btn-primary[type="submit"] { width: 100%; }
   .tabs label i { display: none; }
@@ -770,4 +770,12 @@ a.btn, a.btn:hover { text-decoration: none; }
 @media (max-width: 640px) {
   .why-list li, .plan { padding: 16px; }
   .plan .price b { font-size: 1.5rem; }
+}
+
+/* 비교표: 좁은 화면에서는 가로로 넘기되, 항목 이름 칸은 왼쪽에 붙여 둔다. */
+.compare tbody th, .compare thead th:first-child { position: sticky; left: 0; background: var(--surface); }
+@media (max-width: 640px) {
+  .compare { min-width: 500px; font-size: .8125rem; }
+  .compare th, .compare td { padding: 10px 8px; }
+  .compare tbody th { max-width: 150px; }
 }
