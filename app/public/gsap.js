@@ -59,7 +59,6 @@
   reveal('.grass-card');
   reveal('.verified li', 0.06);
   reveal('.full .check', 0.06);
-  reveal('.date', 0.08);
   reveal('.report');
 
   // 4) 졸업까지의 계획 노드가 선을 따라 올라온다
@@ -69,11 +68,23 @@
     scrollTrigger: { trigger: '#branch', start: 'top 78%' },
   });
 
-  // 5) 마감 D-day 카운트업
-  document.querySelectorAll('.dday').forEach((el) => {
-    const m = el.textContent.match(/D-(\d+)/);
-    if (!m) return;
-    el.textContent = 'D-0';
-    countTo(el, +m[1], { prefix: 'D-', dur: 1, scroll: true });
-  });
+  // 5) 마감 일정은 calendar.json을 받은 뒤(비동기) 그려지므로, 채워진 다음에 연출한다
+  function animateDates() {
+    reveal('.date', 0.08);
+    document.querySelectorAll('.dday').forEach((el) => {
+      const m = el.textContent.match(/D-(\d+)/);
+      if (!m) return;
+      el.textContent = 'D-0';
+      countTo(el, +m[1], { prefix: 'D-', dur: 1, scroll: true });
+    });
+    ScrollTrigger.refresh(); // 날짜가 들어와 높이가 바뀌었으니 트리거 위치 갱신
+  }
+  const dateList = document.getElementById('dateList');
+  if (dateList && dateList.children.length) animateDates();
+  else if (dateList) {
+    const mo = new MutationObserver(() => {
+      if (dateList.children.length) { mo.disconnect(); animateDates(); }
+    });
+    mo.observe(dateList, { childList: true });
+  }
 })();
