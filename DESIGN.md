@@ -54,7 +54,7 @@
 | `.flow` `.flow-steps li[data-step]` | 진단 진행판(성적 인식·졸업요건 판정·남은 학기 계획·계획 검증, 단계별 소요 시간) |
 | `.intake` `.tabs` | 입력 카드 + 세그먼트 탭(radio + `:has()`, JS 없음) |
 | `.pr` `.rc-top` `.rc-ring` `.rc-big` `.cap-illu` `.rc-foot` | 졸업 리포트 카드(링·수치·졸업모 일러스트) |
-| `.step` | 섹션 번호 마커(01~04) |
+| `.step` | 섹션 번호 마커(01~05) |
 | `.checks` `.check[data-s]` `.full`/`.compact` | 체크. 상태색 `--c` 주입, full은 좌측 레일 카드 |
 | `.grass` `.cell.l1/l2/l3/f/now` | 학점 지도(잔디) |
 | `.term` `.course-table` | 학기 이수내역 아코디언(`<details>`) |

@@ -194,8 +194,10 @@ function renderPlan() {
     : 'AI 계획을 쓰지 못해서 기본 계획을 보여 드려요. 일부 요건은 이 계획으로 채우지 못하니 학과 사무실과 꼭 상의하세요.';
   $('verified').hidden = source === 'done' || (source === 'fallback' && !state.fallbackOk);
 
-  // AI 요약과 희망 사항
-  const wish = state.wishes ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>` : '';
+  // AI 요약과 희망 사항. 기본 계획은 희망을 읽지 않으니 '반영했다'고 쓰지 않는다.
+  const wish = !state.wishes || source === 'done' ? ''
+    : source === 'ai' ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>`
+    : `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>기본 계획에는 희망 사항(“${esc(state.wishes)}”)을 반영하지 못했어요. 아래 'AI로 다시 짜기'로 다시 시도해 보세요.</p>`;
   $('planSummary').innerHTML = state.summary ? `<p><i class="ph-fill ph-sparkle"></i>${esc(state.summary)}</p>${wish}` : wish;
   $('planSummary').hidden = !state.summary && !wish;
 
