@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "node --watch --env-file-if-exists=.env server.js",
     "start": "node --env-file-if-exists=.env server.js",
-    "validate:data": "node scripts/validate-data.mjs"
+    "validate:data": "node scripts/validate-data.mjs",
+    "test:schedule": "node scripts/test-schedule.mjs",
+    "test:roadmap": "node scripts/test-roadmap.mjs",
+    "test:sample": "node scripts/test-sample.mjs"
   },
   "engines": {
     "node": ">=22"
