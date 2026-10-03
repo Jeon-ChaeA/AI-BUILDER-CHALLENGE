@@ -87,7 +87,7 @@
     "count": 15,
     "items": [
       { "code": "1143704", "name": "소프트웨어적사고", "credits": 3, "year": 1, "semester": 1, "category": "전공필수", "aliases": ["과학과소프트웨어적사고", "프로그래밍기초", "소프트웨어적 사고"] },
-      { "code": "1324404", "name": "소프트웨어프로젝트Ⅰ", "credits": 3, "year": 1, "semester": 1, "category": "전공필수", "aliases": ["소프트웨어프로젝트I", "소프트웨어프로젝트 1", "소프트웨어 프로젝트Ⅰ"] },
+      { "code": "1324404", "name": "소프트웨어프로젝트Ⅰ", "credits": 3, "year": 1, "semester": 1, "category": "전공필수", "aliases": ["소프트웨어프로젝트I", "소프트웨어프로젝트 I", "소프트웨어프로젝트 1", "소프트웨어 프로젝트Ⅰ"] },
       { "code": "0367203", "name": "S-TEAM Class", "credits": 1, "year": 1, "semester": 1, "category": "전공필수", "oneOf": "S-TEAM_OR_사제동행", "aliases": ["S-TEAM", "STEAM Class", "S-TEAM CLASS"] },
       { "code": "015680H", "name": "객체지향프로그래밍", "credits": 3, "year": 1, "semester": 2, "category": "전공필수", "aliases": ["객체지향 프로그래밍"] },
       { "code": "0156205", "name": "응용통계학", "credits": 3, "year": 1, "semester": 2, "category": "전공필수", "aliases": [] },
@@ -118,11 +118,12 @@
   "foundationLiberalArts": {
     "_comment": "기초교양 지정 3과목. 대체 코드가 여럿인 과목은 codes 중 하나면 이수로 본다.",
     "items": [
-      { "name": "English Conversation", "codes": ["001020", "036370", "132760"], "credits": 2, "aliases": ["English Conversation Ⅰ", "English Conversation Ⅱ", "English Conversation Advanced", "English Conversation I", "English Conversation II"] },
-      { "name": "글쓰기", "codes": ["000200"], "credits": 3, "aliases": [] },
-      { "name": "College English", "codes": ["000540", "036360"], "credits": 2, "aliases": ["College English Ⅰ", "College English Ⅱ", "College English I", "College English II"] }
+      { "name": "English Conversation", "codes": ["001020", "036370", "132760"], "credits": 2, "aliases": ["English Conversation Ⅰ", "English Conversation Ⅱ", "English Conversation Advanced", "English Conversation I", "English Conversation II", "English Conversation (Advanced)", "English Conversation I(ABEEK)"] },
+      { "name": "글쓰기", "codes": ["000200"], "credits": 3, "aliases": ["글쓰기(공학인증)"] },
+      { "name": "College English", "codes": ["000540", "036360"], "credits": 2, "aliases": ["College English Ⅰ", "College English Ⅱ", "College English I", "College English II", "College English I(ABEEK)"] }
     ],
-    "_note": "원문 표에는 코드가 6자리(예: 001020)로 적혀 있다. 7자리 앞 5자리 규칙은 코드가 7자리일 때 적용하고, 6자리 코드는 완전 일치로 비교한다.",
+    "_note": "졸업요건표에는 코드가 6자리(예: 001020)로 적혀 있지만 ON국민 성적 화면에는 7자리로 나온다(예: 글쓰기 000200D, English Conversation 001020E, College English 000540C). 끝의 영문자는 공학인증(ABEEK) 분반 등을 나타내는 것으로 보인다. 따라서 기초교양도 코드의 앞 5자리가 같은지로 비교한다(00020, 00102, 00054 등). 과목명 끝에 붙는 '(공학인증)', '(ABEEK)'는 비교 전에 지운다.",
+    "matchPrefixLength": 5,
     "evidence": { "quote": "기초교양 지정 3과목 모두 이수 (English Conversation Ⅰ/Ⅱ/Advanced 2학점, 글쓰기 3학점, College English Ⅰ/Ⅱ 2학점)", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
   },
 
@@ -180,6 +181,8 @@
     "maxRetakesTotal": 8,
     "fExcludedFromRetakeCount": true,
     "transcriptMarker": "기존에 취득한 성적은 해당 학기 성적에 [R]로 표기된다. [R] 행은 학점과 평점 계산에서 제외한다.",
+    "markerStatus": "unverified",
+    "dedupFallback": "실제 성적 화면에서 [R] 표기가 어떻게 나오는지 확인하지 못했다. 표기에 의존하지 않도록, 같은 과목(코드 앞 5자리 또는 정규화한 과목명)이 여러 학기에 나오면 가장 최근 학기의 행만 학점·평점에 넣고 이전 행은 '재수강 전 성적'으로 제외한다. 등급이 R이거나 과목명·등급 칸에 [R]이 보이는 행도 제외한다.",
     "evidence": { "quote": "재수강을 할 경우 기존의 성적은 삭제되고, 재수강으로 이수한 성적이 최종적으로 남게 됨 / 이미 취득한 교과목의 성적이 C+ 이하인 경우에만 재수강할 수 있으며, 재수강성적은 A0를 초과하여 취득할 수 없음", "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/4/10459/view.do?currentPageNo=1" }
   },
 
