@@ -1,4 +1,5 @@
-// FR-04 학사 일정: calendar.json 이벤트를 진단 결과(trigger)로 거르고, D-day와 .ics를 만든다.
+// FR-04 학사 일정: .ics를 만든다(buildIcs). 화면의 일정 고르기와 이유 문장은 engine.js pickDates가 한다.
+// upcoming·daysLeft는 calendar.json의 trigger 규칙을 scripts/test-schedule.mjs로 검사하는 기준 구현이다.
 // 일반 <script>로 불러서 window.Schedule을 노출한다. DOM을 건드리지 않는 순수 함수라 Node에서도 테스트한다.
 // 규칙은 docs/DATA.md의 일정 항목 기준: end는 마지막 날 포함, DTEND는 end+1일, 지난 일정(end<오늘)은 제외.
 (() => {
