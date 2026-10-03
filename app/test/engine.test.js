@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  diagnose, verifyPlan, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa,
+  diagnose, verifyPlan, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan,
 } from '../public/engine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8'));
@@ -165,4 +165,16 @@ test('학기와 조사 도우미', () => {
   assert.equal(termNow(new Date('2027-03-02')), '2027-1');
   assert.equal(josa('컴퓨터네트워크', '이/가'), '컴퓨터네트워크가');
   assert.equal(josa('알고리즘', '을/를'), '알고리즘을');
+});
+
+test('tidyPlan은 AI 계획의 과목명·학점을 교육과정에 맞추고 재수강을 표시한다', () => {
+  const plan = tidyPlan([{ term: '2027-1', why: 'x', courses: [
+    { name: '컴퓨터 네트워크', credits: 2, category: '전공필수' },
+    { name: '핵심교양 (창의)', credits: 3, category: '핵심교양', area: '창의', generic: true },
+    { name: '모르는과목', credits: 3, category: '전공선택' },
+  ] }, 'garbage'], sample, ctx, data);
+  assert.deepEqual(plan[0].courses[0], { name: '컴퓨터네트워크', credits: 3, category: '전공선택', kind: 'retake' });
+  assert.equal(plan[0].courses[1].generic, true);
+  assert.equal(plan[0].courses[2].name, '모르는과목');
+  assert.deepEqual(plan[1], { term: '', why: '', courses: [] });
 });

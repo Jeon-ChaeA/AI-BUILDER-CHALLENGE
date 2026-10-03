@@ -418,6 +418,28 @@ function simulate(plan, courses, ctx, data) {
   return diagnose([...withProgDone(courses), ...added], { ordinal: ctx.ordinal + plan.length, termNow: last }, data);
 }
 
+// AI가 준 계획을 교육과정 표기·학점으로 맞추고 필수·재수강 표시를 붙인다. 검증은 verifyPlan이 한다.
+export function tidyPlan(plan, courses, ctx, data) {
+  const P = prep(data);
+  const A = analyze(courses, ctx, data);
+  const states = [...A.reqStates, ...A.basicStates];
+  return (Array.isArray(plan) ? plan : []).slice(0, 8).map((p) => ({
+    term: String(p?.term ?? ''),
+    why: String(p?.why ?? '').slice(0, 300),
+    courses: (Array.isArray(p?.courses) ? p.courses : []).slice(0, 12).map((c) => {
+      const cat = !c?.generic && P.catalog.find((m) => m.keys.has(nameKey(c?.name)));
+      if (!cat) {
+        return { name: String(c?.name ?? '').slice(0, 40), credits: Number(c?.credits) || 0, category: String(c?.category ?? ''),
+          ...(c?.generic ? { generic: true } : {}), ...(AREAS.includes(c?.area) ? { area: c.area } : {}) };
+      }
+      const out = { name: cat.name, credits: cat.credits, category: cat.category === '기초교양' ? '기초교양' : '전공선택' };
+      const st = states.find((x) => x.g.members.some((m) => m.name === cat.name));
+      if (st && st.st !== 'done' && st.st !== 'prog') out.kind = st.st === 'failed' ? 'retake' : 'req';
+      return out;
+    }),
+  }));
+}
+
 export function verifyPlan(plan, courses, ctx, data) {
   const P = prep(data);
   const errs = [];
