@@ -1,0 +1,128 @@
+{
+  "_comment": "국민대 2026학년도 2학기 ~ 2027학년도 1학기 학사일정 중 졸업각이 쓰는 항목. start/end는 YYYY-MM-DD이고 end는 마지막 날을 포함한다(하루짜리는 start와 end가 같다). 이미 지난 일정을 빼는 것은 코드의 일이므로 데이터에서는 빼지 않는다. .ics는 종일 일정이라 DTEND를 end 다음 날로 써야 한다.",
+  "id": "kmu-2026-2",
+  "verifiedAt": "2026-10-03",
+  "source": {
+    "title": "국민대학교 2026학년도 학사일정 (학부)",
+    "url": "https://www.kookmin.ac.kr/user/scGuid/scSchedule/index.do",
+    "mirror": "https://cms.kookmin.ac.kr/paap/academic/undergrad01.do",
+    "note": "공식 학사일정과 행정학과 사이트의 표를 대조했다. 성적 이의신청/정정 종료일은 행정학과 표(12-26)와 공식 학사일정(12-28)이 달라 공식 값을 썼다. 요일 표기는 출처마다 틀린 곳이 있어 옮기지 않고 날짜만 썼다. 2027년 3월 일정(개강, 수강정정)은 아직 공지되지 않았다. 졸업 사정 일정은 research_notes/졸업각 데이터/calendar.md §3(작년 기준) 참고."
+  },
+  "triggers": {
+    "hasCreditShortage": "졸업까지 부족한 학점이 있음 (계절학기로 채울 수 있음)",
+    "hasNextSemesterCourses": "로드맵에 다음 학기에 수강할 과목이 있음",
+    "isGraduatingSemester": "졸업 학기임 (남은 정규 학기가 1개 이하)",
+    "always": "모든 진단 결과에 표시",
+    "none": "MVP에서는 표시하지 않음 (참고용으로만 보관)"
+  },
+  "events": [
+    {
+      "id": "winter-session-apply",
+      "title": "동계 계절학기 수강신청",
+      "start": "2026-11-24",
+      "end": "2026-11-26",
+      "type": "apply",
+      "trigger": "hasCreditShortage",
+      "reason": "부족한 학점을 동계 계절학기로 채울 수 있어요."
+    },
+    {
+      "id": "winter-session-register",
+      "title": "동계 계절학기 등록 기간",
+      "start": "2026-12-01",
+      "end": "2026-12-03",
+      "type": "register",
+      "trigger": "hasCreditShortage",
+      "reason": "수강신청만 하고 등록하지 않으면 계절학기를 들을 수 없어요."
+    },
+    {
+      "id": "winter-session-class",
+      "title": "동계 계절학기 수업 기간",
+      "start": "2026-12-22",
+      "end": "2027-01-13",
+      "type": "info",
+      "trigger": "hasCreditShortage",
+      "reason": "계절학기로 채울 학점이 있어요. 수업 기간을 미리 확인하세요."
+    },
+    {
+      "id": "grade-publish-2-2026",
+      "title": "2학기 성적 공시 기간",
+      "start": "2026-12-15",
+      "end": "2026-12-28",
+      "type": "grade",
+      "trigger": "always",
+      "reason": "이번 학기 성적이 졸업 학점과 평점에 반영돼요. 공시되면 이수내역을 다시 진단해 보세요."
+    },
+    {
+      "id": "grade-appeal-2-2026",
+      "title": "2학기 성적 이의신청/정정 기간",
+      "start": "2026-12-23",
+      "end": "2026-12-28",
+      "type": "grade",
+      "trigger": "always",
+      "reason": "성적이 잘못 입력됐다면 이 기간에만 정정을 요청할 수 있어요."
+    },
+    {
+      "id": "enroll-2027-1",
+      "title": "2027학년도 1학기 수강신청 기간",
+      "start": "2027-02-11",
+      "end": "2027-02-24",
+      "type": "apply",
+      "trigger": "hasNextSemesterCourses",
+      "reason": "로드맵에서 다음 학기에 추천한 과목을 이 기간에 신청해야 해요."
+    },
+    {
+      "id": "register-2027-1",
+      "title": "2027학년도 1학기 등록 기간",
+      "start": "2027-02-22",
+      "end": "2027-02-26",
+      "type": "register",
+      "trigger": "hasNextSemesterCourses",
+      "reason": "등록을 마쳐야 신청한 과목을 정상적으로 수강할 수 있어요."
+    },
+    {
+      "id": "graduation-ceremony-2026-early",
+      "title": "2026학년도 전기 학위수여식",
+      "start": "2027-02-17",
+      "end": "2027-02-17",
+      "type": "ceremony",
+      "trigger": "isGraduatingSemester",
+      "reason": "졸업 학기라면 이 학위수여식이 졸업 기준일이에요."
+    },
+    {
+      "id": "major-change-apply-2026-2",
+      "title": "1전공 신청/변경 및 다전공 신청 기간",
+      "start": "2026-10-13",
+      "end": "2026-10-16",
+      "type": "apply",
+      "trigger": "none",
+      "reason": "다전공·전공 변경은 이번 서비스 범위 밖이에요."
+    },
+    {
+      "id": "midterm-2-2026",
+      "title": "2학기 중간시험 기간",
+      "start": "2026-10-20",
+      "end": "2026-10-26",
+      "type": "info",
+      "trigger": "none",
+      "reason": "신청 마감이 아니라서 표시하지 않아요."
+    },
+    {
+      "id": "final-exam-2-2026",
+      "title": "2학기 기말시험 기간",
+      "start": "2026-12-08",
+      "end": "2026-12-14",
+      "type": "info",
+      "trigger": "none",
+      "reason": "신청 마감이 아니라서 표시하지 않아요."
+    },
+    {
+      "id": "leave-return-apply-2027-1",
+      "title": "2027학년도 1학기 휴·복학, 유급 신청 기간",
+      "start": "2027-01-04",
+      "end": "2027-01-22",
+      "type": "apply",
+      "trigger": "none",
+      "reason": "휴·복학은 이번 서비스 범위 밖이에요."
+    }
+  ]
+}
