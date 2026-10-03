@@ -124,21 +124,21 @@ function renderLog() {
     return `
     <details class="term"${t === lastDone || prog ? ' open' : ''}>
       <summary><i class="ph ph-caret-right chev"></i><strong>${y}년 ${/^\d$/.test(s) ? `${s}학기` : `${s} 계절학기`}</strong><span class="grow mono muted">${t}</span><span class="num">${prog ? `${load(recs)}학점 수강 중` : `${earned}학점`}</span></summary>
-      <div class="tscroll"><table class="course-table">
-        <thead><tr><th>과목명</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
-        <tbody>${recs.map((r) => {
+      <div class="tscroll"><table class="course-table" role="table">
+        <thead role="rowgroup"><tr role="row"><th role="columnheader">과목명</th><th role="columnheader">학점</th><th role="columnheader">이수구분</th><th role="columnheader">성적</th><th role="columnheader"><span class="sr-only">삭제</span></th></tr></thead>
+        <tbody role="rowgroup">${recs.map((r) => {
           const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
               <option value="">영역 모름</option>${E.AREAS.map((a) => `<option${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
           const cls = [r.gi.kind === 'fail' && !r.superseded ? 'is-f' : '', r.superseded ? 'is-old' : ''].join(' ').trim();
           return `
-          <tr data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
-            <td>${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
-            <td><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
-            <td><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
-            <td class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
+          <tr role="row" data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
+            <td role="cell" class="c-name">${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
+            <td role="cell" class="c-cr"><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
+            <td role="cell" class="c-cat"><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
+            <td role="cell" class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
               ${[...(keepRaw(r) ? [r.grade] : []), ...E.GRADES, ''].map((g) => `<option value="${esc(g)}"${(r.gi.kind === 'prog' ? '' : keepRaw(r) ? r.grade : r.gi.g) === g ? ' selected' : ''}>${g === '' ? '수강 중' : esc(g)}${keepRaw(r) && g === r.grade ? (r.gi.kind === 'void' ? ' (제외)' : ' (읽지 못함)') : ''}</option>`).join('')}
             </select></td>
-            <td><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
+            <td role="cell" class="c-del"><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
           </tr>`;
         }).join('')}</tbody>
       </table></div>
