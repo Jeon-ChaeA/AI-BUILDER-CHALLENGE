@@ -204,11 +204,11 @@
     });
   }
 
-  function applyLocale(locale) {
+  function applyLocale(locale, save = false) {
     const previousLocale = root.dataset.locale;
     root.dataset.locale = locale;
     root.lang = locale;
-    try { localStorage.setItem('jg.locale', locale); } catch {}
+    if (save) try { localStorage.setItem('jg.locale', locale); } catch {}
     document.title = locale === 'en' ? 'GraduationGak · Graduation planner' : '졸업각';
     document.querySelector('meta[name="description"]').content = locale === 'en'
       ? 'Check Kookmin University Software major graduation requirements, plan your next semesters, and track deadlines.'
@@ -284,7 +284,7 @@
   }
 
   applyLocale(root.dataset.locale === 'en' ? 'en' : 'ko');
-  document.querySelector('#localeToggle').addEventListener('click', () => applyLocale(root.dataset.locale === 'ko' ? 'en' : 'ko'));
+  document.querySelector('#localeToggle').addEventListener('click', () => applyLocale(root.dataset.locale === 'ko' ? 'en' : 'ko', true));
 
   let installPrompt;
   const installButton = document.querySelector('#pwaInstall');

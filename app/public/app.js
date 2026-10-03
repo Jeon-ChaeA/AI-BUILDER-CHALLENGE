@@ -160,7 +160,7 @@ function renderChecks() {
     <span class="ok"><i class="ph-fill ph-check-circle"></i>통과 ${n('pass')}</span>
     <span class="mid"><i class="ph ph-minus-circle"></i>학과 확인 ${n('skip')}</span>`;
   $('fullChecks').innerHTML = checks.map((k, i) => {
-    const gap = typeof k.have === 'number' && k.have < k.need ? `${k.need - k.have}${k.unit} 부족` : LABEL[k.s];
+    const gap = typeof k.have === 'number' && k.have < k.need ? `${LABEL[k.s]} · ${k.need - k.have}${k.unit} 부족` : LABEL[k.s];
     return `
     <li class="check" data-s="${k.s}" style="--i:${i}"${linkAttr(k)}>
       <details${k.s === 'fail' ? ' open' : ''}>
@@ -435,7 +435,7 @@ async function analyze(notice = '') {
   document.dispatchEvent(new CustomEvent('jg:render'));
 }
 
-async function diagnoseNow() {
+async function diagnoseNow(paidNotice = '') {
   const src = document.querySelector('input[name="src"]:checked').value;
   setBusy(true);
   try {
@@ -463,7 +463,7 @@ async function diagnoseNow() {
       notice = 'AI 인식이 실패해서 미리 읽어 둔 샘플 결과로 보여 드려요.';
     }
     state.ctx = src === 'sample' ? SAMPLE_CTX : { ordinal: (+$('year').value - 1) * 2 + +$('term').value, termNow: E.termNow() };
-    await analyze(notice);
+    await analyze([paidNotice, notice].filter(Boolean).join(' '));
     if (!hasPass()) store.set('jg.trialUsed', '1');
     renderTrial();
     await sleep(700); // 끝난 진행판을 잠깐 보여 주고 결과로 넘어간다
@@ -479,6 +479,7 @@ async function diagnoseNow() {
 let diagnoseAfterPay = false;
 function openPaywall(thenDiagnose) {
   diagnoseAfterPay = thenDiagnose;
+  $('paywall').querySelector('.tag').textContent = trialUsed() ? '무료 체험을 다 썼어요' : '첫 진단은 무료예요';
   $('paywall').returnValue = '';
   $('paywall').showModal();
 }
@@ -496,8 +497,9 @@ $('paywall').addEventListener('close', () => {
   if ($('paywall').returnValue !== 'pay') return;
   store.set('jg.passUntil', PASS_UNTIL);
   renderTrial();
-  setStatus('info', `테스트 결제가 끝났어요. ${PASS_UNTIL}까지 이용권을 쓸 수 있어요.`);
-  if (diagnoseAfterPay) diagnoseNow();
+  const paid = `테스트 결제가 끝났어요. ${PASS_UNTIL}까지 이용권을 쓸 수 있어요.`;
+  setStatus('info', paid);
+  if (diagnoseAfterPay) diagnoseNow(paid);
 });
 
 $('rerun').addEventListener('click', async () => {

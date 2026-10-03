@@ -1,9 +1,9 @@
-// 졸업각 서버. 정적 화면(public/)과 AI 호출 API 네 개를 한 프로세스로 띄운다.
+// 졸업각 서버. 정적 화면(public/)과 API(상태 확인 1, AI 호출 3, 선택 기능인 로그인)를 한 프로세스로 띄운다.
 //
 //   GET  /api/health    살아 있는지, 어떤 Gemini 모델을 쓰는지
 //   POST /api/parse     성적 캡처(이미지 최대 5장) 또는 붙여넣은 텍스트 → 과목 표   (PRD FR-01)
-//   POST /api/roadmap   과목 표 + 희망 사항 → AI 수강 로드맵 + 검증 기록(trace)     (PRD FR-06)
-//   POST /api/consult   진단 결과 → 학과에 물어볼 질문과 문의 메일 초안             (PRD FR-08)
+//   POST /api/roadmap   과목 표 + 희망 사항 → AI 수강 로드맵 + 검증 기록(trace)     (PRD FR-03·08·09)
+//   POST /api/consult   진단 결과 → 학과에 물어볼 질문과 문의 메일 초안             (PRD FR-10)
 //   /api/auth/*         선택 기능인 회원가입·로그인 (auth.js, PRD FR-11)
 //
 // 원칙: 판정은 코드가, AI는 보조. 졸업요건 판정은 public/engine.js의 순수 함수가 하고(브라우저와 같은 코드),
@@ -288,7 +288,7 @@ const CONSULT_SCHEMA = {
   properties: {
     subject: { type: 'string' },
     body: { type: 'string' },
-    questions: { type: 'array', items: { type: 'string' } },
+    questions: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 6 },
   },
   required: ['subject', 'body', 'questions'],
 };
@@ -318,6 +318,9 @@ app.post('/api/consult', limit, json('256kb'), async (req, res) => {
     res.status(502).json({ error: 'AI가 메일을 쓰지 못했어요. 잠시 후 다시 시도해 주세요.' });
   }
 });
+
+// 없는 API 주소도 HTML 대신 JSON 오류로 답한다.
+app.use('/api', (_req, res) => res.status(404).json({ error: '없는 API 주소예요.' }));
 
 // 깨진 JSON 같은 요청 오류에 스택 대신 짧은 문장을 준다.
 app.use((err, _req, res, _next) => {
