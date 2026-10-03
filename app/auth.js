@@ -1,4 +1,5 @@
-
+// 회원가입·로그인(선택 기능 FR-11). 진단(FR-01~10)은 로그인 없이 쓸 수 있다.
+// 세션은 무작위 32바이트 id를 httpOnly 쿠키 sid에 담고, 서버 SQLite에 만료 시각과 함께 둔다(30일).
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { randomBytes } from 'node:crypto';

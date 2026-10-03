@@ -25,6 +25,9 @@ function renderTrial() {
   $('trialText').textContent = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
   $('trial').classList.toggle('used', used && !pass);
   $('trial').classList.toggle('pass', pass);
+  // 요금 섹션 버튼도 같은 상태를 보여 준다.
+  $('buyPass').disabled = pass;
+  $('buyPass').innerHTML = pass ? `<i class="ph ph-check-circle"></i>이용권 사용 중 · ${esc(store.get('jg.passUntil'))}까지` : '<i class="ph ph-credit-card"></i>이용권 테스트 결제';
 }
 
 // ---------- 공통 조각 ----------
@@ -84,9 +87,11 @@ function renderLog() {
   const { summary, A } = state.diag;
   const progCount = A.eff.filter((r) => r.inProgress).length;
   $('log-h').innerHTML = `지금까지 <span class="num">${summary.earned}</span>학점을 들었어요`;
-  $('logLede').textContent = `${summary.doneTerms}개 학기 동안 ${summary.doneCourses}과목을 들었고`
+  // PRD FR-01 완료 기준의 요약 문구: "총 N과목 · N학점"
+  $('logLede').innerHTML = `<b class="total">총 ${summary.doneCourses}과목 · ${summary.earned}학점</b> `
+    + esc(`${summary.doneTerms}개 학기 동안 들었고`
     + (summary.fails.length ? `, F 받은 ${summary.fails.length}과목은 학점에서 뺐어요.` : '.')
-    + (progCount ? ` 지금 ${progCount}과목 ${summary.prog}학점을 듣고 있어요.` : '');
+    + (progCount ? ` 지금 ${progCount}과목 ${summary.prog}학점을 듣고 있어요.` : ''));
 
   // 잔디: 첫 학기부터 지금 학기까지 정규 학기마다 한 칸. 계절학기는 앞 학기 칸에 붙인다.
   const terms = [...new Set(state.courses.map((c) => regularOf(c.term)))].sort((a, b) => E.termIdx(a) - E.termIdx(b));
@@ -119,7 +124,7 @@ function renderLog() {
     <details class="term"${t === lastDone || prog ? ' open' : ''}>
       <summary><i class="ph ph-caret-right chev"></i><strong>${y}년 ${/^\d$/.test(s) ? `${s}학기` : `${s} 계절학기`}</strong><span class="grow mono muted">${t}</span><span class="num">${prog ? `${load(recs)}학점 수강 중` : `${earned}학점`}</span></summary>
       <div class="tscroll"><table class="course-table">
-        <thead><tr><th>과목</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
+        <thead><tr><th>과목명</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
         <tbody>${recs.map((r) => {
           const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
               <option value="">영역 모름</option>${E.AREAS.map((a) => `<option${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
@@ -458,19 +463,30 @@ async function diagnoseNow() {
 }
 
 // ---------- 이벤트 ----------
+// 하드페이월(PRD FR-05): 무료 체험을 쓴 뒤 '진단 시작'을 누르면 이용권 안내가 뜬다.
+// 요금 섹션의 '이용권 테스트 결제'도 같은 창을 쓰고, 그때는 결제 뒤 진단을 자동으로 시작하지 않는다.
+let diagnoseAfterPay = false;
+function openPaywall(thenDiagnose) {
+  diagnoseAfterPay = thenDiagnose;
+  $('paywall').returnValue = '';
+  $('paywall').showModal();
+}
+
 $('intake').addEventListener('submit', (e) => {
   e.preventDefault();
   if (busy) return;
-  if (trialUsed() && !hasPass()) { $('paywall').returnValue = ''; $('paywall').showModal(); return; }
+  if (trialUsed() && !hasPass()) { openPaywall(true); return; }
   diagnoseNow();
 });
+
+$('buyPass').addEventListener('click', () => { if (!hasPass()) openPaywall(false); });
 
 $('paywall').addEventListener('close', () => {
   if ($('paywall').returnValue !== 'pay') return;
   store.set('jg.passUntil', PASS_UNTIL);
   renderTrial();
   setStatus('info', `테스트 결제가 끝났어요. ${PASS_UNTIL}까지 이용권을 쓸 수 있어요.`);
-  diagnoseNow();
+  if (diagnoseAfterPay) diagnoseNow();
 });
 
 $('rerun').addEventListener('click', async () => {
@@ -518,6 +534,18 @@ function syncSampleWish() {
 document.querySelectorAll('input[name="src"]').forEach((r) => r.addEventListener('change', syncSampleWish));
 syncSampleWish();
 $('viewSample').addEventListener('click', () => $('sampleSheet').showModal());
+// 붙여넣기 경로를 바로 시험할 수 있게 가상 학생의 성적 텍스트(ON국민 표 형식)를 채운다. # 줄은 설명이라 뺀다.
+$('fillSample').addEventListener('click', async () => {
+  try {
+    const text = await (await fetch('samples/kim-gookmin.transcript.txt')).text();
+    $('paste').value = ['학년도 | 학기 | 이수구분 | 교과목 | 교과목명 | 분반 | 학점 | 등급 | 평점',
+      ...text.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith('#'))].join('\n');
+    $('year').value = '3';
+    $('term').value = '2';
+  } catch {
+    setStatus('error', '샘플 텍스트를 불러오지 못했어요.');
+  }
+});
 $('sampleSheet').addEventListener('click', (e) => { if (e.target === $('sampleSheet')) $('sampleSheet').close(); }); // 바깥을 누르면 닫는다
 
 // 희망 사항 예시 칩: 누르면 해당 칸에 문장을 붙인다.
