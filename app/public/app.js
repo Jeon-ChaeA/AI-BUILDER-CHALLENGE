@@ -202,12 +202,14 @@ function renderPlan() {
   $('planSummary').hidden = !state.summary && !wish;
 
   // AI 초안 → 코드 검증 → 수정 요청 기록
-  const steps = state.trace.map((t) => {
-    const head = t.attempt === 1 ? 'AI 초안' : `위반 내용을 AI에 돌려주고 받은 ${t.attempt}차 수정안`;
+  const steps = state.trace.map((t, i, all) => {
+    const head = t.attempt === 1 ? 'AI 초안' : `${all[i - 1]?.soft ? '보완할 점' : '위반 내용'}을 AI에 돌려주고 받은 ${t.attempt}차 수정안`;
     if (t.error) return `<li class="t-bad"><b>${head}</b> AI 응답을 받지 못했어요.</li>`;
+    if (t.soft) return `<li><b>${head}</b> 규칙은 모두 지켰어요. 다만 보완할 점 ${t.total}건을 찾아 AI에 다시 요청했어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
     if (!t.total) return `<li class="t-ok"><b>${head}</b> 코드 검증 통과: 학기당 ${max}학점, 중복 수강, 개설 학기·학년, 졸업요건 7개를 모두 지켰어요.</li>`;
     return `<li class="t-bad"><b>${head}</b> 코드 검증에서 위반 ${t.total}건을 찾았어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
   });
+  if (state.kept) steps.push('<li class="t-ok"><b>초안 사용</b> 수정안이 초안보다 낫지 않아, 규칙을 모두 지킨 초안을 그대로 써요.</li>');
   if (source === 'fallback') steps.push(state.fallbackOk ? '<li class="t-ok"><b>기본 계획</b> AI 계획을 쓰지 못해 교육과정 순서로 만든 계획으로 바꿨고, 같은 검증을 통과했어요.</li>'
     : '<li class="t-bad"><b>기본 계획</b> 교육과정 순서로 만든 계획도 일부 요건을 채우지 못했어요.</li>');
   $('trace').innerHTML = steps.join('');
@@ -356,8 +358,9 @@ function flowPlanResult() {
   const { source, trace, fallbackOk } = state;
   if (source === 'done') { flow.set('plan', 'skip', '남은 학기 없음'); flow.set('verify', 'skip'); return; }
   if (source === 'ai') {
-    flow.set('plan', 'done', trace.length > 1 ? `${trace.length}차 수정안` : 'AI 초안');
-    flow.set('verify', 'done', trace.length > 1 ? `위반 ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
+    const revised = trace.length > 1 && !state.kept;
+    flow.set('plan', 'done', revised ? `${trace.length}차 수정안` : 'AI 초안');
+    flow.set('verify', 'done', revised ? `${trace[0].soft ? '보완' : '위반'} ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
     return;
   }
   flow.set('plan', 'warn', 'AI 응답 실패');
@@ -368,10 +371,10 @@ function flowPlanResult() {
 async function fetchPlan() {
   try {
     const r = await post('/api/roadmap', { courses: state.courses, ctx: state.ctx, wishes: state.wishes }, 35_000);
-    Object.assign(state, { plan: r.plan, source: r.source, fallbackOk: r.fallbackOk !== false, summary: r.summary ?? '', trace: r.trace ?? [] });
+    Object.assign(state, { plan: r.plan, source: r.source, fallbackOk: r.fallbackOk !== false, summary: r.summary ?? '', trace: r.trace ?? [], kept: r.kept === 'draft' });
   } catch {
     const plan = E.defaultPlan(state.courses, state.ctx, data);
-    Object.assign(state, { plan, source: 'fallback', fallbackOk: !E.verifyPlan(plan, state.courses, state.ctx, data).length, summary: '', trace: [{ attempt: 1, error: true }] });
+    Object.assign(state, { plan, source: 'fallback', fallbackOk: !E.verifyPlan(plan, state.courses, state.ctx, data).length, summary: '', trace: [{ attempt: 1, error: true }], kept: false });
   }
   state.dates = E.pickDates({ diag: state.diag, plan: state.plan, courses: state.courses, ctx: state.ctx, data });
 }

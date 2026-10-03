@@ -14,6 +14,9 @@ const findUserById = db.prepare('SELECT id, email, created_at FROM users WHERE i
 const insertSession = db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)');
 const findSession = db.prepare("SELECT * FROM sessions WHERE id = ? AND expires_at > datetime('now')");
 const deleteSession = db.prepare('DELETE FROM sessions WHERE id = ?');
+const deleteExpired = db.prepare("DELETE FROM sessions WHERE expires_at <= datetime('now')");
+// 없는 이메일로 로그인해도 해시 비교 시간을 똑같이 써서, 응답 시간으로 가입 여부를 알 수 없게 한다.
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 10);
 
 function parseCookies(req) {
   const header = req.headers.cookie || '';
@@ -23,6 +26,7 @@ function parseCookies(req) {
 }
 
 function startSession(res, userId) {
+  deleteExpired.run(); // 개인정보 처리방침: 30일이 지난 세션은 지운다
   const id = randomBytes(32).toString('hex');
   const expires = new Date(Date.now() + SESSION_DAYS * 864e5);
   insertSession.run(id, userId, expires.toISOString().replace('T', ' ').slice(0, 19));
@@ -62,7 +66,7 @@ function readCredentials(body) {
   return { email, password };
 }
 
-router.post('/signup', (req, res) => {
+router.post('/signup', async (req, res) => {
   const { email, password } = readCredentials(req.body);
   if (!email || !password) {
     return res.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
@@ -79,19 +83,21 @@ router.post('/signup', (req, res) => {
   if (findUserByEmail.get(email)) {
     return res.status(409).json({ error: '이미 가입된 이메일이에요.' });
   }
-  const hash = bcrypt.hashSync(password, 10);
-  const info = insertUser.run(email, hash);
+  const hash = await bcrypt.hash(password, 10); // 비동기: 해시하는 동안 다른 요청을 막지 않는다
+  let info;
+  try { info = insertUser.run(email, hash); } catch { return res.status(409).json({ error: '이미 가입된 이메일이에요.' }); }
   startSession(res, info.lastInsertRowid);
   res.status(201).json({ user: { id: info.lastInsertRowid, email } });
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = readCredentials(req.body);
   if (!email || !password) {
     return res.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
   }
   const user = findUserByEmail.get(email);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+  const ok = await bcrypt.compare(password, user?.password_hash ?? DUMMY_HASH);
+  if (!user || !ok) {
     return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않아요.' });
   }
   startSession(res, user.id);
