@@ -1,6 +1,6 @@
 // 오프라인 대비용 앱 셸 캐시. 온라인이면 항상 네트워크의 최신 파일을 쓰고, 캐시는 네트워크가 안 될 때만 쓴다.
 // (캐시를 먼저 쓰면 재배포 뒤 새 index.html과 옛 app.js가 섞일 수 있다.)
-const CACHE_NAME = 'jolupgak-shell-v12';
+const CACHE_NAME = 'jolupgak-shell-v13';
 const APP_SHELL = [
   '/',
   '/index.html',
