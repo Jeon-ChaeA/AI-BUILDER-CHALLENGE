@@ -78,15 +78,16 @@ const SAMPLE = {
       courses: [['소프트웨어아키텍처', 3], ['정보보호와시스템보안', 3], ['소프트웨어융합최신기술', 3], ['학부연구참여(UROP) Ⅱ', 2], ['일반선택 2과목', 6]],
       why: '남은 17학점을 채우면 총 136학점이 돼요.' },
   ],
-  dates: [
-    { title: '동계 계절학기 수강신청', start: '2026-11-24', end: '2026-11-26',
-      why: '2027-1학기가 19학점으로 꽉 차요. 계절학기로 3~6학점을 미리 덜어 둘 수 있어요.' },
-    { title: '2학기 성적 공시', start: '2026-12-15', end: '2026-12-28',
-      why: '필수 과목인 알고리즘 성적을 확인하세요. 이의신청은 12.23~12.28이에요.' },
-    { title: '2027-1학기 수강신청', start: '2027-02-11', end: '2027-02-24', link: 'cn',
-      why: '컴퓨터네트워크 재수강과 캡스톤을 꼭 담으세요. 둘 다 1학기에만 열려요.' },
-  ],
 };
+
+// 일정 표시 조건(trigger). 규칙 엔진이 붙으면 이 값을 진단 결과에서 받는다.
+const TRIGGERS = {
+  hasCreditShortage: SAMPLE.checks.some((k) => k.id === 'CHK-01' && k.have < k.need),
+  hasNextSemesterCourses: SAMPLE.plan.some((p) => !p.now),
+  isGraduatingSemester: 8 - SAMPLE.checks.find((k) => k.id === 'CHK-08').have <= 1,
+};
+// 일정 카드와 연결할 진단 항목(id → data-link). calendar.json에는 두지 않는다.
+const DATE_LINK = { 'enroll-2027-1': 'cn' };
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
@@ -190,30 +191,33 @@ function renderPlan() {
     </li>`;
 }
 
-const DAY = 86400000;
-const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+// 일정 계산(trigger 필터, D-day, .ics)은 schedule.js. 여기서는 그리기만 한다.
+let calendarEvents = [];
 const md = (iso) => `${+iso.slice(5, 7)}.${+iso.slice(8, 10)}`;
-function upcomingDates() {
-  return SAMPLE.dates.filter((d) => new Date(`${d.end}T00:00`) >= today());
-}
+const upcomingDates = () => Schedule.upcoming(calendarEvents, TRIGGERS);
 function renderDates() {
   $('dateList').innerHTML = upcomingDates().map((d) => {
-    const left = Math.round((new Date(`${d.start}T00:00`) - today()) / DAY);
+    const left = Schedule.daysLeft(d);
     return `
-    <li class="date"${d.link ? ` data-link="${d.link}"` : ''}>
+    <li class="date"${DATE_LINK[d.id] ? ` data-link="${DATE_LINK[d.id]}"` : ''}>
       <div><div class="dday">${left > 0 ? `D-${left}` : '진행 중'}</div><div class="when">${md(d.start)}~${md(d.end)}</div></div>
-      <div><h3>${esc(d.title)}</h3><p>${esc(d.why)}</p></div>
+      <div><h3>${esc(d.title)}</h3><p>${esc(d.reason)}</p></div>
     </li>`;
   }).join('');
 }
+async function loadCalendar() {
+  try {
+    const res = await fetch('data/calendar.json');
+    if (!res.ok) throw new Error(res.status);
+    calendarEvents = (await res.json()).events;
+    renderDates();
+  } catch {
+    $('dateList').innerHTML = '<li class="date"><div><h3>학사일정을 불러오지 못했어요</h3><p>잠시 뒤 새로고침해 주세요.</p></div></li>';
+  }
+}
 
 function downloadIcs() {
-  const ymd = (iso, plus = 0) => new Date(new Date(`${iso}T00:00Z`).getTime() + plus * DAY).toISOString().slice(0, 10).replaceAll('-', '');
-  const events = upcomingDates().map((d, i) => [
-    'BEGIN:VEVENT', `UID:jolupgak-${d.start}-${i}@jolupgak`, `DTSTAMP:${ymd(new Date().toISOString().slice(0, 10))}T000000Z`,
-    `DTSTART;VALUE=DATE:${ymd(d.start)}`, `DTEND;VALUE=DATE:${ymd(d.end, 1)}`,
-    `SUMMARY:${d.title}`, `DESCRIPTION:${d.why}`, 'END:VEVENT'].join('\r\n'));
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//jolupgak//KO', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+  const ics = Schedule.buildIcs(upcomingDates());
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: '졸업각-마감일정.ics' });
   a.click();
   URL.revokeObjectURL(a.href);
@@ -241,7 +245,7 @@ renderFullChecks();
 renderGrass();
 renderTerms();
 renderPlan();
-renderDates();
+loadCalendar();
 renderTrial();
 
 $('intake').addEventListener('submit', (e) => {
