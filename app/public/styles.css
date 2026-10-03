@@ -350,11 +350,11 @@ select.cell-edit { width: auto; background-image: none; padding-right: 8px; }
 .node.goal .load { color: #fff; } .node.goal .load b { color: #fff; }
 
 /* 시그니처: 조치 필요 체크 ↔ 그걸 해결하는 학기·과목·날짜가 함께 밝아진다 */
-body:has([data-link="cn"]:is(:hover, :focus-within)) .node[data-link="cn"] .node-card { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .chip[data-link="cn"] { background: var(--red); color: #fff; border-color: var(--red); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .full .check[data-link="cn"] { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .compact .check[data-link="cn"] { box-shadow: inset 4px 0 0 var(--red); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .date[data-link="cn"] { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .node[data-link="act"] .node-card { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .chip[data-link="act"] { background: var(--red); color: #fff; border-color: var(--red); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .full .check[data-link="act"] { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .compact .check[data-link="act"] { box-shadow: inset 4px 0 0 var(--red); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
 .link-hint { display: inline-flex; align-items: center; gap: 5px; font-size: .8125rem; font-weight: 800; color: var(--red-ink); }
 
 /* 날짜 */
@@ -425,3 +425,85 @@ body:has([data-link="cn"]:is(:hover, :focus-within)) .date[data-link="cn"] { bor
 /* GSAP 초기 숨김 — 모션 허용(.ganim)일 때만. gsap.js가 못 뜨면 즉시 해제 */
 .ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr,
 .ganim #branch .node { opacity: 0; }
+
+/* ===== 기능 연결분 (mvp): 결과 표 수정, 진행 상태, 페이월, AI 희망 사항·검증 기록·학과 문의 ===== */
+input[type="text"] { width: 100%; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 10px 12px; }
+.trial.pass { background: var(--green); color: #fbfdfb; }
+[hidden] { display: none !important; }
+.course-table tr.is-old td { color: var(--ink-3); }
+.course-table tr.is-old .grade::after { content: " 재수강 전"; font-family: var(--sans); font-size: .75rem; }
+.course-table td:last-child { width: 1%; padding-left: 0; }
+.course-table .area-edit { margin-left: 4px; font-size: .8125rem; color: var(--ink-2); }
+.course-table .guess { font-size: .6875rem; font-weight: 700; color: var(--ink-2); background: var(--surface-2); padding: 1px 6px; border-radius: 999px; vertical-align: 1px; }
+.row-del { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); cursor: pointer; }
+.row-del:hover { background: var(--red-soft); color: var(--red); }
+
+/* 진행 상태와 오류 */
+.status:empty { display: none; }
+.status { display: flex; gap: 6px; align-items: flex-start; font-size: .9375rem; color: var(--ink-2); }
+.status i { margin-top: 3px; }
+.status.busy i { animation: spin 1s linear infinite; }
+.status.error { color: var(--red); font-weight: 600; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn:disabled { opacity: .6; cursor: progress; }
+.drop.over { border-color: var(--green); background: var(--green-soft); }
+.chip.gen { border-style: dashed; color: var(--ink-2); }
+
+/* 이용권 안내 */
+.paywall { width: min(420px, calc(100vw - 32px)); padding: 28px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.paywall::backdrop { background: rgb(21 24 27 / .45); }
+.paywall h2 { margin-top: 10px; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+.paywall h2 .num { color: var(--green); }
+.perks { list-style: none; margin: 16px 0; padding: 0; display: grid; gap: 8px; }
+.perks li { display: flex; gap: 8px; align-items: center; }
+.perks i { color: var(--green); }
+.pay-actions { margin-top: 20px; display: grid; gap: 8px; }
+@media print { .status, .paywall { display: none !important; } }
+@media (prefers-color-scheme: dark) { .trial.pass { color: #08140d; } }
+@media (max-width: 640px) {
+  .course-table th, .course-table td { padding: 6px 8px; }
+  .course-table th { white-space: nowrap; }
+  .course-table td:first-child { min-width: 8.5em; }
+  .course-table .grade { white-space: nowrap; }
+  input.cell-edit { width: 3.2em; }
+  select.cell-edit { max-width: 6.5em; font-size: .875rem; }
+}
+
+/* AI: 희망 사항, 계획 요약, 검증 기록 */
+.wish-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wchip { font: inherit; font-size: .8125rem; padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--line-2); background: transparent; color: var(--ink-2); cursor: pointer; }
+.wchip:hover { border-color: var(--green); color: var(--green-ink); }
+.ai-note { margin-top: 20px; padding: 16px 18px; border-radius: var(--r); background: var(--green-soft); color: var(--ink); display: grid; gap: 8px; }
+.ai-note p { display: flex; gap: 8px; }
+.ai-note i { color: var(--green); margin-top: 4px; flex: none; }
+.ai-note .wish-used { font-size: .875rem; color: var(--ink-2); }
+.trace { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.trace summary { display: flex; align-items: center; gap: 8px; padding: 12px 16px; cursor: pointer; font-weight: 700; font-size: .9375rem; }
+.trace ol { margin: 0; padding: 0 16px 14px 40px; display: grid; gap: 8px; font-size: .9375rem; color: var(--ink-2); }
+.trace ol b { color: var(--ink); margin-right: 6px; }
+.trace .t-ok::marker { color: var(--green); }
+.trace .t-bad::marker, .trace .t-bad > b { color: var(--red); }
+.trace ul { margin: 4px 0 0; padding-left: 18px; font-size: .875rem; }
+.replan { margin-top: 8px; padding: 18px 20px; border: 1px dashed var(--line-2); border-radius: var(--r); display: grid; gap: 10px; }
+.replan .btn { justify-self: start; }
+
+/* 학과 문의 */
+.facts { list-style: none; margin: 24px 0 20px; padding: 0; display: grid; gap: 8px; }
+.facts li { padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); font-size: .9375rem; color: var(--ink-2); }
+.facts b { display: block; color: var(--ink); margin-bottom: 2px; }
+#consult .status { margin-top: 12px; }
+.consult-out { margin-top: 24px; display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; align-items: start; }
+.consult-out h3 { font-size: 1.0625rem; font-weight: 700; margin-bottom: 10px; }
+.questions { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.mail { display: grid; gap: 8px; }
+.mail textarea { font-size: .9375rem; line-height: 1.6; }
+.mail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 960px) { .consult-out { grid-template-columns: 1fr; } }
+@media print {
+  #consultGo, #consult .status, #consult .mail, .replan, .trace { display: none !important; }
+  .consult-out { grid-template-columns: 1fr; }
+}
+select.cell-edit.bad { color: var(--red); border-color: var(--red); font-weight: 700; }
+.course-table .grade select.cell-edit { font-variant-numeric: tabular-nums; }
+.tscroll { overflow-x: auto; position: relative; }
+.terms { grid-template-columns: minmax(0, 1fr); }

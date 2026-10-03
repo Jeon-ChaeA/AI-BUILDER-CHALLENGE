@@ -2,3 +2,5 @@
 .impeccable/questions/
 # 서드파티 스킬은 각자 설치
 .claude/skills/
+# 실제 성적 캡처 등 개인 자료. 커밋 금지
+private/
