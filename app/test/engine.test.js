@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { AREAS as E_AREAS } from '../public/engine.js';
 import {
-  diagnose, verifyPlan, vagueTerms, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan, consultFacts,
+  diagnose, verifyPlan, vagueTerms, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, haeyo, tidyPlan, consultFacts,
 } from '../public/engine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8'));
@@ -270,4 +270,14 @@ test('AI가 등급 글자를 깨뜨리면 평점 숫자로 되살린다', () => 
     { term: '2023-1', name: '수치해석', credits: 3, category: '전공선택', grade: 'A0', points: 3.5 },
   ], data.cats);
   assert.deepEqual(out.map((c) => c.grade), ['B+', '??', 'A0']);
+});
+
+test('haeyo: AI 문장 끝의 합니다체를 해요체로 바꾸고, 모르는 끝맺음은 그대로 둔다', () => {
+  assert.equal(haeyo('학점을 배분했어요. 부담을 최소화했습니다.'), '학점을 배분했어요. 부담을 최소화했어요.');
+  assert.equal(haeyo('요건을 채우도록 설계했습니다'), '요건을 채우도록 설계했어요');
+  assert.equal(haeyo('계절학기로 덜 수 있습니다. 문제가 없습니다!'), '계절학기로 덜 수 있어요. 문제가 없어요!');
+  assert.equal(haeyo('먼저 들어야 합니다. 졸업이 늦어집니다. 꼭 확인하시기 바랍니다.'), '먼저 들어야 해요. 졸업이 늦어집니다. 꼭 확인하시기 바라요.');
+  assert.equal(haeyo('2학기에 신청하면 됩니다. 계획을 드립니다.'), '2학기에 신청하면 돼요. 계획을 드려요.');
+  assert.equal(haeyo('합니다체 설명이 문장 가운데 있는 경우'), '합니다체 설명이 문장 가운데 있는 경우');
+  assert.equal(haeyo(undefined), '');
 });
