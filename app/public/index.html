@@ -11,6 +11,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="manifest.webmanifest">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="졸업각 · 이대로 졸업할 수 있을까요?">
+  <meta property="og:description" content="성적 화면 한 장이면 AI가 읽고 국민대 소프트웨어학부 졸업요건과 대조해요. 희망을 반영한 남은 학기 계획, 학사 마감 일정, 학과 문의 메일까지.">
+  <meta property="og:url" content="https://kaib.sungblab.com/">
+  <meta property="og:locale" content="ko_KR">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -26,7 +31,9 @@
       document.documentElement.dataset.locale = localStorage.getItem('jg.locale') || 'ko';
     } catch {}
     // GSAP 연출 플래그. reduced-motion이면 켜지 않아 모든 요소가 처음부터 보인다.
-    if (!matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
+    // 자동화 브라우저(navigator.webdriver: 테스트·평가 도구)도 끈다. 전체 페이지 캡처는 스크롤하지 않아서
+    // 스크롤 리빌 전 요소가 빈칸으로 찍히기 때문이다.
+    if (!navigator.webdriver && !matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
   </script>
 </head>
 <body>
@@ -45,20 +52,19 @@
     <div class="top-actions">
       <button class="install-btn" id="pwaInstall" type="button" hidden><i class="ph ph-download-simple"></i><span>앱 설치</span></button>
       <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
-      <span class="auth-guest" id="authGuest">
-        <a class="top-login" id="authLink" href="login.html"><i class="ph ph-user-circle"></i><span id="authText">로그인</span></a>
-        <a class="btn btn-primary btn-sm top-signup" id="signupLink" href="login.html?mode=signup">회원가입</a>
-      </span>
-      <span class="auth-user" id="authUser" hidden><span id="authEmail"></span><button class="top-login" type="button" id="logoutBtn">로그아웃</button></span>
+      <a class="top-login" id="authLink" href="login.html"><i class="ph ph-user-circle"></i><span id="authText">로그인</span></a>
+      <a class="btn btn-primary btn-sm top-signup" id="signupLink" href="login.html?mode=signup">회원가입</a>
     </div>
   </header>
 
   <main id="top">
+    <!-- 인쇄 리포트 머리글(화면에는 안 보임). 진단할 때 app.js가 채운다. -->
+    <p class="print-head" id="printHead"></p>
     <!-- 첫 화면 -->
     <section class="hero">
       <div class="hero-copy">
-        <h1>이대로 <span class="hl">졸업</span>할 수<br>있을까요?</h1>
-        <p class="lede">성적 화면 한 장이면 돼요. AI가 읽고 졸업요건과 한 줄씩 대조해서, 내 희망에 맞춘 남은 학기 계획과 학과 문의 메일까지 챙겨 드려요.</p>
+        <h1>이대로 <span class="hl">졸업</span>할 수<br class="br-wide"> 있을까요?</h1>
+        <p class="lede">성적 화면 한 장이면 돼요.<br>AI가 읽고 졸업요건과 한 줄씩 대조해서,<br>내 희망에 맞춘 남은 학기 계획과 학과 문의 메일까지 챙겨 드려요.</p>
 
         <form class="intake" id="intake">
           <fieldset class="tabs">
@@ -76,15 +82,19 @@
             <p class="muted">2023학번, 2025년에 두 학기 휴학하고 지금 3학년 2학기예요.<br>성적 화면 캡처를 AI가 직접 읽어요.</p>
             <button type="button" class="link-btn" id="viewSample"><i class="ph ph-file-image"></i>샘플 성적 화면 보기</button>
           </div>
-          <label class="pane pane-capture drop" id="drop">
-            <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
-            <i class="ph ph-upload-simple"></i>
-            <span id="dropText">ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
-            <small>학사서비스 → 성적정보 → 전체학기 성적조회(학부) · PNG, JPG, WEBP 최대 5장</small>
-          </label>
+          <div class="pane pane-capture">
+            <label class="drop" id="drop">
+              <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
+              <i class="ph ph-upload-simple"></i>
+              <span id="dropText">ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
+              <small>학사서비스 → 성적정보 → 전체학기 성적조회(학부) · PNG, JPG, WEBP 최대 5장</small>
+            </label>
+            <a class="link-btn" href="sample/capture.png" download="졸업각-샘플-성적화면.png"><i class="ph ph-download-simple"></i>시험용 샘플 캡처 내려받기</a>
+          </div>
           <div class="pane pane-paste">
             <label for="paste">성적 화면 텍스트</label>
             <textarea id="paste" rows="4" placeholder="ON국민 학사서비스 → 성적정보 → 전체학기 성적조회(학부) 화면을 전체 선택해 복사한 뒤 붙여넣으세요"></textarea>
+            <button type="button" class="link-btn" id="fillSample"><i class="ph ph-clipboard-text"></i>시험용 샘플 텍스트 넣기</button>
           </div>
 
           <div class="fields">
@@ -113,7 +123,7 @@
             </div>
           </div>
 
-          <button class="btn btn-primary" type="submit" id="go"><i class="ph-fill ph-magic-wand"></i>내 졸업각 보기</button>
+          <button class="btn btn-primary" type="submit" id="go"><i class="ph-fill ph-magic-wand"></i>진단 시작</button>
           <p class="status" id="status" role="status" aria-live="polite"></p>
         </form>
       </div>
@@ -169,7 +179,7 @@
 
     <!-- 학점 지도 + 이수내역 -->
     <section class="sec" id="log" aria-labelledby="log-h" hidden>
-      <p class="step"><span>01</span>지금까지 들은 학점</p>
+      <p class="step"><span>01</span>이수내역</p>
       <h2 id="log-h"></h2>
       <p class="sec-lede" id="logLede"></p>
       <div class="grass-card">
@@ -188,7 +198,7 @@
 
     <!-- 졸업 체크 -->
     <section class="sec" id="checks" aria-labelledby="checks-h" hidden>
-      <p class="step"><span>02</span>졸업요건 체크</p>
+      <p class="step"><span>02</span>졸업요건 진단</p>
       <h2 id="checks-h"></h2>
       <p class="tally" id="tally"></p>
       <ol class="checks full" id="fullChecks"></ol>
@@ -196,7 +206,7 @@
 
     <!-- 졸업까지 가는 길 -->
     <section class="sec" id="plan" aria-labelledby="plan-h" hidden>
-      <p class="step"><span>03</span>졸업까지 가는 길</p>
+      <p class="step"><span>03</span>수강 로드맵</p>
       <h2 id="plan-h"></h2>
       <p class="sec-lede" id="planLede"></p>
       <div class="ai-note" id="planSummary" hidden></div>
@@ -224,10 +234,10 @@
 
     <!-- 마감 일정 -->
     <section class="sec" id="dates" aria-labelledby="dates-h" hidden>
-      <p class="step"><span>04</span>챙겨야 할 마감</p>
+      <p class="step"><span>04</span>학사 마감 일정</p>
       <h2 id="dates-h">놓치면 안 되는 날짜</h2>
       <ol class="dates" id="dateList"></ol>
-      <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가 (.ics)</button>
+      <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가(.ics)</button>
     </section>
 
     <!-- 학과 문의 -->
@@ -263,7 +273,69 @@
         <h2 id="report-h">지도교수 상담에 들고 가세요</h2>
         <p>진단 요약, 손볼 것, 학기 계획, 날짜, 상담 질문을 한 장에 정리해 드려요.</p>
       </div>
-      <button class="btn btn-primary" type="button" id="print"><i class="ph ph-printer"></i>리포트 인쇄 / PDF 저장</button>
+      <button class="btn btn-primary" type="button" id="print"><i class="ph ph-printer"></i>리포트 인쇄/PDF 저장</button>
+    </section>
+
+    <!-- 왜 졸업각인가: 문제 근거와 기존 방법 비교 (PRD §2, §4) -->
+    <section class="sec" id="why" aria-labelledby="why-h">
+      <h2 id="why-h">졸업요건 확인, 지금은 세 곳을 오가야 해요</h2>
+      <ul class="why-list">
+        <li><i class="ph ph-file-text"></i><div><b>졸업요건</b><span>학과 홈페이지에 학번별 이미지로 올라와 있어요. 학교는 "각 학과 사무실에서 반드시 확인"하라고 안내해요.</span><a href="https://cms.kookmin.ac.kr/kmuciss/academic/undergrad05.do" target="_blank" rel="noopener">국민대 졸업 안내</a></div></li>
+        <li><i class="ph ph-student"></i><div><b>내 성적</b><span>ON국민에 있어요. 졸업대상 확인은 졸업 학기에만 할 수 있어서, 1~3학년은 부족한 요건을 미리 알기 어려워요.</span><a href="https://gsd.kookmin.ac.kr/gsd/etc/kookmin-notice.do?mode=view&amp;pid=11743" target="_blank" rel="noopener">졸업대상 확인 공지</a></div></li>
+        <li><i class="ph ph-calendar-blank"></i><div><b>학사일정</b><span>학교 홈페이지에 따로 있어요. 수강신청, 계절학기, 성적 정정 마감을 각자 챙겨야 해요.</span><a href="https://www.kookmin.ac.kr/user/scGuid/scSchedule/index.do" target="_blank" rel="noopener">국민대 학사일정</a></div></li>
+      </ul>
+
+      <div class="compare-wrap">
+        <table class="compare" role="table">
+          <caption class="sr-only">졸업요건 확인 방법 비교</caption>
+          <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col"></th><th role="columnheader" scope="col" class="me">졸업각</th><th role="columnheader" scope="col">ChatGPT·<wbr>Gemini</th><th role="columnheader" scope="col">ON국민 졸업사정</th><th role="columnheader" scope="col">학과 사무실</th></tr></thead>
+          <tbody role="rowgroup">
+            <tr role="row"><th role="rowheader" scope="row">우리 학과·학번 졸업요건을 안다</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td></tr>
+            <tr role="row"><th role="rowheader" scope="row">같은 성적이면 판정이 항상 같다</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td></tr>
+            <tr role="row"><th role="rowheader" scope="row">판정마다 원문과 출처를 보여 준다</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph ph-minus m" aria-label="경우에 따라"></i></td></tr>
+            <tr role="row"><th role="rowheader" scope="row">1~3학년도 미리 확인할 수 있다</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td></tr>
+            <tr role="row"><th role="rowheader" scope="row">남은 학기 계획과 마감 일정까지</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-minus m" aria-label="일부"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td><td role="cell"><i class="ph ph-minus m" aria-label="일부"></i></td></tr>
+            <tr role="row"><th role="rowheader" scope="row">기다리지 않고 바로</th><td role="cell" class="me"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph-fill ph-check-circle y" aria-label="예"></i></td><td role="cell"><i class="ph ph-x n" aria-label="아니요"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 요금: 하드페이월 + 학교·학과 라이선스 (PRD §9) -->
+    <section class="sec" id="pricing" aria-labelledby="pricing-h">
+      <h2 id="pricing-h">첫 진단은 무료, 그다음은 한 학기 9,900원</h2>
+      <p class="sec-lede">수강신청, 정정, 계절학기를 앞두고 학기마다 다시 진단할 일이 생겨요.</p>
+      <div class="plans">
+        <article class="plan">
+          <h3>무료 체험</h3>
+          <p class="price"><b>0원</b><span>첫 진단 1회</span></p>
+          <ul>
+            <li>졸업요건 9개 진단과 원문 근거</li>
+            <li>희망 사항을 반영한 AI 수강 로드맵</li>
+            <li>학사 마감 일정과 .ics</li>
+          </ul>
+        </article>
+        <article class="plan pick">
+          <h3>한 학기 이용권</h3>
+          <p class="price"><b>9,900원</b><span>2027-02-28까지</span></p>
+          <ul>
+            <li>진단과 다시 진단 무제한</li>
+            <li>AI로 다시 짜기, 학과 문의 메일</li>
+            <li>지도교수 상담용 리포트</li>
+          </ul>
+          <button class="btn btn-primary" type="button" id="buyPass"><i class="ph ph-credit-card"></i>이용권 테스트 결제</button>
+          <small class="plan-note">지금은 테스트 결제만 있어요. 실제로 청구되지 않아요.</small>
+        </article>
+        <article class="plan">
+          <h3>학과·학교 라이선스</h3>
+          <p class="price"><b>도입 준비 중</b><span>학과 단위 연간 계약</span></p>
+          <ul>
+            <li>졸업요건 문의 응대를 줄여요</li>
+            <li>학생별 상담 리포트를 지도교수와 공유해요</li>
+            <li>학과 규칙 데이터는 AI가 요람에서 초안을 만들고 사람이 검수해요</li>
+          </ul>
+        </article>
+      </div>
     </section>
   </main>
 
@@ -302,7 +374,7 @@
       </ul>
       <p class="muted">결제하면 2027-02-28까지 쓸 수 있어요.</p>
       <div class="pay-actions">
-        <button class="btn btn-primary" value="pay"><i class="ph ph-credit-card"></i>테스트 결제하기 (실제 청구 없음)</button>
+        <button class="btn btn-primary" value="pay"><i class="ph ph-credit-card"></i>테스트 결제하기(실제 청구 없음)</button>
         <button class="btn btn-quiet" value="cancel">닫기</button>
       </div>
     </form>
@@ -316,9 +388,7 @@
       addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
     }
   </script>
-  <script src="auth-ui.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="gsap.js"></script>
 </body>
 </html>

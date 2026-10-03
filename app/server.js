@@ -1,3 +1,15 @@
+// 졸업각 서버. 정적 화면(public/)과 AI 호출 API 네 개를 한 프로세스로 띄운다.
+//
+//   GET  /api/health    살아 있는지, 어떤 Gemini 모델을 쓰는지
+//   POST /api/parse     성적 캡처(이미지 최대 5장) 또는 붙여넣은 텍스트 → 과목 표   (PRD FR-01)
+//   POST /api/roadmap   과목 표 + 희망 사항 → AI 수강 로드맵 + 검증 기록(trace)     (PRD FR-06)
+//   POST /api/consult   진단 결과 → 학과에 물어볼 질문과 문의 메일 초안             (PRD FR-08)
+//   /api/auth/*         선택 기능인 회원가입·로그인 (auth.js, PRD FR-11)
+//
+// 원칙: 판정은 코드가, AI는 보조. 졸업요건 판정은 public/engine.js의 순수 함수가 하고(브라우저와 같은 코드),
+// AI가 낸 결과는 모두 engine.js로 다시 검사한다. 로드맵은 verifyPlan을 통과하지 못하면 위반 내용을 붙여
+// 한 번 더 시키고, 그래도 안 되면 규칙 기반 defaultPlan으로 바꾼다. 그 과정(trace)을 화면에 그대로 보여 준다.
+// 성적 데이터는 저장하지 않는다. 요청이 끝나면 메모리에서 사라진다.
 import express from 'express';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -149,13 +161,13 @@ function roadmapInput(courses, ctx, terms, wishes) {
 const IMAGE_MIME = /^image\/(png|jpeg|webp)$/;
 const MAX_FILES = 5;
 
-// ponytail: 메모리 고정 창 제한(IP당 분당 30회). 서버가 여러 대면 공유 저장소로 옮긴다.
+// ponytail: 메모리 고정 창 제한(IP당 분당 60회). 진단 한 번이 API 2~3회라 심사·시연이 몰려도 넉넉하다. 서버가 여러 대면 공유 저장소로 옮긴다.
 const hits = new Map();
 function limit(req, res, next) {
   const now = Date.now();
   const h = hits.get(req.ip);
   if (!h || now > h.reset) hits.set(req.ip, { n: 1, reset: now + 60_000 });
-  else if (++h.n > 30) return res.status(429).json({ error: '요청이 너무 많아요. 1분 뒤에 다시 시도해 주세요.' });
+  else if (++h.n > 60) return res.status(429).json({ error: '요청이 너무 많아요. 1분 뒤에 다시 시도해 주세요.' });
   if (hits.size > 5000) for (const [k, v] of hits) if (now > v.reset) hits.delete(k);
   next();
 }
@@ -280,4 +292,7 @@ app.use((err, _req, res, _next) => {
   res.status(err.status ?? 500).json({ error: err.type === 'entity.too.large' ? '올린 파일이 너무 커요.' : '요청을 처리하지 못했어요.' });
 });
 
-app.listen(PORT, () => console.log(`listening on :${PORT} (model ${MODEL})`));
+const server = app.listen(PORT, () => console.log(`listening on :${PORT} (model ${MODEL})`));
+// 앞단 nginx가 쉬던 연결을 다시 쓸 때 Node(기본 5초)가 먼저 끊으면 502가 난다. 프록시보다 길게 잡는다.
+server.keepAliveTimeout = 75_000;
+server.headersTimeout = 76_000;

@@ -22,9 +22,16 @@ const trialUsed = () => store.get('jg.trialUsed') === '1';
 
 function renderTrial() {
   const pass = hasPass(), used = trialUsed();
-  $('trialText').textContent = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
+  // 상단바 배지는 한 줄로 둔다. 480px 이하에서는 짧은 문구(.t-narrow)로 바꿔 로고·버튼과 함께 들어가게 한다.
+  const label = (wide, narrow) => `<span class="t-wide">${wide}</span><span class="t-narrow">${narrow}</span>`;
+  $('trialText').innerHTML = pass ? label(`이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>`, '<i class="ph ph-check"></i>이용권')
+    : used ? label('무료 체험을 사용했어요', '체험 완료') : label('무료 체험 1회 남음', '무료 1회');
+  $('trial').title = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
   $('trial').classList.toggle('used', used && !pass);
   $('trial').classList.toggle('pass', pass);
+  // 요금 섹션 버튼도 같은 상태를 보여 준다.
+  $('buyPass').disabled = pass;
+  $('buyPass').innerHTML = pass ? `<i class="ph ph-check-circle"></i>이용권 사용 중 · ${esc(store.get('jg.passUntil'))}까지` : '<i class="ph ph-credit-card"></i>이용권 테스트 결제';
 }
 
 // ---------- 공통 조각 ----------
@@ -84,9 +91,11 @@ function renderLog() {
   const { summary, A } = state.diag;
   const progCount = A.eff.filter((r) => r.inProgress).length;
   $('log-h').innerHTML = `지금까지 <span class="num">${summary.earned}</span>학점을 들었어요`;
-  $('logLede').textContent = `${summary.doneTerms}개 학기 동안 ${summary.doneCourses}과목을 들었고`
+  // PRD FR-01 완료 기준의 요약 문구: "총 N과목 · N학점"
+  $('logLede').innerHTML = `<b class="total">총 ${summary.doneCourses}과목 · ${summary.earned}학점</b> `
+    + esc(`${summary.doneTerms}개 학기 동안 들었고`
     + (summary.fails.length ? `, F 받은 ${summary.fails.length}과목은 학점에서 뺐어요.` : '.')
-    + (progCount ? ` 지금 ${progCount}과목 ${summary.prog}학점을 듣고 있어요.` : '');
+    + (progCount ? ` 지금 ${progCount}과목 ${summary.prog}학점을 듣고 있어요.` : ''));
 
   // 잔디: 첫 학기부터 지금 학기까지 정규 학기마다 한 칸. 계절학기는 앞 학기 칸에 붙인다.
   const terms = [...new Set(state.courses.map((c) => regularOf(c.term)))].sort((a, b) => E.termIdx(a) - E.termIdx(b));
@@ -118,21 +127,21 @@ function renderLog() {
     return `
     <details class="term"${t === lastDone || prog ? ' open' : ''}>
       <summary><i class="ph ph-caret-right chev"></i><strong>${y}년 ${/^\d$/.test(s) ? `${s}학기` : `${s} 계절학기`}</strong><span class="grow mono muted">${t}</span><span class="num">${prog ? `${load(recs)}학점 수강 중` : `${earned}학점`}</span></summary>
-      <div class="tscroll"><table class="course-table">
-        <thead><tr><th>과목</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
-        <tbody>${recs.map((r) => {
+      <div class="tscroll"><table class="course-table" role="table">
+        <thead role="rowgroup"><tr role="row"><th role="columnheader">과목명</th><th role="columnheader">학점</th><th role="columnheader">이수구분</th><th role="columnheader">성적</th><th role="columnheader"><span class="sr-only">삭제</span></th></tr></thead>
+        <tbody role="rowgroup">${recs.map((r) => {
           const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
               <option value="">영역 모름</option>${E.AREAS.map((a) => `<option${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
           const cls = [r.gi.kind === 'fail' && !r.superseded ? 'is-f' : '', r.superseded ? 'is-old' : ''].join(' ').trim();
           return `
-          <tr data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
-            <td>${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
-            <td><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
-            <td><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
-            <td class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
+          <tr role="row" data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
+            <td role="cell" class="c-name">${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
+            <td role="cell" class="c-cr"><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
+            <td role="cell" class="c-cat"><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
+            <td role="cell" class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
               ${[...(keepRaw(r) ? [r.grade] : []), ...E.GRADES, ''].map((g) => `<option value="${esc(g)}"${(r.gi.kind === 'prog' ? '' : keepRaw(r) ? r.grade : r.gi.g) === g ? ' selected' : ''}>${g === '' ? '수강 중' : esc(g)}${keepRaw(r) && g === r.grade ? (r.gi.kind === 'void' ? ' (제외)' : ' (읽지 못함)') : ''}</option>`).join('')}
             </select></td>
-            <td><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
+            <td role="cell" class="c-del"><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
           </tr>`;
         }).join('')}</tbody>
       </table></div>
@@ -185,8 +194,10 @@ function renderPlan() {
     : 'AI 계획을 쓰지 못해서 기본 계획을 보여 드려요. 일부 요건은 이 계획으로 채우지 못하니 학과 사무실과 꼭 상의하세요.';
   $('verified').hidden = source === 'done' || (source === 'fallback' && !state.fallbackOk);
 
-  // AI 요약과 희망 사항
-  const wish = state.wishes ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>` : '';
+  // AI 요약과 희망 사항. 기본 계획은 희망을 읽지 않으니 '반영했다'고 쓰지 않는다.
+  const wish = !state.wishes || source === 'done' ? ''
+    : source === 'ai' ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>`
+    : `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>기본 계획에는 희망 사항(“${esc(state.wishes)}”)을 반영하지 못했어요. 아래 'AI로 다시 짜기'로 다시 시도해 보세요.</p>`;
   $('planSummary').innerHTML = state.summary ? `<p><i class="ph-fill ph-sparkle"></i>${esc(state.summary)}</p>${wish}` : wish;
   $('planSummary').hidden = !state.summary && !wish;
 
@@ -264,7 +275,7 @@ function downloadIcs() {
 }
 
 // ---------- 호출 ----------
-async function post(url, body, ms) {
+async function post(url, body, ms, retry = true) {
   let r;
   try {
     r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(ms) });
@@ -272,6 +283,8 @@ async function post(url, body, ms) {
     throw new Error(err?.name === 'TimeoutError' ? `AI 응답이 ${ms / 1000}초를 넘었어요. 잠시 후 다시 시도해 주세요.` : '서버에 연결하지 못했어요. 네트워크를 확인해 주세요.');
   }
   const json = await r.json().catch(() => ({}));
+  // 앞단 프록시가 낸 502·503(JSON 아님)은 요청이 앱에 닿지 않은 것이라 한 번만 다시 보낸다. 504는 AI가 도는 중일 수 있어 다시 보내지 않는다.
+  if (retry && (r.status === 502 || r.status === 503) && !json.error) return post(url, body, ms, false);
   if (!r.ok) throw new Error(json.error ?? 'AI 분석에 실패했어요. 잠시 후 다시 시도해 주세요.');
   return json;
 }
@@ -412,6 +425,7 @@ async function analyze(notice = '') {
   renderPlan();
   renderDates();
   resetConsult();
+  $('printHead').textContent = `졸업각 졸업요건 진단 리포트 · ${data.req.department} ${data.req.admissionYear}학번 · ${E.termLabel(state.ctx.ordinal)}(${state.ctx.termNow}) 기준 · ${todayIso()} 진단`;
   for (const id of ['log', 'checks', 'plan', 'dates', 'consult', 'report']) $(id).hidden = false;
   replay($('fullChecks'));
   setStatus(notice ? 'info' : '', notice);
@@ -457,19 +471,30 @@ async function diagnoseNow() {
 }
 
 // ---------- 이벤트 ----------
+// 하드페이월(PRD FR-05): 무료 체험을 쓴 뒤 '진단 시작'을 누르면 이용권 안내가 뜬다.
+// 요금 섹션의 '이용권 테스트 결제'도 같은 창을 쓰고, 그때는 결제 뒤 진단을 자동으로 시작하지 않는다.
+let diagnoseAfterPay = false;
+function openPaywall(thenDiagnose) {
+  diagnoseAfterPay = thenDiagnose;
+  $('paywall').returnValue = '';
+  $('paywall').showModal();
+}
+
 $('intake').addEventListener('submit', (e) => {
   e.preventDefault();
   if (busy) return;
-  if (trialUsed() && !hasPass()) { $('paywall').returnValue = ''; $('paywall').showModal(); return; }
+  if (trialUsed() && !hasPass()) { openPaywall(true); return; }
   diagnoseNow();
 });
+
+$('buyPass').addEventListener('click', () => { if (!hasPass()) openPaywall(false); });
 
 $('paywall').addEventListener('close', () => {
   if ($('paywall').returnValue !== 'pay') return;
   store.set('jg.passUntil', PASS_UNTIL);
   renderTrial();
   setStatus('info', `테스트 결제가 끝났어요. ${PASS_UNTIL}까지 이용권을 쓸 수 있어요.`);
-  diagnoseNow();
+  if (diagnoseAfterPay) diagnoseNow();
 });
 
 $('rerun').addEventListener('click', async () => {
@@ -517,6 +542,18 @@ function syncSampleWish() {
 document.querySelectorAll('input[name="src"]').forEach((r) => r.addEventListener('change', syncSampleWish));
 syncSampleWish();
 $('viewSample').addEventListener('click', () => $('sampleSheet').showModal());
+// 붙여넣기 경로를 바로 시험할 수 있게 가상 학생의 성적 텍스트(ON국민 표 형식)를 채운다. # 줄은 설명이라 뺀다.
+$('fillSample').addEventListener('click', async () => {
+  try {
+    const text = await (await fetch('samples/kim-gookmin.transcript.txt')).text();
+    $('paste').value = ['학년도 | 학기 | 이수구분 | 교과목 | 교과목명 | 분반 | 학점 | 등급 | 평점',
+      ...text.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith('#'))].join('\n');
+    $('year').value = '3';
+    $('term').value = '2';
+  } catch {
+    setStatus('error', '샘플 텍스트를 불러오지 못했어요.');
+  }
+});
 $('sampleSheet').addEventListener('click', (e) => { if (e.target === $('sampleSheet')) $('sampleSheet').close(); }); // 바깥을 누르면 닫는다
 
 // 희망 사항 예시 칩: 누르면 해당 칸에 문장을 붙인다.

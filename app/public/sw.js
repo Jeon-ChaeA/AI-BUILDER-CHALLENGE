@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jolupgak-shell-v10';
+const CACHE_NAME = 'jolupgak-shell-v11';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -7,7 +7,6 @@ const APP_SHELL = [
   '/engine.js',
   '/i18n.js',
   '/theme.js',
-  '/auth-ui.js',
   '/schedule.js',
   '/login.html',
   '/privacy.html',

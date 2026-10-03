@@ -1,4 +1,6 @@
 // FR-03 로드맵 검증, 기본 로드맵, 그리고 AI 계획을 검증해 쓰는 planRoadmap.
+// 상태: 초기 설계용 참조 구현이다. 배포된 앱은 public/engine.js(verifyPlan·defaultPlan)를 쓰고,
+// 이 파일은 scripts/test-roadmap.mjs·test-sample.mjs가 데이터 규칙을 교차 검증하는 데만 쓴다.
 // 이 파일은 Gemini를 직접 부르지 않는다. AI 호출은 planRoadmap에 함수(askAi)로 받는다.
 // 규칙의 근거는 docs/DATA.md의 "로드맵" 절과 requirements.json이다.
 //

@@ -4,7 +4,7 @@
 
 ## 목표
 
-PRD의 FR-01~07이 배포 URL에서 '샘플 학생으로 체험' 한 번으로 끝까지 동작한다. 디자인은 지금 목업을 그대로 쓰고, `app.js`의 하드코딩 `SAMPLE`을 실제 계산 결과로 바꾼다.
+PRD의 FR-01~07이 배포 URL에서 '샘플 학생' 탭(기본 선택)으로 '진단 시작' 한 번 눌러 끝까지 동작한다. 디자인은 지금 목업을 그대로 쓰고, `app.js`의 하드코딩 `SAMPLE`을 실제 계산 결과로 바꾼다.
 
 원칙: 판정은 코드가, 인식과 계획 초안은 AI가 한다. 같은 이수내역이면 판정은 항상 같다.
 
@@ -29,20 +29,30 @@ PRD의 FR-01~07이 배포 URL에서 '샘플 학생으로 체험' 한 번으로 �
 
 ## 구조
 
+처음 설계(FR-01~07)에 FR-08~11과 로그인·약관을 더한 현재 구조다. 파일별 역할은 README '폴더 구조'와 같다.
+
 ```
 app/
-  server.js                 POST /api/parse, POST /api/roadmap, IP당 요청 제한
+  server.js                 POST /api/parse, /api/roadmap, /api/consult, GET /api/health, IP당 요청 제한
+  auth.js, db.js            POST /api/auth/signup·login·logout, GET /api/auth/me (bcrypt, httpOnly 세션, SQLite)
   public/
-    index.html, styles.css  목업 유지, 결과 섹션은 첫 진단 전까지 hidden
-    app.js                  목업 렌더러 재사용. 입력, 페이월, 표 수정, 호출 흐름
-    engine.js               순수 함수: normalize, diagnose, verifyPlan, defaultPlan, pickDates
+    index.html, styles.css  첫 화면·결과 섹션(첫 진단 전까지 hidden)·페이월
+    app.js                  입력, 진행판, 페이월, 표 수정, 호출 흐름, 렌더링
+    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts
+    schedule.js             .ics 생성(buildIcs)
+    gsap.js, theme.js       화면 연출, 다크 모드 토글
+    login.html, terms.html, privacy.html
     data/requirements.json  research_notes JSON 그대로
     data/curriculum.json    research_notes JSON 그대로 (+ 구 과목명 별칭)
-    data/calendar.json      calendar.md 표 → JSON, 일정마다 rule 키
+    data/categories.json    이수구분·등급 별칭과 평점표
+    data/calendar.json      calendar.md 표 → JSON, 일정마다 trigger 키
     data/core_areas.json    { "과목명": "창의", ... } 요람 교양교육과정 기준
     sample/capture.png      김국민 가상 캡처 (화면에 '가상 학생' 표기)
     sample/parsed.json      위 캡처의 인식 결과 저장본
+    samples/                시험용 샘플 텍스트와 인식 결과
+  lib/roadmap.mjs           초기 로드맵 규칙 참조 구현 (test:roadmap 교차 검증용, 서버는 쓰지 않음)
   test/engine.test.js       node:test
+  scripts/                  데이터 검사, 샘플 캡처 생성, 보조 테스트
 ```
 
 ## 데이터 모양
@@ -83,13 +93,13 @@ AI 인식 결과이자 표 한 행:
 |---|---|---|---|
 | CHK-01 | 총 이수학점 | 136 | 취득학점 합. 교양(기초+핵심+자유)은 50학점까지만 센다 |
 | CHK-02 | 기초교양 | 7학점 + 지정 3과목 | 택1 묶음(English Conversation, College English) 반영 |
-| CHK-03 | 핵심교양 | 15학점 + 5개 영역 각 3 | 영역 결정 순서대로. 추정 영역이 있으면 note에 "영역은 추정이에요, 표에서 확인해 주세요" |
+| CHK-03 | 핵심교양 | 15학점 + 5개 영역 각 3 | 영역 결정 순서대로. 추정 영역이 있으면 note에 "영역 일부는 AI가 추정했어요. 표에서 확인해 주세요." |
 | CHK-04 | 자유교양 | 2 | |
 | CHK-05 | 전공 | 66 (필수 41 + 선택 25) | 이수구분 '전공선택' 합 |
 | CHK-06 | 필수 지정 과목 | 15과목 | S-TEAM Class·사제동행세미나 택1. 빠진 과목 이름을 related에 |
 | CHK-07 | 평점평균 | 2.0 | Σ(평점×학점)/Σ학점, P·N·수강 중 제외, F 포함, 소수 셋째 자리 반올림 |
 | CHK-08 | 등록 학기 | 8 | `ctx.ordinal` |
-| CHK-09 | 학부 인증, 졸업논문, 전공능력 | | 항상 학과 확인. 평점 3.5 이상이면 "학부 인증 자동 인정 대상"이라고 note에 쓴다 |
+| CHK-09 | 학부 인증, 졸업논문, 전공능력 | | 항상 학과 확인. 평점 3.5 이상이면 note에 "평점 3.5 이상이라 학부 인증은 서류 없이 인정될 수 있어요. 나머지는 학과 사무실에서 확인해 주세요."라고 쓴다 |
 
 일반선택 46학점은 따로 판정하지 않는다. 총 136학점과 나머지 영역을 채우면 자동으로 맞춰지기 때문이다. 체크마다 `quote`(요건 원문)와 `src`(출처 링크)를 붙인다. 렌더러가 쓰는 객체 모양은 목업의 `SAMPLE.checks`와 같다.
 
@@ -112,15 +122,16 @@ AI가 실패했을 때 쓰는 대체 계획이다.
 
 이렇게 만든 계획은 반드시 `verifyPlan`을 통과해야 하고, 테스트로 보장한다.
 
-### pickDates(checks, plan, courses, today) → 일정 목록
-`calendar.json`의 일정마다 붙은 `rule` 키로 고른다. 이미 지난 일정은 빼고, 이유 문장은 코드가 만든다.
+### pickDates({ diag, plan, courses, ctx, data, today }) → 일정 목록
+`calendar.json`의 일정마다 붙은 `trigger` 키로 고른다. 끝난 일정은 빼고, 이유 문장은 일정의 `reason`에 진단 결과를 붙여 코드가 만든다. 시작일 순으로 정렬한다.
 
-| rule | 보여 줄 때 | 이유 예시 |
+| trigger | 보여 줄 때 | 이유 예시 |
 |---|---|---|
-| `seasonal` | 계획에 18학점 이상인 학기가 있거나 재수강할 F가 있음 | "2027-1학기가 19학점으로 꽉 차요…" |
-| `grades` | 수강 중인 과목이 있음 | "필수 과목인 알고리즘 성적을 확인하세요" |
-| `nextReg` | 계획에 그 학기가 있음 | "컴퓨터네트워크 재수강과 캡스톤을 꼭 담으세요" |
-| `graduation` | 계획상 그 학위수여식에 졸업함 | |
+| `hasCreditShortage` | 수강 중 학점까지 더해도 총 학점이 모자람. 계절학기 신청 일정은 18학점 이상인 계획 학기가 있으면 이유를 바꿈 | "2027-1학기가 18학점으로 꽉 차요. 계절학기로 3~6학점을 미리 덜어 둘 수 있어요." |
+| `always` | 항상. 성적 공시 일정은 수강 중인 필수 지정 과목이 있으면 이유를 바꿈 | "필수 과목인 알고리즘 성적을 확인하세요." |
+| `hasNextSemesterCourses` | 계획 학기가 있음. 수강신청 일정은 다음 학기 필수·재수강 과목 이름을 넣음 | "컴퓨터네트워크 재수강, 다학제간캡스톤디자인을 꼭 담으세요." |
+| `isGraduatingSemester` | 남은 계획 학기가 없음(이번 학기에 요건을 다 채움) | |
+| `none` | 보여 주지 않음 | |
 
 ## 서버 API
 
@@ -134,33 +145,33 @@ AI가 실패했을 때 쓰는 대체 계획이다.
   - 서버가 `diagnose`로 부족 요건을 정리하고, 남은 학기와 후보 과목(curriculum)을 Gemini에 준다.
   - `verifyPlan`에서 위반이 나오면 위반 내용을 붙여 한 번 다시 요청한다.
   - 전체 25초 안에 통과한 계획이 없으면 `defaultPlan`을 보낸다. 그래서 이 API는 실패하지 않는다.
-  - 화면에는 "AI가 짠 계획을 코드가 다시 확인했어요"(ai) 또는 "기본 계획이에요"(fallback)로 출처를 구분한다.
+  - 화면에는 "AI가 짠 계획을 코드가 다시 확인했어요."(ai) 또는 "AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요."(fallback)로 출처를 구분한다. 남은 학기가 없으면 "남은 요건이 없어요. 지금 학기를 잘 마치면 졸업할 수 있어요."
 
 ## 화면 흐름 (`app.js`)
 
 1. 처음에는 hero와 입력 카드만 보인다. hero 오른쪽 미리보기는 `sample/parsed.json`을 엔진으로 계산해 그린다.
 2. '진단 시작'
    - 무료 체험을 이미 썼고 이용권도 없으면 페이월 `<dialog>`를 연다.
-   - 아니면 진행 단계를 표시하며 호출한다(성적 읽는 중 → 요건 대조 → 계획 짜는 중).
+   - 아니면 진행판에 단계를 표시하며 호출한다('성적 화면 읽기 → 졸업요건 9개 대조 → 남은 학기 계획 → 계획 검증', 단계마다 상태와 걸린 시간).
    - 샘플은 `sample/capture.png`를 받아 `/api/parse`로 보내고, 학년·학기를 3학년 2학기로 맞춘다.
 3. 인식 성공 → `diagnose` → `/api/roadmap` → `pickDates` 순서로 계산하고 결과 섹션을 연다. **성공했을 때만** 무료 체험을 차감한다.
 4. 인식 실패나 타임아웃
-   - 샘플이면 `parsed.json`으로 이어 간다.
-   - 직접 입력이면 "인식에 실패했어요. 다시 시도하거나 텍스트로 붙여넣어 주세요"를 보여 주고 체험은 차감하지 않는다.
+   - 샘플이면 "AI 인식이 실패해서 미리 읽어 둔 샘플 결과로 보여 드려요."를 띄우고 `parsed.json`으로 이어 간다.
+   - 직접 입력이면 "AI 인식에 실패했어요. 잠시 후 다시 시도하거나 텍스트로 붙여넣어 주세요."(과목이 0개면 "성적 화면에서 과목을 찾지 못했어요. 전체학기 성적조회 화면인지 확인해 주세요.")를 보여 주고 체험은 차감하지 않는다.
 5. 표 수정(FR-06): 학점, 이수구분, 영역(핵심교양 행), 행 삭제를 할 수 있다. '다시 진단'은 3단계만 다시 돌리고 체험을 차감하지 않는다.
-6. 섹션 제목의 숫자는 모두 계산값이다("지금까지 84학점", "체크 9개 중 1개", "2028년 2월에 졸업하는 계획").
-7. .ics 다운로드와 인쇄는 목업 코드를 쓰고, 데이터만 계산값으로 바꾼다.
+6. 섹션은 `01 이수내역`·`02 졸업요건 진단`·`03 수강 로드맵`·`04 학사 마감 일정`·`05 학과에 물어볼 것` 순서다. 제목과 요약의 숫자는 모두 계산값이다("지금까지 84학점을 들었어요", "총 32과목 · 84학점", "체크 9개 중 1개는 지금 손봐야 해요", "2028년 2월에 졸업하는 계획").
+7. '캘린더에 추가(.ics)'와 '리포트 인쇄/PDF 저장'은 목업 코드를 쓰고, 데이터만 계산값으로 바꾼다.
 
 **페이월 (localStorage)**
 - `jg.trialUsed = '1'`, `jg.passUntil = '2027-02-28'`
-- '테스트 결제하기'를 누르면 `passUntil`을 저장하고 상단에 "이용권 사용 중 · 2027-02-28까지"를 띄운 뒤 진단을 이어 간다.
+- 페이월 창('한 학기 이용권 9,900원')에서 '테스트 결제하기(실제 청구 없음)'를 누르면 `passUntil`을 저장하고 상단에 "이용권 사용 중 · 2027-02-28까지"를 띄운 뒤 진단을 이어 간다.
 - '체험 초기화'는 두 키를 모두 지운다.
 - 저장소 접근은 목업의 `store` 래퍼처럼 try/catch로 감싼다.
 
 ## 데이터 준비
 
 - `requirements.json`, `curriculum.json`: research_notes의 JSON 블록을 옮긴다. curriculum에는 진로로드맵(2025-11-10) 표기의 별칭을 더한다.
-- `calendar.json`: calendar.md §1 표 중에서 rule에 걸리는 일정만 옮긴다.
+- `calendar.json`: calendar.md §1 표의 일정을 옮기고 일정마다 `trigger` 키를 붙인다.
 - `core_areas.json`: 2023 요람(없으면 2026 요람)의 교양교육과정에서 핵심교양 과목과 영역을 수집한다.
   - 찾지 못하면 빈 객체로 두고 AI 추정에 맡긴다.
   - 샘플 학생의 핵심교양 과목은 이 목록에 있는 실제 과목명으로 고른다.

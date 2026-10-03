@@ -1,5 +1,7 @@
 # 수강 로드맵 AI 연결 가이드 (백엔드용 초안)
 
+> **현재 상태(2026-10-03)**: 이 문서는 PR #4 당시의 초안이다. 실제 서버는 `lib/roadmap.mjs`의 `planRoadmap` 대신 `app/public/engine.js`의 `planTerms`·`tidyPlan`·`verifyPlan`·`defaultPlan`과 `server.js`의 `ROADMAP_SYSTEM`·`ROADMAP_SCHEMA`를 쓴다. 위반이 있으면 위반 내용을 붙여 한 번 더 요청한다(최대 2회, 전체 25초). `lib/roadmap.mjs`는 `npm run test:roadmap`의 교차 검증용 참조 구현으로 남아 있다. 현재 흐름은 README의 'AI 사용 방식'을 본다.
+
 FR-03 "AI 계획 + 코드 검증"에서 **AI를 부르는 쪽**(`app/server.js`)이 붙일 프롬프트, 입력, JSON 스키마 초안이다. 검증과 기본 로드맵은 `app/lib/roadmap.mjs`가 이미 한다. `server.js`는 고치지 않았고, 아래를 보고 백엔드 담당이 붙인다.
 
 ## 흐름
@@ -188,7 +190,7 @@ const ROADMAP_SCHEMA = {
 | `source` | 뜻 | 화면 |
 |---|---|---|
 | `ai` | AI 계획이 모든 검증을 통과해서 그대로 씀 | 로드맵 표시 |
-| `default` | 기본 로드맵으로 바꿈. 이유는 `fallbackReason` | 로드맵 표시. "AI 계획을 쓰지 못해 기본 계획을 보여 드려요" 같은 안내를 붙이면 좋다 |
+| `default` | 기본 로드맵으로 바꿈. 이유는 `fallbackReason` | 로드맵 표시. "AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요." 안내를 붙인다(현재 화면 문구) |
 
 `fallbackReason`: `no-ai`(askAi 없음), `ai-error`(예외 또는 시간 초과, `aiError`에 메시지), `invalid`(규칙 위반, `aiViolations`에 목록), `shortfall`(규칙은 지켰지만 기본 로드맵보다 졸업 학점을 덜 채움).
 
