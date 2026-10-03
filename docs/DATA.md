@@ -45,7 +45,10 @@
 AI를 부르지 않는 순수 함수다. 서버가 AI 응답을 검증하거나 AI가 실패했을 때 기본 로드맵을 만들 때 쓴다. 테스트는 `cd app && npm run test:roadmap`.
 
 - `validateRoadmap(roadmap, student, data)` → 위반 목록 `[{rule, term, item, message}]`(비면 통과). 규칙: `TERM_COUNT`, `TERM_SEQUENCE`, `ALREADY_TAKEN`, `DUPLICATE`, `UNKNOWN_COURSE`, `OFFERED`, `YEARS`, `CREDIT_LIMIT`, `LIBERAL_TERM_CAP`, `LIBERAL_TOTAL_CAP`, `SLOT_INVALID`, `FORMAT`.
-- `buildDefaultRoadmap(student, data)` → `{roadmap, unplaced, shortfall}`. 빠진 필수과목 → 부족한 전공선택, 핵심·자유교양 슬롯 → 총학점 136까지 전공선택 과목·일반선택 슬롯 순으로 채우고, 학기 부담이 고르게 나뉘게 한다. 못 놓은 항목은 `unplaced`, 못 채운 총학점은 `shortfall`이다.
+- `buildDefaultRoadmap(student, data)` → `{roadmap, unplaced, shortfall, projectedTotal}`. 빠진 필수과목 → 부족한 전공선택, 핵심·자유교양 슬롯 → 총학점 136까지 전공선택 과목·일반선택 슬롯 순으로 채우고, 학기 부담이 고르게 나뉘게 한다. 못 놓은 항목은 `unplaced`, 못 채운 총학점은 `shortfall`이다.
+- `planRoadmap({student, data, askAi, timeoutMs})` → AI 계획 → 코드 검증 → 실패하면 기본 로드맵(PRD §8). 서버는 `askAi({student, data, terms})`에 Gemini 호출 함수를 넘기면 된다(`{terms:[{term, items, why?}]}`를 돌려주면 됨). 결과는 `{source: 'ai'|'default', roadmap, projectedTotal, shortfall, unplaced, fallbackReason, aiViolations}`이다. 기본 로드맵으로 바꾸는 경우(`fallbackReason`): `no-ai`(askAi 없음), `ai-error`(예외·30초 초과, `aiError`에 메시지), `invalid`(규칙 위반, `aiViolations`에 목록), `shortfall`(규칙은 지켰지만 기본 로드맵보다 졸업 학점을 덜 채움).
+- **화면에 쓰는 모양**: 마무리한 로드맵의 학기마다 `credits`(학기 학점 합계)와 `why`(추천 이유)가 있고, 과목 항목에 `kind`(`required` 필수, `retake` 재수강)가 붙는다. 학점 합계는 AI 값을 믿지 않고 코드가 다시 계산하며, `why`는 AI가 쓴 문장이 있으면 쓰고 비어 있으면 코드가 만든 문장(재수강, 1학기에만 열리는 과목, 직접 골라야 하는 교양, 마지막 학기의 총학점)으로 채운다. 화면에 넣을 때는 HTML 이스케이프가 필요하다(AI 문장이 들어갈 수 있다).
+- AI 프롬프트 초안, 입력 JSON(`describeRoadmapTask`), 응답 스키마, 서버에 붙이는 예시는 [ROADMAP_AI.md](ROADMAP_AI.md)에 있다. `server.js`의 `TASKS` 등록은 백엔드 담당 몫이고, 이 코드는 응답이 그 모양이기만 하면 된다.
 - `data`는 `{requirements, curriculum}` JSON 객체다. `loadData(dir)`로 읽을 수 있다.
 - 학생 입력(`student`)과 로드맵 모양은 파일 맨 위 주석에 있다. 이 모양은 진단 엔진·AI 담당과 맞춰야 하는 **제안**이다. `taken`에는 F·N을 넣지 않고, 다시 들어야 하는 과목은 `retake`에 넣는다.
 - 로드맵 항목은 과목(`{name, code?}`, 학점은 curriculum 값) 또는 슬롯(`{slot, category, credits}`)이다. curriculum.json에는 교양 과목이 없어서 핵심교양·자유교양·일반선택은 슬롯으로 표현한다.
