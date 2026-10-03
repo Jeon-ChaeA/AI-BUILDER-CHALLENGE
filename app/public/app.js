@@ -263,7 +263,7 @@ function downloadIcs() {
 }
 
 // ---------- 호출 ----------
-async function post(url, body, ms) {
+async function post(url, body, ms, retry = true) {
   let r;
   try {
     r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(ms) });
@@ -271,6 +271,8 @@ async function post(url, body, ms) {
     throw new Error(err?.name === 'TimeoutError' ? `AI 응답이 ${ms / 1000}초를 넘었어요. 잠시 후 다시 시도해 주세요.` : '서버에 연결하지 못했어요. 네트워크를 확인해 주세요.');
   }
   const json = await r.json().catch(() => ({}));
+  // 앞단 프록시가 낸 502·503(JSON 아님)은 요청이 앱에 닿지 않은 것이라 한 번만 다시 보낸다. 504는 AI가 도는 중일 수 있어 다시 보내지 않는다.
+  if (retry && (r.status === 502 || r.status === 503) && !json.error) return post(url, body, ms, false);
   if (!r.ok) throw new Error(json.error ?? 'AI 분석에 실패했어요. 잠시 후 다시 시도해 주세요.');
   return json;
 }

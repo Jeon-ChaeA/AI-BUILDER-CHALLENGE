@@ -280,4 +280,7 @@ app.use((err, _req, res, _next) => {
   res.status(err.status ?? 500).json({ error: err.type === 'entity.too.large' ? '올린 파일이 너무 커요.' : '요청을 처리하지 못했어요.' });
 });
 
-app.listen(PORT, () => console.log(`listening on :${PORT} (model ${MODEL})`));
+const server = app.listen(PORT, () => console.log(`listening on :${PORT} (model ${MODEL})`));
+// 앞단 nginx가 쉬던 연결을 다시 쓸 때 Node(기본 5초)가 먼저 끊으면 502가 난다. 프록시보다 길게 잡는다.
+server.keepAliveTimeout = 75_000;
+server.headersTimeout = 76_000;

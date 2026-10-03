@@ -17,7 +17,7 @@
   "dependencies": {
     "@google/genai": "^2.27.0",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.8.1",
+    "better-sqlite3": "^12.11.1",
     "express": "^5.2.1"
   }
 }

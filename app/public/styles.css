@@ -532,6 +532,8 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
 /* GSAP 초기 숨김 — 모션 허용(.ganim)일 때만. gsap.js가 못 뜨면 즉시 해제 */
 .ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr,
 .ganim #branch .node { opacity: 0; }
+/* 스크롤 전이라 숨겨 둔 요소(gsap 인라인 opacity·transform)도 인쇄·PDF에는 보인다 */
+@media print { .ganim .hero h1, .ganim .lede, .ganim .intake, .ganim .pr, .ganim #branch .node, .ganim [style*="opacity"] { opacity: 1 !important; transform: none !important; } }
 
 /* ===== 기능 연결분 (mvp): 결과 표 수정, 진행 상태, 페이월, AI 희망 사항·검증 기록·학과 문의 ===== */
 input[type="text"], input[type="email"], input[type="password"] { width: 100%; min-height: 48px; font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r); padding: 10px 14px; transition: border-color .2s, box-shadow .2s; }

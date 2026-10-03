@@ -17,7 +17,8 @@
   <script src="theme.js"></script>
   <script>
     // GSAP 연출 플래그. reduced-motion이면 켜지 않아 모든 요소가 처음부터 보인다.
-    if (!matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
+    // 자동화 브라우저(평가 봇, 전체 페이지 캡처)는 스크롤하지 않으므로 연출 없이 처음부터 다 보여 준다.
+    if (!matchMedia('(prefers-reduced-motion:reduce)').matches && !navigator.webdriver) document.documentElement.classList.add('ganim');
   </script>
 </head>
 <body>

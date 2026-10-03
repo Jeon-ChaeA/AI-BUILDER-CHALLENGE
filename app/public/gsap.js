@@ -15,9 +15,11 @@
   // 숫자 카운트업 (prefix/suffix 지원)
   function countTo(el, end, { prefix = '', suffix = '', dur = 1.1, delay = 0, scroll = false } = {}) {
     const o = { v: 0 };
+    let started = false; // ScrollTrigger가 위치를 잴 때 0으로 한 번 그리므로, 실제로 시작한 뒤에만 글자를 바꾼다
     const cfg = {
       v: end, duration: dur, ease: 'power1.out', snap: { v: 1 }, delay,
-      onUpdate: () => { el.textContent = prefix + Math.round(o.v) + suffix; },
+      onStart: () => { started = true; },
+      onUpdate: () => { if (started) el.textContent = prefix + Math.round(o.v) + suffix; },
     };
     if (scroll) cfg.scrollTrigger = { trigger: el, start: 'top 90%' };
     gsap.to(o, cfg);
@@ -74,12 +76,11 @@
       scrollTrigger: { trigger: '#branch', start: 'top 78%' },
     });
 
-    // 5) 마감 D-day가 0에서 올라온다
+    // 5) 마감 D-day가 0에서 올라온다. 화면에 들어오기 전에는 진짜 값을 둔다(스크린 리더·인쇄·텍스트 추출용).
     reveal('.date', 0.08);
     document.querySelectorAll('.dday').forEach((el) => {
       const m = el.textContent.match(/D-(\d+)/);
       if (!m) return;
-      el.textContent = 'D-0';
       countTo(el, +m[1], { prefix: 'D-', dur: 1, scroll: true });
     });
     ScrollTrigger.refresh(); // 섹션이 열려 높이가 바뀌었으니 트리거 위치 갱신
