@@ -1,0 +1,4 @@
+.playwright-mcp/
+.impeccable/questions/
+# 서드파티 스킬은 각자 설치
+.claude/skills/
