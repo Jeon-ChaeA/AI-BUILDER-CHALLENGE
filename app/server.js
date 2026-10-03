@@ -1,5 +1,6 @@
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
+import authRouter, { withUser } from './auth.js';
 
 const PORT = process.env.PORT || 3000;
 const MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
@@ -27,6 +28,8 @@ const MAX_FILES = 10;
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '15mb' }));
+app.use(withUser);                     // ← 추가: 로그인 사용자를 req.user에 실음
+app.use('/api/auth', authRouter);      // ← 추가: 회원가입/로그인 라우트
 app.use(express.static('public'));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, model: MODEL }));
