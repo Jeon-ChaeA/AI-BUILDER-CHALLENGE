@@ -1,6 +1,6 @@
 // 졸업각 서버. 정적 화면(public/)과 API(상태 확인 1, AI 호출 3, 선택 기능인 로그인)를 한 프로세스로 띄운다.
 //
-//   GET  /api/health    살아 있는지, 어떤 Gemini 모델을 쓰는지
+//   GET  /api/health    살아 있는지, 어떤 Gemini 모델을 쓰는지, API 키가 설정돼 실제 AI를 부르는지(ai)
 //   POST /api/parse     성적 캡처(이미지 최대 5장) 또는 붙여넣은 텍스트 → 과목 표   (PRD FR-01)
 //   POST /api/roadmap   과목 표 + 희망 사항 → AI 수강 로드맵 + 검증 기록(trace)     (PRD FR-03·08·09)
 //   POST /api/consult   진단 결과 → 학과에 물어볼 질문과 문의 메일 초안             (PRD FR-10)
@@ -204,7 +204,7 @@ app.post(['/api/auth/signup', '/api/auth/login'], limit); // 비밀번호 대입
 app.use('/api/auth', json('4kb'), authRouter); // 회원가입/로그인 라우트
 app.use(express.static(fileURLToPath(new URL('./public', import.meta.url))));
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, model: MODEL }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, model: MODEL, ai: Boolean(process.env.GEMINI_API_KEY) }));
 
 app.post('/api/parse', limit, json('15mb'), async (req, res) => {
   const { text = '', files = [] } = req.body ?? {};

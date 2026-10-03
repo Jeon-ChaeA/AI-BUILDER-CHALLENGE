@@ -4,8 +4,9 @@
 
 국민대학교 소프트웨어학부(2023학번) 학생용 졸업요건 진단 웹 서비스입니다. KOOKMIN AI BUILDER CHALLENGE 2026, 팀 **5조의마법사**.
 
-- **배포 URL**: https://kaib.sungblab.com (로그인 없이 누구나 열림, 상태 확인 [`/api/health`](https://kaib.sungblab.com/api/health))
+- **배포 URL**: https://kaib.sungblab.com (로그인 없이 누구나 열림, 상태 확인 [`/api/health`](https://kaib.sungblab.com/api/health): `"ai":true`면 실제 Gemini에 연결된 상태)
 - **기획서**: [PRD.md](PRD.md) · 제품 원칙 [PRODUCT.md](PRODUCT.md) · 디자인 시스템 [DESIGN.md](DESIGN.md) · 데이터 근거 [docs/DATA.md](docs/DATA.md) · QA 기록 [docs/QA.md](docs/QA.md)
+- **심사용**: 요구사항별 구현 상태, 실제 AI 연동 확인 방법, 심사용 사용 순서는 [PRD '최종 구현 및 검증'](PRD.md#최종-구현-및-검증)에 있습니다. 코드를 읽는 사람과 AI를 위한 안내는 [AGENTS.md](AGENTS.md)입니다.
 
 ## 1분 체험
 
@@ -122,6 +123,7 @@ main에 push하거나 PR을 열면 GitHub Actions(`.github/workflows/test.yml`)�
 
 ```
 PRD.md, PRODUCT.md, DESIGN.md   기획서, 제품 원칙, 디자인 시스템
+AGENTS.md                       코드를 읽는 사람·AI를 위한 안내 (어디에 무엇이 있는지, 지켜야 할 규칙)
 docs/DATA.md                    졸업요건 데이터의 출처와 해석
 docs/QA.md                      배포 URL 기준 요구사항 점검 기록
 app/
@@ -148,7 +150,7 @@ app/
 
 - 소프트웨어학부 2023학번만 지원합니다. 복수전공·부전공·편입·조기졸업은 범위 밖입니다.
 - 학부 인증, 졸업논문, 전공능력처럼 성적표만으로 판정할 수 없는 항목은 '학과 확인'으로 표시하고 문의 메일로 넘깁니다.
-- 결제는 테스트 결제만 있습니다(PG 연동 없음).
+- 결제는 테스트 결제만 있습니다(PG 연동 없음). 무료 체험·이용권 상태는 브라우저 저장소에 있어서 지우면 처음 상태가 됩니다. 실제 결제를 열 때 계정 단위 서버 확인으로 바꿀 계획입니다.
 - 결과는 참고용이며, 최종 확인은 학과 사무실에서 해야 합니다.
 
 ## 데이터 출처

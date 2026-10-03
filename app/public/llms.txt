@@ -17,6 +17,11 @@
 - '캡처 올리기' 탭: '시험용 샘플 캡처 내려받기'(/sample/capture.png)로 받은 이미지를 올린다.
 - '붙여넣기' 탭: '시험용 샘플 텍스트 넣기'를 누른다.
 
+## 기획서와 소스
+
+- 기획서(PRD), 요구사항별 구현 상태와 심사용 사용 순서: https://github.com/Jeon-ChaeA/AI-BUILDER-CHALLENGE/blob/main/PRD.md
+- 소스 코드: https://github.com/Jeon-ChaeA/AI-BUILDER-CHALLENGE
+
 ## 페이지
 
 - [진단](/): 입력, 결과, '왜 졸업각인가'(#why), '요금'(#pricing)
@@ -26,7 +31,7 @@
 
 ## API
 
-- GET /api/health → {"ok":true,"model":"..."}
+- GET /api/health → {"ok":true,"model":"...","ai":true} (ai: Gemini API 키가 설정돼 실제 AI를 부르는지)
 - POST /api/parse: 성적 캡처·텍스트 → 과목 표 (AI)
 - POST /api/roadmap: 과목 표 + 희망 사항 → 수강 로드맵 + 검증 기록 (AI + 코드 검증)
 - POST /api/consult: 진단 결과 → 학과 문의 메일·상담 질문 (AI)
