@@ -42,17 +42,17 @@
 
           <div class="pane pane-sample">
             <p><strong>김국민</strong> <span class="tag">가상 학생</span></p>
-            <p class="muted">2023학번, 2025년에 두 학기 휴학하고 지금 3학년 2학기예요.</p>
+            <p class="muted">2023학번, 2025년에 두 학기 휴학하고 지금 3학년 2학기예요. 성적 화면 캡처를 AI가 직접 읽어요.</p>
           </div>
-          <label class="pane pane-capture drop">
-            <input type="file" accept="image/png,image/jpeg,image/webp" multiple>
+          <label class="pane pane-capture drop" id="drop">
+            <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
             <i class="ph ph-upload-simple"></i>
-            <span>ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
-            <small>PNG, JPG, WEBP 최대 5장</small>
+            <span id="dropText">ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
+            <small>학사서비스 → 성적정보 → 전체학기 성적조회(학부) · PNG, JPG, WEBP 최대 5장</small>
           </label>
           <div class="pane pane-paste">
             <label for="paste">성적 화면 텍스트</label>
-            <textarea id="paste" rows="4" placeholder="ON국민 성적 조회 화면을 전체 선택해 복사한 뒤 붙여넣으세요"></textarea>
+            <textarea id="paste" rows="4" placeholder="ON국민 학사서비스 → 성적정보 → 전체학기 성적조회(학부) 화면을 전체 선택해 복사한 뒤 붙여넣으세요"></textarea>
           </div>
 
           <div class="fields">
@@ -62,15 +62,16 @@
             </div>
             <div class="field">
               <label class="field-label" for="year">지금 학년</label>
-              <select id="year"><option>1학년</option><option>2학년</option><option selected>3학년</option><option>4학년</option></select>
+              <select id="year"><option value="1">1학년</option><option value="2">2학년</option><option value="3" selected>3학년</option><option value="4">4학년</option></select>
             </div>
             <div class="field">
               <label class="field-label" for="term">학기</label>
-              <select id="term"><option>1학기</option><option selected>2학기</option></select>
+              <select id="term"><option value="1">1학기</option><option value="2" selected>2학기</option></select>
             </div>
           </div>
 
-          <button class="btn btn-primary" type="submit"><i class="ph-fill ph-play"></i>진단 시작</button>
+          <button class="btn btn-primary" type="submit" id="go"><i class="ph-fill ph-play"></i>진단 시작</button>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
           <p class="fine"><i class="ph ph-shield-check"></i>이름과 학번은 지우고 올려 주세요. 성적은 저장하지 않고, 분석을 위해 Google Gemini로만 보내요.</p>
         </form>
       </div>
@@ -80,21 +81,21 @@
           <i class="ph ph-git-pull-request pr-icon"></i>
           <div class="pr-title">
             <strong>김국민 <i class="ph ph-arrow-right"></i> 졸업</strong>
-            <span class="muted">2028년 2월 졸업 예정, 체크 9개</span>
+            <span class="muted" id="heroSub">계산하는 중</span>
           </div>
           <span class="tag">샘플</span>
         </div>
         <ol class="checks compact run" id="heroChecks"></ol>
         <div class="merge">
           <i class="ph-fill ph-git-merge"></i>
-          <p><strong>조치 필요 1개</strong>만 해결하면 2028년 2월에 졸업할 수 있어요.</p>
+          <p id="heroMerge"></p>
         </div>
       </aside>
     </section>
 
-    <section class="sec" id="log" aria-labelledby="log-h">
-      <h2 id="log-h">지금까지 <span class="num">84</span>학점을 들었어요</h2>
-      <p class="sec-lede">5개 학기 동안 32과목을 들었고, F 받은 1과목은 학점에서 뺐어요.</p>
+    <section class="sec" id="log" aria-labelledby="log-h" hidden>
+      <h2 id="log-h"></h2>
+      <p class="sec-lede" id="logLede"></p>
       <div class="grass-card">
         <div class="grass" id="grass" role="img" aria-label="학기별 수강 과목 격자"></div>
         <div class="legend">
@@ -105,34 +106,34 @@
       <div class="terms" id="terms"></div>
       <div class="log-actions">
         <button class="btn btn-secondary" type="button" id="rerun"><i class="ph ph-arrow-clockwise"></i>다시 진단</button>
-        <span class="muted">학점이나 이수구분이 틀렸으면 칸을 눌러 고친 뒤 다시 진단하세요.</span>
+        <span class="muted">학점, 이수구분, 핵심교양 영역이 틀렸으면 칸을 고치거나 행을 지운 뒤 다시 진단하세요. 무료 체험은 줄지 않아요.</span>
       </div>
     </section>
 
-    <section class="sec" id="checks" aria-labelledby="checks-h">
-      <h2 id="checks-h">체크 9개 중 1개는 지금 손봐야 해요</h2>
+    <section class="sec" id="checks" aria-labelledby="checks-h" hidden>
+      <h2 id="checks-h"></h2>
       <p class="tally" id="tally"></p>
       <ol class="checks full" id="fullChecks"></ol>
     </section>
 
-    <section class="sec" id="plan" aria-labelledby="plan-h">
-      <h2 id="plan-h">2028년 2월에 졸업하는 계획</h2>
-      <p class="sec-lede">AI가 짠 계획을 코드가 다시 확인했어요.</p>
-      <ul class="verified">
+    <section class="sec" id="plan" aria-labelledby="plan-h" hidden>
+      <h2 id="plan-h"></h2>
+      <p class="sec-lede" id="planLede"></p>
+      <ul class="verified" id="verified">
         <li><i class="ph-fill ph-check-circle"></i>이미 들은 과목 없음</li>
-        <li><i class="ph-fill ph-check-circle"></i>학기당 19학점 이하</li>
+        <li><i class="ph-fill ph-check-circle"></i>학기당 19학점 이하, 개설 학기 맞춤</li>
         <li><i class="ph-fill ph-check-circle"></i>부족한 요건 모두 채움</li>
       </ul>
       <ol class="branch" id="branch"></ol>
     </section>
 
-    <section class="sec" id="dates" aria-labelledby="dates-h">
+    <section class="sec" id="dates" aria-labelledby="dates-h" hidden>
       <h2 id="dates-h">놓치면 안 되는 날짜</h2>
       <ol class="dates" id="dateList"></ol>
       <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가 (.ics)</button>
     </section>
 
-    <section class="report" aria-labelledby="report-h">
+    <section class="report" id="report" aria-labelledby="report-h" hidden>
       <div>
         <h2 id="report-h">지도교수 상담에 들고 가세요</h2>
         <p>진단 요약, 손볼 것, 학기 계획, 날짜를 한 장에 정리해 드려요.</p>
@@ -156,6 +157,24 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <dialog class="paywall" id="paywall" aria-labelledby="pay-h">
+    <form method="dialog">
+      <p class="tag">무료 체험을 다 썼어요</p>
+      <h2 id="pay-h">한 학기 이용권 <span class="num">9,900원</span></h2>
+      <ul class="perks">
+        <li><i class="ph-fill ph-check-circle"></i>진단과 다시 진단 무제한</li>
+        <li><i class="ph-fill ph-check-circle"></i>남은 학기 수강 로드맵</li>
+        <li><i class="ph-fill ph-check-circle"></i>마감 일정 캘린더(.ics)</li>
+        <li><i class="ph-fill ph-check-circle"></i>지도교수 상담용 리포트</li>
+      </ul>
+      <p class="muted">결제하면 2027-02-28까지 쓸 수 있어요.</p>
+      <div class="pay-actions">
+        <button class="btn btn-primary" value="pay"><i class="ph ph-credit-card"></i>테스트 결제하기 (실제 청구 없음)</button>
+        <button class="btn btn-quiet" value="cancel">닫기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -72,6 +72,8 @@ i[class*="ph"] { font-size: 1.15em; line-height: 1; }
   background: var(--green-soft); color: var(--green-ink);
 }
 .trial.used { background: var(--sunken); color: var(--ink-2); }
+.trial.pass { background: var(--green); color: #fbfdfb; }
+[hidden] { display: none !important; }
 
 main { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
@@ -234,6 +236,13 @@ select { min-height: 44px; padding-right: 32px; appearance: none; cursor: pointe
 .course-table .area { margin-left: 6px; font-size: .8125rem; color: var(--ink-3); }
 .course-table tr.is-f td { color: var(--red); }
 .course-table tr.is-f .grade::after { content: " 미산입"; font-family: var(--sans); font-size: .75rem; font-weight: 600; }
+.course-table tr.is-old td { color: var(--ink-3); }
+.course-table tr.is-old .grade::after { content: " 재수강 전"; font-family: var(--sans); font-size: .75rem; }
+.course-table td:last-child { width: 1%; padding-left: 0; }
+.course-table .area-edit { margin-left: 4px; font-size: .8125rem; color: var(--ink-2); }
+.course-table .guess { font-size: .6875rem; font-weight: 700; color: var(--ink-2); background: var(--sunken); padding: 1px 6px; border-radius: 999px; vertical-align: 1px; }
+.row-del { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); cursor: pointer; }
+.row-del:hover { background: var(--red-soft); color: var(--red); }
 .cell-edit {
   font: inherit; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 6px;
   padding: 4px 6px; margin-left: -7px; min-height: 0;
@@ -304,11 +313,11 @@ select.cell-edit { width: auto; background-image: none; padding-right: 6px; }
 .node.goal strong { color: var(--green-ink); }
 
 /* 시그니처: 조치 필요 체크와 그걸 해결하는 학기·과목·날짜가 함께 밝아진다 */
-body:has([data-link="cn"]:is(:hover, :focus-within)) .node[data-link="cn"] .node-card { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .chip[data-link="cn"] { background: var(--red); color: #fff7f6; border-color: var(--red); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .check[data-link="cn"] summary,
-body:has([data-link="cn"]:is(:hover, :focus-within)) .compact .check[data-link="cn"] { box-shadow: inset 3px 0 0 var(--red); }
-body:has([data-link="cn"]:is(:hover, :focus-within)) .date[data-link="cn"] { border-color: var(--red); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .node[data-link="act"] .node-card { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .chip[data-link="act"] { background: var(--red); color: #fff7f6; border-color: var(--red); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .check[data-link="act"] summary,
+body:has([data-link="act"]:is(:hover, :focus-within)) .compact .check[data-link="act"] { box-shadow: inset 3px 0 0 var(--red); }
+body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { border-color: var(--red); }
 .link-hint { display: inline-flex; align-items: center; gap: 4px; font-size: .8125rem; font-weight: 600; color: var(--red); }
 
 /* 날짜 */
@@ -372,4 +381,36 @@ body:has([data-link="cn"]:is(:hover, :focus-within)) .date[data-link="cn"] { bor
   .print-note { display: block; font-weight: 700; }
   .foot { border: 0; padding: 0; }
   *, *::before { animation: none !important; box-shadow: none !important; }
+}
+
+/* 진행 상태와 오류 */
+.status:empty { display: none; }
+.status { display: flex; gap: 6px; align-items: flex-start; font-size: .9375rem; color: var(--ink-2); }
+.status i { margin-top: 3px; }
+.status.busy i { animation: spin 1s linear infinite; }
+.status.error { color: var(--red); font-weight: 600; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn:disabled { opacity: .6; cursor: progress; }
+.drop.over { border-color: var(--green); background: var(--green-soft); }
+.chip.gen { border-style: dashed; color: var(--ink-2); }
+
+/* 이용권 안내 */
+.paywall { width: min(420px, calc(100vw - 32px)); padding: 28px; border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.paywall::backdrop { background: rgb(21 24 27 / .45); }
+.paywall h2 { margin-top: 10px; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+.paywall h2 .num { color: var(--green); }
+.perks { list-style: none; margin: 16px 0; padding: 0; display: grid; gap: 8px; }
+.perks li { display: flex; gap: 8px; align-items: center; }
+.perks i { color: var(--green); }
+.pay-actions { margin-top: 20px; display: grid; gap: 8px; }
+@media print { .status, .paywall { display: none !important; } }
+@media (prefers-color-scheme: dark) { .trial.pass { color: #08140d; } }
+@media (max-width: 640px) {
+  .term { overflow-x: auto; }
+  .course-table th, .course-table td { padding: 6px 8px; }
+  .course-table th { white-space: nowrap; }
+  .course-table td:first-child { min-width: 8.5em; }
+  .course-table .grade { white-space: nowrap; }
+  input.cell-edit { width: 3.2em; }
+  select.cell-edit { max-width: 6.5em; font-size: .875rem; }
 }
