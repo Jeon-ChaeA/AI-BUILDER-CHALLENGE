@@ -8,7 +8,7 @@ const SAMPLE_CTX = { ordinal: 6, termNow: '2026-2' }; // 샘플 학생은 2026-2
 const MAX_FILES = 5, MAX_BYTES = 10 * 1024 * 1024;
 
 let data, sample;
-const state = { courses: [], ctx: null, diag: null, plan: [], source: '', dates: [] };
+const state = { courses: [], ctx: null, diag: null, plan: [], source: '', summary: '', trace: [], wishes: '', dates: [] };
 let busy = false;
 
 // ---------- 저장소: 막혀 있어도 화면은 돌아가야 한다 ----------
@@ -48,8 +48,9 @@ function setStatus(kind, text) {
 }
 function setBusy(on) {
   busy = on;
-  $('go').disabled = on;
-  $('rerun').disabled = on;
+  for (const id of ['go', 'rerun', 'replanGo', 'consultGo']) $(id).disabled = on;
+  // 진단 중에는 표를 잠근다. 새 이수내역으로 바뀐 뒤 옛 표의 행 번호로 고치는 일을 막는다.
+  $('log').inert = on;
 }
 
 // ---------- hero 미리보기: 샘플 학생을 엔진으로 계산 ----------
@@ -93,7 +94,8 @@ function renderLog() {
     return `<div class="gcol${recs.length ? '' : ' leave'}"${recs.length ? '' : ' title="휴학"'}><div class="gcells">${cells}</div><span class="glabel">${t.slice(2)}</span></div>`;
   }).join('');
 
-  // 학기별 표: 칸을 고치면 state.courses가 바로 바뀐다.
+  // 학기별 표: 칸을 고치면 state.courses가 바로 바뀐다. [R]·W·못 읽은 성적은 원문을 선택지로 남긴다.
+  const keepRaw = (r) => r.gi.kind === 'unknown' || r.gi.kind === 'void';
   const byTerm = new Map();
   A.recs.forEach((r) => (byTerm.get(r.term) ?? byTerm.set(r.term, []).get(r.term)).push(r));
   const keys = [...byTerm.keys()].sort((a, b) => E.termIdx(a) - E.termIdx(b));
@@ -106,7 +108,7 @@ function renderLog() {
     return `
     <details class="term"${t === lastDone || prog ? ' open' : ''}>
       <summary><i class="ph ph-caret-right chev"></i><strong>${y}년 ${/^\d$/.test(s) ? `${s}학기` : `${s} 계절학기`}</strong><span class="grow mono muted">${t}</span><span class="num">${prog ? `${load(recs)}학점 수강 중` : `${earned}학점`}</span></summary>
-      <table class="course-table">
+      <div class="tscroll"><table class="course-table">
         <thead><tr><th>과목</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
         <tbody>${recs.map((r) => {
           const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
@@ -117,11 +119,13 @@ function renderLog() {
             <td>${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
             <td><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
             <td><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
-            <td class="grade">${r.gi.kind === 'prog' ? '<span class="muted">수강 중</span>' : esc(r.grade)}</td>
+            <td class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
+              ${[...(keepRaw(r) ? [r.grade] : []), ...E.GRADES, ''].map((g) => `<option value="${esc(g)}"${(r.gi.kind === 'prog' ? '' : keepRaw(r) ? r.grade : r.gi.g) === g ? ' selected' : ''}>${g === '' ? '수강 중' : esc(g)}${keepRaw(r) && g === r.grade ? (r.gi.kind === 'void' ? ' (제외)' : ' (읽지 못함)') : ''}</option>`).join('')}
+            </select></td>
             <td><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
           </tr>`;
         }).join('')}</tbody>
-      </table>
+      </table></div>
     </details>`;
   }).join('');
 }
@@ -167,8 +171,26 @@ function renderPlan() {
   $('plan-h').textContent = `${grad}에 졸업하는 계획`;
   $('planLede').textContent = source === 'ai' ? 'AI가 짠 계획을 코드가 다시 확인했어요.'
     : source === 'done' ? '남은 요건이 없어요. 지금 학기를 잘 마치면 졸업할 수 있어요.'
-    : 'AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요.';
-  $('verified').hidden = source === 'done';
+    : state.fallbackOk ? 'AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요.'
+    : 'AI 계획을 쓰지 못해서 기본 계획을 보여 드려요. 일부 요건은 이 계획으로 채우지 못하니 학과 사무실과 꼭 상의하세요.';
+  $('verified').hidden = source === 'done' || (source === 'fallback' && !state.fallbackOk);
+
+  // AI 요약과 희망 사항
+  const wish = state.wishes ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>` : '';
+  $('planSummary').innerHTML = state.summary ? `<p><i class="ph-fill ph-sparkle"></i>${esc(state.summary)}</p>${wish}` : wish;
+  $('planSummary').hidden = !state.summary && !wish;
+
+  // AI 초안 → 코드 검증 → 수정 요청 기록
+  const steps = state.trace.map((t) => {
+    const head = t.attempt === 1 ? 'AI 초안' : `위반 내용을 AI에 돌려주고 받은 ${t.attempt}차 수정안`;
+    if (t.error) return `<li class="t-bad"><b>${head}</b> AI 응답을 받지 못했어요.</li>`;
+    if (!t.total) return `<li class="t-ok"><b>${head}</b> 코드 검증 통과: 학기당 ${max}학점, 중복 수강, 개설 학기·학년, 졸업요건 7개를 모두 지켰어요.</li>`;
+    return `<li class="t-bad"><b>${head}</b> 코드 검증에서 위반 ${t.total}건을 찾았어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
+  });
+  if (source === 'fallback') steps.push(state.fallbackOk ? '<li class="t-ok"><b>기본 계획</b> AI 계획을 쓰지 못해 교육과정 순서로 만든 계획으로 바꿨고, 같은 검증을 통과했어요.</li>'
+    : '<li class="t-bad"><b>기본 계획</b> 교육과정 순서로 만든 계획도 일부 요건을 채우지 못했어요.</li>');
+  $('trace').innerHTML = steps.join('');
+  $('traceBox').hidden = !steps.length;
 
   const chip = ([name, c, k, gen]) => `<li class="chip${k ? ` ${k}` : ''}${gen ? ' gen' : ''}"${k === 'retake' ? ' data-link="act"' : ''}>${k === 'retake' ? '<i class="ph ph-arrow-counter-clockwise"></i>' : ''}${esc(name)}${k === 'retake' ? ' 재수강' : ''}<span class="c">${c}</span></li>`;
   const node = ({ label, code, now, credits, chips, why, link }) => `
@@ -274,24 +296,63 @@ async function readInput(src) {
   return { text };
 }
 
+// AI 로드맵. 서버가 코드로 검증하고, 서버에 닿지 못하면 브라우저에서 기본 계획을 만든다.
+async function fetchPlan() {
+  try {
+    const r = await post('/api/roadmap', { courses: state.courses, ctx: state.ctx, wishes: state.wishes }, 35_000);
+    Object.assign(state, { plan: r.plan, source: r.source, fallbackOk: r.fallbackOk !== false, summary: r.summary ?? '', trace: r.trace ?? [] });
+  } catch {
+    const plan = E.defaultPlan(state.courses, state.ctx, data);
+    Object.assign(state, { plan, source: 'fallback', fallbackOk: !E.verifyPlan(plan, state.courses, state.ctx, data).length, summary: '', trace: [{ attempt: 1, error: true }] });
+  }
+  state.dates = E.pickDates({ diag: state.diag, plan: state.plan, courses: state.courses, ctx: state.ctx, data });
+}
+
+// ---------- 학과 문의 메일 ----------
+function resetConsult() {
+  const facts = E.consultFacts(state.courses, state.ctx, data, state.plan);
+  $('facts').innerHTML = facts.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.fact)}</li>`).join('');
+  $('consultOut').hidden = true;
+  $('questions').innerHTML = '';
+  consultStatus('', '');
+}
+function consultStatus(kind, text) {
+  const el = $('consultStatus');
+  el.className = `status${kind ? ` ${kind}` : ''}`;
+  el.textContent = text;
+}
+function syncMailto() {
+  $('mailto').href = `mailto:?subject=${encodeURIComponent($('mailSubject').value)}&body=${encodeURIComponent($('mailBody').value)}`;
+}
+function showConsult({ subject, body, questions }) {
+  $('questions').innerHTML = questions.map((q) => `<li>${esc(q)}</li>`).join('');
+  $('mailSubject').value = subject;
+  $('mailBody').value = body;
+  syncMailto();
+  $('consultOut').hidden = false;
+}
+// AI가 실패해도 코드가 고른 사실로 초안은 준다.
+function fallbackConsult() {
+  const facts = E.consultFacts(state.courses, state.ctx, data, state.plan);
+  return {
+    subject: '소프트웨어학부 졸업요건 확인 문의',
+    body: ['안녕하세요. 소프트웨어학부 [학번] [이름]입니다.', '졸업요건을 확인하다가 몇 가지 여쭙고 싶어 연락드립니다.', '',
+      ...facts.map((f, i) => `${i + 1}. ${f.ask} 여쭙고 싶습니다.`), '', '확인해 주시면 감사하겠습니다.', '[이름] 드림'].join('\n'),
+    questions: facts.slice(0, 6).map((f) => `${f.ask} 궁금해요.`),
+  };
+}
+
 // 이수내역이 정해진 뒤의 단계. '다시 진단'도 여기서 시작한다(AI 인식과 체험 차감 없음).
 async function analyze(notice = '') {
   state.diag = E.diagnose(state.courses, state.ctx, data);
-  setStatus('busy', 'AI가 남은 학기 계획을 짜고 있어요. 코드가 그 계획을 다시 확인해요.');
-  try {
-    const r = await post('/api/roadmap', { courses: state.courses, ctx: state.ctx }, 35_000);
-    state.plan = r.plan;
-    state.source = r.source;
-  } catch {
-    state.plan = E.defaultPlan(state.courses, state.ctx, data);
-    state.source = 'fallback';
-  }
-  state.dates = E.pickDates({ diag: state.diag, plan: state.plan, courses: state.courses, ctx: state.ctx, data });
+  setStatus('busy', state.wishes ? 'AI가 희망 사항을 반영해 남은 학기를 짜고, 코드가 그 계획을 검증하고 있어요.' : 'AI가 남은 학기 계획을 짜고, 코드가 그 계획을 검증하고 있어요.');
+  await fetchPlan();
   renderLog();
   renderChecks();
   renderPlan();
   renderDates();
-  for (const id of ['log', 'checks', 'plan', 'dates', 'report']) $(id).hidden = false;
+  resetConsult();
+  for (const id of ['log', 'checks', 'plan', 'dates', 'consult', 'report']) $(id).hidden = false;
   replay($('fullChecks'));
   setStatus(notice ? 'info' : '', notice);
   document.dispatchEvent(new CustomEvent('jg:render'));
@@ -304,10 +365,12 @@ async function diagnoseNow() {
     let input;
     try { input = await readInput(src); } catch (err) { setStatus('error', err.message); return; }
     if (src === 'sample') { $('year').value = '3'; $('term').value = '2'; }
+    state.wishes = $('wishes').value.replace(/\s+/g, ' ').trim();
+    $('wishes2').value = state.wishes;
     setStatus('busy', 'AI가 성적 화면을 읽고 있어요. 10~20초쯤 걸려요.');
     let notice = '';
     try {
-      state.courses = (await post('/api/parse', input, 30_000)).courses;
+      state.courses = (await post('/api/parse', input, 40_000)).courses;
     } catch (err) {
       if (src !== 'sample') { setStatus('error', err.message); return; }
       state.courses = structuredClone(sample.courses);
@@ -327,7 +390,7 @@ async function diagnoseNow() {
 $('intake').addEventListener('submit', (e) => {
   e.preventDefault();
   if (busy) return;
-  if (trialUsed() && !hasPass()) { $('paywall').showModal(); return; }
+  if (trialUsed() && !hasPass()) { $('paywall').returnValue = ''; $('paywall').showModal(); return; }
   diagnoseNow();
 });
 
@@ -346,12 +409,65 @@ $('rerun').addEventListener('click', async () => {
   try { await analyze('고친 이수내역으로 다시 진단했어요.'); $('checks').scrollIntoView(); } finally { setBusy(false); }
 });
 
+$('replan').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (busy || !state.courses.length) return;
+  state.wishes = $('wishes2').value.replace(/\s+/g, ' ').trim();
+  $('wishes').value = state.wishes;
+  setBusy(true);
+  $('replanGo').innerHTML = '<i class="ph ph-spinner-gap"></i>AI가 다시 짜는 중';
+  try {
+    await fetchPlan();
+    renderPlan();
+    renderDates();
+    resetConsult();
+    $('plan').scrollIntoView();
+    document.dispatchEvent(new CustomEvent('jg:render'));
+  } finally {
+    $('replanGo').innerHTML = '<i class="ph ph-sparkle"></i>AI로 다시 짜기';
+    setBusy(false);
+  }
+});
+
+// 희망 사항 예시 칩: 누르면 해당 칸에 문장을 붙인다.
+document.addEventListener('click', (e) => {
+  const chip = e.target.closest('.wchip');
+  if (!chip) return;
+  const t = $(chip.closest('.wish-chips').dataset.for);
+  const v = t.value.trim();
+  if (!v.includes(chip.textContent)) t.value = v ? `${v}, ${chip.textContent}` : chip.textContent;
+  t.focus();
+});
+
+$('consultGo').addEventListener('click', async () => {
+  if (busy || !state.courses.length) return;
+  setBusy(true);
+  consultStatus('busy', 'AI가 진단 결과로 문의 메일과 상담 질문을 쓰고 있어요.');
+  try {
+    showConsult(await post('/api/consult', { courses: state.courses, ctx: state.ctx, plan: state.plan }, 30_000));
+    consultStatus('', '');
+  } catch (err) {
+    showConsult(fallbackConsult());
+    consultStatus('error', `${err.message} 대신 코드가 고른 질문으로 초안을 만들었어요.`);
+  } finally {
+    setBusy(false);
+  }
+});
+$('mailSubject').addEventListener('input', syncMailto);
+$('mailBody').addEventListener('input', syncMailto);
+$('copyMail').addEventListener('click', async () => {
+  const text = `제목: ${$('mailSubject').value}\n\n${$('mailBody').value}`;
+  try { await navigator.clipboard.writeText(text); consultStatus('info', '메일을 복사했어요. 학교 메일에 붙여넣어 보내세요.'); }
+  catch { $('mailBody').select(); consultStatus('info', '본문을 선택해 두었어요. Ctrl+C로 복사하세요.'); }
+});
+
 $('terms').addEventListener('change', (e) => {
   const el = e.target.closest('[data-f]'), row = e.target.closest('tr[data-i]');
   if (!el || !row) return;
   const c = state.courses[+row.dataset.i];
   if (el.dataset.f === 'credits') c.credits = Math.min(6, Math.max(1, Number(el.value) || c.credits));
   if (el.dataset.f === 'category') c.category = el.value;
+  if (el.dataset.f === 'grade') c.grade = el.value;
   if (el.dataset.f === 'area') { c.area = el.value || null; c.areaGuess = false; }
   setStatus('info', '고친 내용은 다시 진단을 누르면 반영돼요.');
 });

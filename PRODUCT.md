@@ -43,9 +43,9 @@ Graduation requirements are scattered: the department homepage has them by admis
 
 ## Capabilities and Constraints
 
-- Features: FR-01 to FR-07 in `PRD.md`.
+- Features: FR-01 to FR-10 in `PRD.md`.
   - Required: input and course table, requirement diagnosis with warnings and sources, remaining-semester roadmap, personalized deadlines with .ics, free trial with hard paywall.
-  - Optional: editing the table and re-running the diagnosis, printable report.
+  - Optional: editing the table and re-running the diagnosis, printable report, a roadmap that follows the student's written wishes, a visible AI-draft → code-check → revision log, and an AI-written inquiry email and advisor questions built only from facts the code extracted.
 - Out of scope:
   - login and real payment
   - automatic ON국민 scraping

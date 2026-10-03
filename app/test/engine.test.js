@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { AREAS as E_AREAS } from '../public/engine.js';
 import {
-  diagnose, verifyPlan, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan,
+  diagnose, verifyPlan, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan, consultFacts,
 } from '../public/engine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8'));
@@ -172,9 +173,92 @@ test('tidyPlan은 AI 계획의 과목명·학점을 교육과정에 맞추고 �
     { name: '컴퓨터 네트워크', credits: 2, category: '전공필수' },
     { name: '핵심교양 (창의)', credits: 3, category: '핵심교양', area: '창의', generic: true },
     { name: '모르는과목', credits: 3, category: '전공선택' },
+    { name: '일반선택', credits: 3, category: '일반선택', generic: true },
+    { name: '일반선택', credits: 1, category: '일반선택', generic: true },
   ] }, 'garbage'], sample, ctx, data);
+  assert.equal(plan[0].courses.filter((c) => c.category === '일반선택').length, 1);
+  assert.equal(plan[0].courses.find((c) => c.category === '일반선택').credits, 4);
   assert.deepEqual(plan[0].courses[0], { name: '컴퓨터네트워크', credits: 3, category: '전공선택', kind: 'retake' });
   assert.equal(plan[0].courses[1].generic, true);
   assert.equal(plan[0].courses[2].name, '모르는과목');
   assert.deepEqual(plan[1], { term: '', why: '', courses: [] });
+});
+
+test('consultFacts는 진단에서 확인할 사실만 뽑는다', () => {
+  const plan = defaultPlan(sample, ctx, data);
+  const facts = consultFacts(sample, ctx, data, plan);
+  const ids = facts.map((f) => f.id);
+  for (const id of ['retake:컴퓨터네트워크', 'globalEnglish', 'competency', 'majorTrack', 'thesis']) assert.ok(ids.includes(id), id);
+  assert.ok(!ids.includes('area'), '샘플의 핵심교양은 모두 요람 목록에 있다');
+  assert.match(facts.find((f) => f.id === 'retake:컴퓨터네트워크').fact, /2026-1학기에 F/);
+  assert.match(facts.find((f) => f.id === 'thesis').fact, /2027-1학기/);
+  const guessed = consultFacts([C('2023-1', '없는교양과목', 3, '핵심교양', 'A0', { area: '창의', areaGuess: true })], { ordinal: 1, termNow: '2023-1' }, data);
+  assert.match(guessed.find((f) => f.id === 'area').fact, /없는교양과목\(창의로 추정\)/);
+});
+
+test('리뷰 회귀: 띄어 쓴 "수강 중"도 수강 중으로 보고 계획한다', () => {
+  const spaced = sample.map((c) => (c.grade === '' ? { ...c, grade: '수강 중' } : c));
+  assert.deepEqual(planTerms(spaced, ctx, data), ['2027-1', '2027-2']);
+  const plan = defaultPlan(spaced, ctx, data);
+  assert.deepEqual(verifyPlan(plan, spaced, ctx, data), []);
+  assert.ok(!plan.flatMap((p) => p.courses).some((c) => c.name === '알고리즘'));
+});
+
+test('리뷰 회귀: 읽지 못한 성적은 CHK-01에서 알린다', () => {
+  const odd = sample.map((c) => (c.name === '선형대수' ? { ...c, grade: 'A-' } : c));
+  const k = byId(diagnose(odd, ctx, data));
+  assert.equal(k['CHK-01'].have, 81);
+  assert.match(k['CHK-01'].note, /성적을 읽지 못한 1과목\(선형대수\)/);
+});
+
+test('리뷰 회귀: S-TEAM Class와 사제동행세미나는 따로 세고 합쳐 4학점까지', () => {
+  const s = (term, name, code) => C(term, name, 1, '전공선택', 'P', { code });
+  const two = diagnose([s('2023-1', 'S-TEAM Class', '0367203'), s('2024-1', '사제동행세미나', '0367202')], { ordinal: 3, termNow: '2024-1' }, data);
+  assert.equal(two.A.counted, 2);
+  const five = diagnose([s('2023-1', 'S-TEAM Class', '0367203'), ...['2023-2', '2024-1', '2024-2', '2025-1'].map((t) => s(t, '사제동행세미나', '0367202'))], { ordinal: 5, termNow: '2025-1' }, data);
+  assert.equal(five.A.counted, 4);
+  assert.equal(byId(five)['CHK-06'].have, 1);
+});
+
+test('리뷰 회귀: verifyPlan은 학기 건너뛰기와 0 이하 학점 빈칸을 잡는다', () => {
+  const plan = defaultPlan(sample, ctx, data);
+  const skip = structuredClone(plan); skip[1].term = '2028-2';
+  assert.ok(verifyPlan(skip, sample, ctx, data).some((e) => /빠짐없이/.test(e)));
+  const neg = structuredClone(plan); neg[0].courses.push({ name: '일반선택', credits: -7, category: '일반선택', generic: true });
+  assert.ok(verifyPlan(neg, sample, ctx, data).some((e) => /1 이상/.test(e)));
+});
+
+test('무작위 이수내역 300개: 대체 계획은 항상 검증을 통과한다', () => {
+  let seed = 7;
+  const rnd = (n) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+  const pool = data.cur.courses.filter((c) => c.category !== '기초교양');
+  const grades = ['A+', 'A0', 'B+', 'B0', 'C+', 'C0', 'D0', 'F', 'P'];
+  const fails = [];
+  for (let n = 0; n < 300; n++) {
+    const ordinal = 1 + rnd(8);
+    const courses = [];
+    let t = '2023-1';
+    for (let o = 1; o <= ordinal; o++) {
+      for (let k = 0; k < 4 + rnd(4); k++) {
+        const c = pool[rnd(pool.length)];
+        courses.push(C(t, c.name, c.credits, '전공선택', o === ordinal ? '' : grades[rnd(grades.length)]));
+      }
+      courses.push(C(t, `교양${o}`, 3, ['핵심교양', '자유교양', '일반선택'][rnd(3)], o === ordinal ? '' : 'A0', { area: E_AREAS[rnd(5)], areaGuess: true }));
+      if (o < ordinal) t = t.endsWith('-1') ? t.replace('-1', '-2') : `${+t.slice(0, 4) + 1}-1`;
+    }
+    const c2 = { ordinal, termNow: t };
+    const plan = defaultPlan(courses, c2, data);
+    const errs = verifyPlan(plan, courses, c2, data);
+    if (errs.length) fails.push({ n, ordinal, errs: errs.slice(0, 2) });
+  }
+  assert.deepEqual(fails.slice(0, 3), []);
+});
+
+test('AI가 등급 글자를 깨뜨리면 평점 숫자로 되살린다', () => {
+  const out = sanitizeCourses([
+    { term: '2023-1', name: '자료구조', credits: 3, category: '전공선택', grade: 'B뼈', points: 3.5 },
+    { term: '2023-1', name: '선형대수', credits: 3, category: '전공선택', grade: '??', points: 0 },
+    { term: '2023-1', name: '수치해석', credits: 3, category: '전공선택', grade: 'A0', points: 3.5 },
+  ], data.cats);
+  assert.deepEqual(out.map((c) => c.grade), ['B+', '??', 'A0']);
 });

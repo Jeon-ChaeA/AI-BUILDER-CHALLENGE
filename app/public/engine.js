@@ -7,6 +7,8 @@ export const AREAS = ['인문Ⅰ', '인문Ⅱ', '소통', '창의', '글로벌']
 export const CATEGORIES = ['기초교양', '핵심교양', '자유교양', '전공선택', '일반선택'];
 const LIBERAL = ['기초교양', '핵심교양', '자유교양'];
 const GENERIC_OK = ['핵심교양', '자유교양', '일반선택'];
+const SEMINAR_CAP = 4;
+export const GRADES = ['A+', 'A0', 'B+', 'B0', 'C+', 'C0', 'D+', 'D0', 'F', 'P', 'N'];
 const ROMAN = { 'Ⅰ': 'i', 'Ⅱ': 'ii', 'Ⅲ': 'iii', 'Ⅳ': 'iv', 'Ⅴ': 'v' };
 
 // ---------- 표기 정규화 ----------
@@ -107,6 +109,8 @@ const matches = (m, rec) => m.keys.has(rec.key) || (rec.c5 && m.codes.has(rec.c5
 // ---------- 입력 정리 (신뢰 경계) ----------
 
 // AI 응답이나 브라우저가 보낸 이수내역을 엔진이 믿을 수 있는 모양으로 거른다.
+const POINTS_TO_GRADE = { 4.5: 'A+', 4: 'A0', 3.5: 'B+', 3: 'B0', 2.5: 'C+', 2: 'C0', 1.5: 'D+', 1: 'D0' };
+
 export function sanitizeCourses(raw, cats) {
   if (!Array.isArray(raw)) return [];
   const catAlias = new Map();
@@ -124,9 +128,12 @@ export function sanitizeCourses(raw, cats) {
     if (category === '기타') category = '일반선택';
     const code = /^[0-9A-Za-z]{5,8}$/.test(String(r.code ?? '').trim()) ? String(r.code).trim().toUpperCase() : null;
     const area = AREAS.includes(r.area) && category === '핵심교양' ? r.area : null;
+    // AI가 등급 글자를 잘못 옮겼으면(예: 'B뼈') 같은 행의 평점 숫자로 되살린다. 0점은 F·P가 겹쳐 쓰지 않는다.
+    let grade = String(r.grade ?? '').trim().slice(0, 6);
+    if (gradeInfo(grade, cats).kind === 'unknown' && POINTS_TO_GRADE[Number(r.points)]) grade = POINTS_TO_GRADE[Number(r.points)];
     out.push({
       term, code, name, credits, category,
-      grade: String(r.grade ?? '').trim().slice(0, 6),
+      grade,
       area, areaGuess: area ? r.areaGuess !== false : false,
       ...(r.generic ? { generic: true } : {}),
     });
@@ -143,16 +150,20 @@ export function analyze(courses, ctx, data) {
   const recs = courses.map((c, i) => {
     const key = nameKey(c.name), c5 = code5(c.code);
     const rec = { ...c, i, key, c5, gi: gradeInfo(c.grade, cats) };
-    rec.cat = P.catalog.find((m) => matches(m, rec)) ?? null;
-    rec.reqGroup = P.reqGroups.find((g) => g.members.some((m) => matches(m, rec))) ?? null;
+    // 이름이 맞는 쪽을 먼저 본다. S-TEAM Class(0367203)와 사제동행세미나(0367202)는 코드 앞 5자리가 같다.
+    const byName = (ms) => ms.find((m) => m.keys.has(key)) ?? ms.find((m) => matches(m, rec));
+    rec.cat = byName(P.catalog) ?? null;
+    rec.reqGroup = P.reqGroups.find((g) => g.members.some((m) => m.keys.has(key))) ?? P.reqGroups.find((g) => g.members.some((m) => matches(m, rec))) ?? null;
     rec.basicGroup = P.basicGroups.find((g) => g.members.some((m) => matches(m, rec))) ?? null;
     // 이수구분: 목록에 있는 전공 과목은 성적표 라벨과 상관없이 전공으로 센다(docs/DATA.md).
     const listedMajor = rec.reqGroup || ['전공필수', '전공선택'].includes(rec.cat?.category);
     rec.kind = rec.basicGroup ? '기초교양' : listedMajor ? '전공' : c.category === '전공선택' ? '전공' : c.category;
     rec.labelMismatch = listedMajor && c.category !== '전공선택';
     // 같은 과목 판정용 id. 재수강하면 같은 id끼리 묶인다. 기초교양 택1은 변형(Ⅰ/Ⅱ)마다 다른 과목이다.
-    const reqMember = rec.reqGroup?.members.find((m) => matches(m, rec));
-    rec.id = c.generic ? `gen:${i}` : reqMember ? `req:${reqMember.name}` : rec.basicGroup ? `basic:${key}`
+    // S-TEAM Class·사제동행세미나 묶음은 재수강이 아니라 여러 번 들을 수 있는 과목이라 묶지 않는다.
+    const reqMember = rec.reqGroup && byName(rec.reqGroup.members);
+    rec.repeatable = rec.reqGroup?.members.length > 1;
+    rec.id = c.generic || rec.repeatable ? `one:${i}` : reqMember ? `req:${reqMember.name}` : rec.basicGroup ? `basic:${key}`
       : rec.cat ? `cat:${rec.cat.name}` : c5 ? `code:${c5}` : `name:${key}`;
     // 핵심교양 영역: 화면·학생이 준 값 > 요람 목록 > AI 추정
     if (rec.kind === '핵심교양') {
@@ -181,6 +192,12 @@ export function analyze(courses, ctx, data) {
     r.earned = r.gi.kind === 'graded' || r.gi.kind === 'pass';
     r.inProgress = r.gi.kind === 'prog';
   }
+  // 학과 원문: "<사제동행세미나> 및 <S-TEAM Class>는 최대 4학점까지 이수 가능". 넘는 학점은 세지 않는다.
+  let seminar = 0;
+  for (const r of eff.filter((x) => x.repeatable && x.earned).sort((a, b) => termIdx(a.term) - termIdx(b.term))) {
+    if (seminar + r.credits > SEMINAR_CAP) { r.earned = false; r.overCap = true; } else seminar += r.credits;
+  }
+  const unknown = recs.filter((r) => r.gi.kind === 'unknown');
   const sum = (f) => eff.filter(f).reduce((s, r) => s + r.credits, 0);
   const earnedBy = (kind) => sum((r) => r.earned && r.kind === kind);
   const progBy = (kind) => sum((r) => r.inProgress && r.kind === kind);
@@ -221,7 +238,7 @@ export function analyze(courses, ctx, data) {
   const gpa = gpaDen ? Math.round((graded.reduce((s, r) => s + r.gi.pts * r.credits, 0) / gpaDen) * 100) / 100 : null;
 
   return {
-    recs, eff, reqStates, basicStates, areaCredits, areaProg, unknownArea, guessed, gpa,
+    recs, eff, unknown, reqStates, basicStates, areaCredits, areaProg, unknownArea, guessed, gpa,
     earnedTotal, counted, prog, liberalEarned, majorEarned, reqCredits, reqProg,
     majorProg: progBy('전공'), electiveEarned: majorEarned - reqCredits, electiveProg: progBy('전공') - reqProg,
     earnedBy, progBy,
@@ -260,9 +277,10 @@ export function diagnose(courses, ctx, data) {
     const need = req.totalCredits.min, have = A.counted;
     const short = need - have - A.prog;
     const s = have >= need ? 'pass' : short > remTerms * maxLoad ? 'fail' : 'pending';
-    const note = s === 'pass' ? '졸업 학점을 다 채웠어요.'
+    let note = s === 'pass' ? '졸업 학점을 다 채웠어요.'
       : s === 'fail' ? (remTerms ? `남은 ${remTerms}학기를 ${maxLoad}학점씩 들어도 ${short - remTerms * maxLoad}학점이 모자라요. 계절학기나 추가 학기가 필요해요.` : `등록 학기는 채웠지만 ${short}학점이 남았어요. 추가 학기나 계절학기가 필요해요.`)
       : A.prog ? `지금 듣는 ${A.prog}학점까지 들으면 ${have + A.prog}학점이에요. ${Math.max(0, short)}학점 남아요.` : `${need - have}학점 남았어요.`;
+    if (A.unknown.length) note += ` 성적을 읽지 못한 ${A.unknown.length}과목(${A.unknown.map((r) => r.name).join(', ')})은 뺐어요. 이수내역 표에서 성적을 고쳐 주세요.`;
     const related = [`교양 ${A.liberalEarned}학점${A.liberalEarned > req.liberalArtsCap.max ? ` (${req.liberalArtsCap.max}학점까지만 인정)` : ''}`, `전공 ${A.majorEarned}학점`, `일반선택 ${A.earnedBy('일반선택')}학점`];
     add({ id: 'CHK-01', name: '총 이수학점', s, have, need, unit: '학점', note, related, ...evidenceOf(data, req.totalCredits.evidence) });
   }
@@ -388,7 +406,7 @@ const REQUIRED_PASS = ['CHK-01', 'CHK-02', 'CHK-03', 'CHK-04', 'CHK-05', 'CHK-06
 
 // 다음 학기부터 몇 학기를 계획할지. 요건을 이미 다 채웠으면 빈 배열.
 export function planTerms(courses, ctx, data) {
-  const { checks, A } = diagnose(withProgDone(courses), ctx, data);
+  const { checks, A } = diagnose(withProgDone(courses, data), ctx, data);
   const unmet = checks.filter((c) => REQUIRED_PASS.includes(c.id) && c.s !== 'pass' && c.id !== 'CHK-08');
   const remSem = Math.max(0, data.req.minRegisteredSemesters.min - ctx.ordinal);
   const short = Math.max(0, data.req.totalCredits.min - A.counted);
@@ -401,7 +419,7 @@ export function planTerms(courses, ctx, data) {
 }
 
 // 수강 중 과목을 다 들었다고 친 이수내역
-const withProgDone = (courses) => courses.map((c) => (String(c.grade ?? '').trim() === '' || /^(IP|수강중)$/i.test(String(c.grade).trim()) ? { ...c, grade: 'P' } : c));
+const withProgDone = (courses, data) => courses.map((c) => (gradeInfo(c.grade, data.cats).kind === 'prog' ? { ...c, grade: 'P' } : c));
 
 const studentYear = (ordinal) => Math.min(4, Math.ceil(ordinal / 2));
 
@@ -415,7 +433,7 @@ function simulate(plan, courses, ctx, data) {
       category: c.generic ? c.category : cat?.category === '기초교양' ? '기초교양' : '전공선택', area: c.area ?? null, areaGuess: false, generic: !!c.generic });
   }
   const last = plan.at(-1)?.term ?? ctx.termNow;
-  return diagnose([...withProgDone(courses), ...added], { ordinal: ctx.ordinal + plan.length, termNow: last }, data);
+  return diagnose([...withProgDone(courses, data), ...added], { ordinal: ctx.ordinal + plan.length, termNow: last }, data);
 }
 
 // AI가 준 계획을 교육과정 표기·학점으로 맞추고 필수·재수강 표시를 붙인다. 검증은 verifyPlan이 한다.
@@ -436,7 +454,12 @@ export function tidyPlan(plan, courses, ctx, data) {
       const st = states.find((x) => x.g.members.some((m) => m.name === cat.name));
       if (st && st.st !== 'done' && st.st !== 'prog') out.kind = st.st === 'failed' ? 'retake' : 'req';
       return out;
-    }),
+    }).reduce((list, c) => {
+      // 같은 학기의 '일반선택' 같은 빈칸은 한 칸으로 합친다.
+      const same = c.generic && list.find((x) => x.generic && x.category === c.category && x.area === c.area);
+      if (same) same.credits += c.credits; else list.push(c);
+      return list;
+    }, []),
   }));
 }
 
@@ -449,13 +472,14 @@ export function verifyPlan(plan, courses, ctx, data) {
   const seen = new Set();
   let prev = ctx.termNow;
   plan.forEach((p, idx) => {
-    if (!isRegular(p.term) || termIdx(p.term) <= termIdx(prev)) errs.push(`${p.term}: 학기는 ${ctx.termNow} 다음 정규 학기부터 순서대로 써야 해요`);
+    if (p.term !== nextTerm(prev)) errs.push(`${p.term}: 학기는 ${ctx.termNow} 다음 정규 학기부터 빠짐없이 순서대로 써야 해요`);
     prev = p.term;
     let load = 0;
     for (const c of p.courses ?? []) {
       if (c.generic) {
         if (!GENERIC_OK.includes(c.category)) errs.push(`${p.term} ${c.name}: 전공·기초교양은 실제 과목명으로 넣어야 해요`);
         if (c.category === '핵심교양' && !AREAS.includes(c.area)) errs.push(`${p.term} ${c.name}: 핵심교양은 영역을 정해야 해요`);
+        if (!(Number(c.credits) > 0)) errs.push(`${p.term} ${c.name}: 학점은 1 이상이어야 해요`);
         load += Number(c.credits) || 0;
         continue;
       }
@@ -501,7 +525,7 @@ export function defaultPlan(courses, ctx, data) {
       plan.push({ term: nextTerm(plan.at(-1).term), courses: [], why: '' });
     }
   };
-  const A = analyze(withProgDone(courses), ctx, data);
+  const A = analyze(withProgDone(courses, data), ctx, data);
   const taken = new Set(A.eff.filter((r) => r.earned).map((r) => r.cat?.name).filter(Boolean));
 
   // 1) 필수 지정·기초교양 지정 과목
@@ -518,10 +542,15 @@ export function defaultPlan(courses, ctx, data) {
   // 2) 전공 학점
   const elMin = P.min['전공선택'].min, majorMin = data.req.subtotals.find((s) => s.label === '전공').min;
   let need = Math.max(majorMin - A.majorEarned - reqPlanned, elMin - A.electiveEarned);
-  for (const cat of P.catalog) {
-    if (need <= 0) break;
-    if (cat.required || cat.category !== '전공선택' || cat.countsTowardMajor66 === 'conditional' || taken.has(cat.name)) continue;
-    if (place({ name: cat.name, credits: cat.credits, category: '전공선택' }, cat, false, false)) need -= cat.credits;
+  // 앞으로 들을 수 있는 학년의 과목만 고른다. 먼저 있는 학기에 넣어 보고, 그래도 모자라면 학기를 늘린다.
+  const electives = P.catalog.filter((cat) => !cat.required && cat.category === '전공선택' && cat.countsTowardMajor66 !== 'conditional'
+    && !taken.has(cat.name) && !(cat.years && cat.years[1] < studentYear(ctx.ordinal + 1)));
+  for (const grow of [false, true]) {
+    for (const cat of electives) {
+      if (need <= 0) break;
+      if (plan.some((p) => p.courses.some((c) => c.name === cat.name))) continue;
+      if (place({ name: cat.name, credits: cat.credits, category: '전공선택' }, cat, false, grow)) need -= cat.credits;
+    }
   }
   // 3) 핵심교양 영역과 자유교양
   const area = { ...A.areaCredits };
@@ -598,4 +627,57 @@ export function pickDates({ diag, plan, courses, ctx, data, today = new Date() }
     out.push({ id: e.id, title: e.title, start: e.start, end: e.end, why, ...(link ? { link } : {}) });
   }
   return out.sort((a, b) => a.start.localeCompare(b.start));
+}
+
+// ---------- 학과 문의 ----------
+
+// 학과 사무실·지도교수에게 확인할 사실을 코드가 고른다. AI는 이 사실로 메일과 질문 문장만 쓴다.
+// 반환: [{ id, title, fact, ask }]
+export function consultFacts(courses, ctx, data, plan = []) {
+  const { A } = diagnose(courses, ctx, data);
+  const out = [];
+  const add = (id, title, fact, ask) => out.push({ id, title, fact, ask });
+  const names = (rs) => [...new Set(rs.map((r) => r.name))].join(', ');
+  const plannedIn = (name) => plan.find((p) => p.courses?.some((c) => nameKey(c.name) === nameKey(name)))?.term;
+
+  for (const x of A.reqStates.filter((s) => s.st === 'failed' || s.st === 'overdue')) {
+    const m = x.g.members.at(-1);
+    const when = plannedIn(m.name);
+    const open = m.offered === 'all' ? '매 학기' : `${m.offered}학기에만`;
+    if (x.st === 'failed') {
+      const r = x.recs.find((y) => y.gi.kind === 'fail');
+      add(`retake:${m.name}`, `${m.name} 재수강`, `필수 지정 과목 ${josa(m.name, '을/를')} ${r.term}학기에 ${r.gi.g}로 받음. ${open} 개설되고 계획상 ${when ?? '다음 개설'}학기에 재수강 예정.`,
+        `${josa(m.name, '을/를')} 계절학기로 먼저 재수강할 수 있는지, 아니면 ${when ?? '다음 개설'}학기에 들어야 하는지`);
+    } else {
+      add(`missing:${m.name}`, `${m.name} 미이수`, `필수 지정 과목 ${m.name}의 권장 학기가 지났는데 아직 듣지 않음. ${open} 개설되고 계획상 ${when ?? '다음 개설'}학기에 수강 예정.`,
+        `${josa(m.name, '을/를')} ${when ?? '다음 개설'}학기에 들어도 졸업에 문제가 없는지`);
+    }
+  }
+  const guessed = A.eff.filter((r) => r.areaSrc === 'guess' && (r.earned || r.inProgress));
+  if (guessed.length) {
+    add('area', '핵심교양 영역', `${guessed.map((r) => `${r.name}(${r.areaUsed}로 추정)`).join(', ')}: 성적 화면과 요람 목록에서 영역을 확인하지 못함.`, '이 과목들의 핵심교양 영역이 맞는지');
+  }
+  const mism = A.eff.filter((r) => r.labelMismatch && (r.earned || r.inProgress));
+  if (mism.length) {
+    add('label', '이수구분 표기', `${names(mism)}: 성적표에는 ${mism[0].category}로 표시됐지만 소프트웨어학부 교육과정의 전공 과목임.`, '이 과목들이 전공 학점으로 인정되는지');
+  }
+  if (!A.eff.some((r) => nameKey(r.name) === nameKey('글로벌영어') && (r.earned || r.inProgress))) {
+    add('globalEnglish', '글로벌영어 미이수', '글로벌영어(1학점)를 듣지 않음. 2025-1학기부터 기초교양 필수가 해지됐고, 미이수자는 이수구분과 관계없이 1학점을 추가로 이수해야 한다는 부칙(2025.03.31)이 있음.',
+      '글로벌영어 대신 추가로 들어야 하는 1학점이 총 136학점 안에서 어떻게 계산되는지');
+  }
+  const both = A.reqStates.find((s) => s.g.members.length > 1 && s.recs.filter((r) => r.earned).length > 1);
+  if (both) add('oneOf', 'S-TEAM Class·사제동행세미나', 'S-TEAM Class와 사제동행세미나를 모두 이수함. 필수는 둘 중 하나만 인정됨.', '남는 1학점이 전공선택이나 일반선택으로 인정되는지');
+  const practice = A.eff.filter((r) => /^실전프로젝트/.test(r.name.replace(/\s/g, '')) && (r.earned || r.inProgress));
+  if (practice.length) add('practice', '실전프로젝트 학점', `${names(practice)} 이수. 2023 요람은 과목당 1학점, 현재 개설 기준은 3학점이고 학부 인증에 쓰면 전공 66학점에 넣지 않음.`, '실전프로젝트 학점이 몇 학점으로, 어느 영역에 인정되는지');
+
+  const gpa = A.gpa;
+  add('competency', '학부 인증(역량기반 졸업요건)', gpa != null && gpa >= 3.5 ? `평점평균 ${gpa.toFixed(2)}로 3.5 이상. 학과 공지상 평점 3.5 이상은 서류 없이 자동 인증됨.` : `평점평균 ${gpa == null ? '없음' : gpa.toFixed(2)}. 10가지 항목 중 하나로 채워야 함.`,
+    gpa != null && gpa >= 3.5 ? '평점 3.5 이상 자동 인증 대상이 맞는지, 따로 낼 서류가 있는지' : '학부 인증을 어떤 항목으로 채우는 게 좋은지');
+  const majorPlanned = plan.reduce((s, p) => s + (p.courses ?? []).filter((c) => c.category === '전공선택' && !c.generic).reduce((t, c) => t + (Number(c.credits) || 0), 0), 0);
+  const majorAfter = A.majorEarned + A.majorProg + majorPlanned;
+  add('majorTrack', '전공능력(심화전공)', `계획대로 들으면 전공 ${majorAfter}학점. 심화전공은 전공 66학점과 별도로 전공 18학점을 더 들어 합계 84학점이 필요함.`,
+    majorAfter >= 84 ? '이 계획으로 심화전공이 인정되는지' : `심화전공으로 인정받으려면 전공 ${84 - majorAfter}학점을 더 들어야 하는지, 부전공이나 다전공이 나은지`);
+  const cap = plannedIn('다학제간캡스톤디자인');
+  add('thesis', '졸업논문', `졸업논문은 다학제간캡스톤디자인 결과보고서로 대체됨.${cap ? ` 캡스톤은 ${cap}학기에 들을 계획.` : ''}`, '캡스톤 결과보고서를 언제, 어디에 제출하는지');
+  return out;
 }

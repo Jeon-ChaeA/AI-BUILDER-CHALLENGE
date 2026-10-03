@@ -118,7 +118,7 @@ h1 { font-size: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem); line-height: 1.12; lette
 .drop i { font-size: 1.75rem; color: var(--green); }
 .drop small { color: var(--ink-3); }
 .pane-paste label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: 6px; }
-textarea, select {
+textarea, select, input[type="text"] {
   width: 100%; font: inherit; color: var(--ink); background: var(--surface);
   border: 1px solid var(--line-2); border-radius: var(--r-ctl); padding: 10px 12px;
 }
@@ -406,7 +406,6 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
 @media print { .status, .paywall { display: none !important; } }
 @media (prefers-color-scheme: dark) { .trial.pass { color: #08140d; } }
 @media (max-width: 640px) {
-  .term { overflow-x: auto; }
   .course-table th, .course-table td { padding: 6px 8px; }
   .course-table th { white-space: nowrap; }
   .course-table td:first-child { min-width: 8.5em; }
@@ -414,3 +413,42 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
   input.cell-edit { width: 3.2em; }
   select.cell-edit { max-width: 6.5em; font-size: .875rem; }
 }
+
+/* AI: 희망 사항, 계획 요약, 검증 기록 */
+.wish-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wchip { font: inherit; font-size: .8125rem; padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--line-2); background: transparent; color: var(--ink-2); cursor: pointer; }
+.wchip:hover { border-color: var(--green); color: var(--green-ink); }
+.ai-note { margin-top: 20px; padding: 16px 18px; border-radius: var(--r-panel); background: var(--green-soft); color: var(--ink); display: grid; gap: 8px; }
+.ai-note p { display: flex; gap: 8px; }
+.ai-note i { color: var(--green); margin-top: 4px; flex: none; }
+.ai-note .wish-used { font-size: .875rem; color: var(--ink-2); }
+.trace { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--r-panel); background: var(--surface); }
+.trace summary { display: flex; align-items: center; gap: 8px; padding: 12px 16px; cursor: pointer; font-weight: 700; font-size: .9375rem; }
+.trace ol { margin: 0; padding: 0 16px 14px 40px; display: grid; gap: 8px; font-size: .9375rem; color: var(--ink-2); }
+.trace ol b { color: var(--ink); margin-right: 6px; }
+.trace .t-ok::marker { color: var(--green); }
+.trace .t-bad::marker, .trace .t-bad > b { color: var(--red); }
+.trace ul { margin: 4px 0 0; padding-left: 18px; font-size: .875rem; }
+.replan { margin-top: 8px; padding: 18px 20px; border: 1px dashed var(--line-2); border-radius: var(--r-panel); display: grid; gap: 10px; }
+.replan .btn { justify-self: start; }
+
+/* 학과 문의 */
+.facts { list-style: none; margin: 24px 0 20px; padding: 0; display: grid; gap: 8px; }
+.facts li { padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); font-size: .9375rem; color: var(--ink-2); }
+.facts b { display: block; color: var(--ink); margin-bottom: 2px; }
+#consult .status { margin-top: 12px; }
+.consult-out { margin-top: 24px; display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; align-items: start; }
+.consult-out h3 { font-size: 1.0625rem; font-weight: 700; margin-bottom: 10px; }
+.questions { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.mail { display: grid; gap: 8px; }
+.mail textarea { font-size: .9375rem; line-height: 1.6; }
+.mail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 960px) { .consult-out { grid-template-columns: 1fr; } }
+@media print {
+  #consultGo, #consult .status, #consult .mail, .replan, .trace { display: none !important; }
+  .consult-out { grid-template-columns: 1fr; }
+}
+select.cell-edit.bad { color: var(--red); border-color: var(--red); font-weight: 700; }
+.course-table .grade select.cell-edit { font-family: var(--mono); }
+.tscroll { overflow-x: auto; position: relative; }
+.terms { grid-template-columns: minmax(0, 1fr); }

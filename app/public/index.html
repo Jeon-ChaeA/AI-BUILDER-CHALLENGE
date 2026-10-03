@@ -27,7 +27,7 @@
     <section class="hero">
       <div class="hero-copy">
         <h1>이대로 졸업할&nbsp;수 있을까요?</h1>
-        <p class="lede">성적 화면을 올리면 졸업요건과 한 줄씩 대조해서,<br>부족한 것과 다음에 들을 과목을 알려 드려요.</p>
+        <p class="lede">성적 화면만 올리면 AI가 읽고 졸업요건과 한 줄씩 대조해요.<br>내 희망에 맞춘 남은 학기 계획과 학과 문의 메일까지 써 드려요.</p>
 
         <form class="intake" id="intake">
           <fieldset class="tabs">
@@ -67,6 +67,17 @@
             <div class="field">
               <label class="field-label" for="term">학기</label>
               <select id="term"><option value="1">1학기</option><option value="2" selected>2학기</option></select>
+            </div>
+          </div>
+
+          <div class="field wish">
+            <label class="field-label" for="wishes">희망 사항 <span class="muted">(선택, AI가 계획에 반영해요)</span></label>
+            <textarea id="wishes" rows="2" maxlength="300" placeholder="예: 웹·보안 쪽으로 취업하고 싶어요. 마지막 학기는 가볍게 듣고 싶어요."></textarea>
+            <div class="wish-chips" data-for="wishes">
+              <button type="button" class="wchip">웹·정보보호 트랙 관심</button>
+              <button type="button" class="wchip">AI·데이터 트랙 관심</button>
+              <button type="button" class="wchip">마지막 학기는 가볍게</button>
+              <button type="button" class="wchip">계절학기도 괜찮아요</button>
             </div>
           </div>
 
@@ -119,12 +130,27 @@
     <section class="sec" id="plan" aria-labelledby="plan-h" hidden>
       <h2 id="plan-h"></h2>
       <p class="sec-lede" id="planLede"></p>
+      <div class="ai-note" id="planSummary" hidden></div>
+      <details class="trace" id="traceBox" open hidden>
+        <summary><i class="ph ph-robot"></i>AI 계획 검증 기록</summary>
+        <ol id="trace"></ol>
+      </details>
       <ul class="verified" id="verified">
         <li><i class="ph-fill ph-check-circle"></i>이미 들은 과목 없음</li>
         <li><i class="ph-fill ph-check-circle"></i>학기당 19학점 이하, 개설 학기 맞춤</li>
         <li><i class="ph-fill ph-check-circle"></i>부족한 요건 모두 채움</li>
       </ul>
       <ol class="branch" id="branch"></ol>
+      <form class="replan" id="replan">
+        <label class="field-label" for="wishes2">희망 사항을 바꿔서 다시 짜 볼까요?</label>
+        <textarea id="wishes2" rows="2" maxlength="300" placeholder="예: 엔터프라이즈SW 쪽 과목 위주로, 4학년 1학기는 15학점 정도로"></textarea>
+        <div class="wish-chips" data-for="wishes2">
+          <button type="button" class="wchip">웹·정보보호 트랙 관심</button>
+          <button type="button" class="wchip">AI·데이터 트랙 관심</button>
+          <button type="button" class="wchip">마지막 학기는 가볍게</button>
+        </div>
+        <button class="btn btn-secondary" type="submit" id="replanGo"><i class="ph ph-sparkle"></i>AI로 다시 짜기</button>
+      </form>
     </section>
 
     <section class="sec" id="dates" aria-labelledby="dates-h" hidden>
@@ -133,10 +159,35 @@
       <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가 (.ics)</button>
     </section>
 
+    <section class="sec" id="consult" aria-labelledby="consult-h" hidden>
+      <h2 id="consult-h">학과에 물어볼 것, AI가 메일로 써 드려요</h2>
+      <p class="sec-lede">코드가 판정하지 못했거나 규정 해석이 필요한 항목을 진단 결과에서 골랐어요. AI는 이 사실만으로 문의 메일과 상담 질문을 써요.</p>
+      <ul class="facts" id="facts"></ul>
+      <button class="btn btn-primary" type="button" id="consultGo"><i class="ph ph-envelope-simple"></i>AI로 문의 메일 쓰기</button>
+      <p class="status" id="consultStatus" role="status" aria-live="polite"></p>
+      <div class="consult-out" id="consultOut" hidden>
+        <div>
+          <h3>지도교수 상담 질문</h3>
+          <ol class="questions" id="questions"></ol>
+        </div>
+        <div class="mail">
+          <h3>교학팀 문의 메일 초안</h3>
+          <label class="field-label" for="mailSubject">제목</label>
+          <input id="mailSubject" type="text">
+          <label class="field-label" for="mailBody">본문 <span class="muted">([이름], [학번]은 직접 채워 주세요)</span></label>
+          <textarea id="mailBody" rows="12"></textarea>
+          <div class="mail-actions">
+            <button class="btn btn-secondary" type="button" id="copyMail"><i class="ph ph-copy"></i>메일 복사</button>
+            <a class="btn btn-quiet" id="mailto" href="#"><i class="ph ph-paper-plane-tilt"></i>메일 앱으로 열기</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="report" id="report" aria-labelledby="report-h" hidden>
       <div>
         <h2 id="report-h">지도교수 상담에 들고 가세요</h2>
-        <p>진단 요약, 손볼 것, 학기 계획, 날짜를 한 장에 정리해 드려요.</p>
+        <p>진단 요약, 손볼 것, 학기 계획, 날짜, 상담 질문을 한 장에 정리해 드려요.</p>
       </div>
       <button class="btn btn-primary" type="button" id="print"><i class="ph ph-printer"></i>리포트 인쇄/PDF 저장</button>
     </section>
