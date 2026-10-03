@@ -300,6 +300,56 @@ async function readInput(src) {
   return { text };
 }
 
+// ---------- 진행판: 히어로의 '진단 순서'가 진단하는 동안 단계별 상태와 걸린 시간을 보여 준다 ----------
+const flow = (() => {
+  const STEPS = ['parse', 'judge', 'plan', 'verify'];
+  const ICON = { run: 'ph-spinner-gap', done: 'ph-check', warn: 'ph-info', fail: 'ph-warning-circle', skip: 'ph-minus' };
+  const started = {};
+  let t0 = 0, timer = 0;
+  const sec = (ms) => (ms < 100 ? '즉시' : `${(ms / 1000).toFixed(1)}초`);
+  const li = (k) => document.querySelector(`.flow-steps li[data-step="${k}"]`);
+  function set(k, st, text = '') {
+    const el = li(k);
+    if (!el) return;
+    if (st === 'run') started[k] = performance.now();
+    const took = st === 'done' && started[k] ? sec(performance.now() - started[k]) : '';
+    delete el.dataset.state;
+    if (st) el.dataset.state = st;
+    const label = st === 'run' ? text || '진행 중' : [text, took].filter(Boolean).join(' · ');
+    el.querySelector('.fs-state').innerHTML = st ? `<i class="ph ${ICON[st]}"></i>${esc(label)}` : '';
+    if (st !== 'run') delete started[k];
+  }
+  return {
+    start(title) {
+      STEPS.forEach((k) => set(k, ''));
+      t0 = performance.now();
+      $('flowTitle').textContent = title;
+      clearInterval(timer);
+      timer = setInterval(() => { $('flowTime').textContent = sec(performance.now() - t0); }, 100);
+    },
+    set,
+    end(title) {
+      clearInterval(timer);
+      $('flowTime').textContent = sec(performance.now() - t0);
+      $('flowTitle').textContent = title;
+    },
+  };
+})();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// 로드맵 응답으로 계획·검증 단계 상태를 채운다.
+function flowPlanResult() {
+  const { source, trace, fallbackOk } = state;
+  if (source === 'done') { flow.set('plan', 'skip', '남은 학기 없음'); flow.set('verify', 'skip'); return; }
+  if (source === 'ai') {
+    flow.set('plan', 'done', trace.length > 1 ? `${trace.length}차 수정안` : 'AI 초안');
+    flow.set('verify', 'done', trace.length > 1 ? `위반 ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
+    return;
+  }
+  flow.set('plan', 'warn', 'AI 응답 실패');
+  flow.set('verify', fallbackOk ? 'done' : 'fail', fallbackOk ? '기본 계획 통과' : '일부 요건 미달');
+}
+
 // AI 로드맵. 서버가 코드로 검증하고, 서버에 닿지 못하면 브라우저에서 기본 계획을 만든다.
 async function fetchPlan() {
   try {
@@ -348,9 +398,14 @@ function fallbackConsult() {
 
 // 이수내역이 정해진 뒤의 단계. '다시 진단'도 여기서 시작한다(AI 인식과 체험 차감 없음).
 async function analyze(notice = '') {
+  flow.set('judge', 'run');
   state.diag = E.diagnose(state.courses, state.ctx, data);
+  flow.set('judge', 'done', state.diag.summary.failCount ? `조치 필요 ${state.diag.summary.failCount}개` : '조치 필요 없음');
   setStatus('busy', state.wishes ? 'AI가 희망 사항을 반영해 남은 학기를 짜고, 코드가 그 계획을 검증하고 있어요.' : 'AI가 남은 학기 계획을 짜고, 코드가 그 계획을 검증하고 있어요.');
+  flow.set('plan', 'run', state.wishes ? '희망 사항 반영 중' : '');
   await fetchPlan();
+  flowPlanResult();
+  flow.end('진단을 마쳤어요');
   renderLog();
   renderChecks();
   renderPlan();
@@ -372,18 +427,28 @@ async function diagnoseNow() {
     state.wishes = $('wishes').value.replace(/\s+/g, ' ').trim();
     $('wishes2').value = state.wishes;
     setStatus('busy', 'AI가 성적 화면을 읽고 있어요. 10~20초쯤 걸려요.');
+    flow.start('진단하는 중');
+    flow.set('parse', 'run', 'AI가 읽는 중');
     let notice = '';
     try {
       state.courses = (await post('/api/parse', input, 40_000)).courses;
+      flow.set('parse', 'done', `${state.courses.length}과목`);
     } catch (err) {
-      if (src !== 'sample') { setStatus('error', err.message); return; }
+      if (src !== 'sample') {
+        flow.set('parse', 'fail', '인식 실패');
+        flow.end('진단하지 못했어요');
+        setStatus('error', err.message);
+        return;
+      }
       state.courses = structuredClone(sample.courses);
+      flow.set('parse', 'warn', '저장본 사용');
       notice = 'AI 인식이 실패해서 미리 읽어 둔 샘플 결과로 보여 드려요.';
     }
     state.ctx = src === 'sample' ? SAMPLE_CTX : { ordinal: (+$('year').value - 1) * 2 + +$('term').value, termNow: E.termNow() };
     await analyze(notice);
     if (!hasPass()) store.set('jg.trialUsed', '1');
     renderTrial();
+    await sleep(700); // 끝난 진행판을 잠깐 보여 주고 결과로 넘어간다
     $('checks').scrollIntoView();
   } finally {
     setBusy(false);
@@ -410,6 +475,8 @@ $('rerun').addEventListener('click', async () => {
   if (busy) return;
   if (!state.courses.length) { setStatus('error', '이수내역이 비어 있어요. 다시 진단 시작을 눌러 주세요.'); return; }
   setBusy(true);
+  flow.start('다시 진단하는 중');
+  flow.set('parse', 'skip', '고친 이수내역');
   try { await analyze('고친 이수내역으로 다시 진단했어요.'); $('checks').scrollIntoView(); } finally { setBusy(false); }
 });
 
@@ -420,8 +487,14 @@ $('replan').addEventListener('submit', async (e) => {
   $('wishes').value = state.wishes;
   setBusy(true);
   $('replanGo').innerHTML = '<i class="ph ph-spinner-gap"></i>AI가 다시 짜는 중';
+  flow.start('계획을 다시 짜는 중');
+  flow.set('parse', 'skip', '그대로');
+  flow.set('judge', 'skip', '그대로');
+  flow.set('plan', 'run', '희망 사항 반영 중');
   try {
     await fetchPlan();
+    flowPlanResult();
+    flow.end('계획을 다시 짰어요');
     renderPlan();
     renderDates();
     resetConsult();
@@ -432,6 +505,18 @@ $('replan').addEventListener('submit', async (e) => {
     setBusy(false);
   }
 });
+
+// 샘플 학생은 희망 사항까지 채워 두고, AI가 읽을 원본 성적 화면을 볼 수 있게 한다.
+const SAMPLE_WISH = '웹·정보보호 쪽으로 취업하고 싶어요. 마지막 학기는 가볍게 듣고 싶어요.';
+function syncSampleWish() {
+  const w = $('wishes');
+  if ($('src-sample').checked && !w.value.trim()) w.value = SAMPLE_WISH;
+  if (!$('src-sample').checked && w.value === SAMPLE_WISH) w.value = '';
+}
+document.querySelectorAll('input[name="src"]').forEach((r) => r.addEventListener('change', syncSampleWish));
+syncSampleWish();
+$('viewSample').addEventListener('click', () => $('sampleSheet').showModal());
+$('sampleSheet').addEventListener('click', (e) => { if (e.target === $('sampleSheet')) $('sampleSheet').close(); }); // 바깥을 누르면 닫는다
 
 // 희망 사항 예시 칩: 누르면 해당 칸에 문장을 붙인다.
 document.addEventListener('click', (e) => {
@@ -521,6 +606,14 @@ new IntersectionObserver((entries, io) => {
 }, { threshold: 0.2 }).observe($('branch'));
 
 // ---------- 시작 ----------
+// 헤더 로그인 버튼: 로그인한 상태면 이메일을 보여 준다(로그아웃은 login.html에서).
+fetch('/api/auth/me').then((r) => r.json()).then(({ user }) => {
+  if (!user) return;
+  $('authText').textContent = user.email;
+  $('authLink').setAttribute('aria-label', `${user.email}로 로그인됨, 계정 관리`);
+  $('signupLink').hidden = true;
+}).catch(() => { /* 로그인 서버가 없어도 진단은 된다 */ });
+
 async function boot() {
   const get = async (p) => { const r = await fetch(p); if (!r.ok) throw new Error(p); return r.json(); };
   try {

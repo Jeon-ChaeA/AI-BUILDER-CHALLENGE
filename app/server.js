@@ -168,6 +168,7 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '15mb' }));
 app.use(withUser);                     // 로그인 사용자를 req.user에 싣는다
+app.post(['/api/auth/signup', '/api/auth/login'], limit); // 비밀번호 대입을 막는다(/me는 제한하지 않음)
 app.use('/api/auth', authRouter);      // 회원가입/로그인 라우트
 app.use(express.static(fileURLToPath(new URL('./public', import.meta.url))));
 

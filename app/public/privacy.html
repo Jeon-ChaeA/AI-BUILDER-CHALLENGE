@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>개인정보 처리방침 · 졸업각</title>
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="졸업각 홈으로">
+      <span class="brand-logo"><img class="logo-light" src="brand/logo-light.svg" alt="졸업각" width="764" height="215"><img class="logo-dark" src="brand/logo-dark.svg" alt="졸업각" width="764" height="215"></span>
+    </a>
+    <div class="top-actions"><button class="icon-btn" type="button" id="themeToggle" aria-label="다크 모드로 바꾸기"><i class="ph ph-moon"></i></button></div>
+  </header>
+
+  <main class="doc">
+    <h1>개인정보 처리방침</h1>
+    <p class="updated">시행일 2026년 10월 3일</p>
+
+    <h2>1. 처리하는 정보</h2>
+    <table>
+      <tr><th>성적 진단</th><td>올린 성적 화면 캡처나 붙여넣은 텍스트, 적어 주신 희망 사항. 서버에 저장하지 않고 분석에만 써요. 진단 결과는 이용자 브라우저 화면에만 있어요.</td></tr>
+      <tr><th>회원가입(선택)</th><td>이메일, 비밀번호, 로그인 세션. 비밀번호는 원문을 저장하지 않고 bcrypt 해시로만 저장해요.</td></tr>
+      <tr><th>브라우저 저장소</th><td>무료 체험 사용 여부와 이용권 만료일. 이용자 브라우저(localStorage)에만 있고 서버로 보내지 않아요.</td></tr>
+      <tr><th>접속 기록</th><td>서버 운영과 요청 제한을 위해 웹 서버에 IP 주소, 접속 시각, 요청 주소가 남아요.</td></tr>
+    </table>
+    <p><strong>성적 화면을 올리기 전에 이름과 학번은 가려 주세요.</strong> 졸업 진단에는 필요하지 않아요.</p>
+
+    <h2>2. 이용 목적</h2>
+    <ul>
+      <li>성적 인식, 졸업요건 진단, 수강 계획과 문의 메일 작성</li>
+      <li>회원 로그인 유지</li>
+      <li>과도한 요청 같은 서비스 남용 방지</li>
+    </ul>
+
+    <h2>3. 처리를 맡기는 곳</h2>
+    <table>
+      <tr><th>Google (Gemini API)</th><td>성적 캡처·텍스트·희망 사항을 분석해요. <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener">Gemini API 이용약관</a>에 따라 처리돼요.</td></tr>
+      <tr><th>Oracle Cloud Infrastructure</th><td>서비스 서버를 운영하고 회원 정보를 보관해요.</td></tr>
+    </table>
+
+    <h2>4. 보관 기간</h2>
+    <ul>
+      <li>성적 데이터: 보관하지 않아요. 분석이 끝나면 서버에 남지 않아요.</li>
+      <li>로그인 세션: 30일이 지나거나 로그아웃하면 지워요.</li>
+      <li>회원 정보: 회원이 삭제를 요청할 때까지 보관해요.</li>
+    </ul>
+
+    <h2>5. 이용자의 권리</h2>
+    <p>이용자는 언제든 자기 회원 정보의 열람, 정정, 삭제를 요청할 수 있어요. 브라우저에 저장된 체험·이용권 정보는 첫 화면 아래 '체험 초기화'나 브라우저 설정에서 바로 지울 수 있어요.</p>
+
+    <h2>6. 운영</h2>
+    <p>졸업각은 국민대 AI 빌더 챌린지 2026 참가팀 5조의마법사가 운영해요.</p>
+  </main>
+
+  <footer class="foot">
+    <nav class="foot-links" aria-label="정책과 출처">
+      <a href="terms.html">이용약관</a>
+      <a href="privacy.html"><strong>개인정보 처리방침</strong></a>
+      <a href="terms.html#data">데이터 출처</a>
+    </nav>
+    <div class="foot-bottom"><p class="copy">© 2026 졸업각 · Made by 5조의마법사</p></div>
+  </footer>
+</body>
+</html>
