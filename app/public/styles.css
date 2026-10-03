@@ -180,15 +180,15 @@ select { min-height: 48px; padding-right: 36px; appearance: none; cursor: pointe
 .cap-illu { position: absolute; top: -14px; right: -10px; width: 128px; height: auto; filter: drop-shadow(0 10px 16px rgb(0 0 0 / .22)); transform: rotate(8deg); }
 @media (prefers-reduced-motion: no-preference) { .cap-illu { animation: bob 4.5s ease-in-out infinite; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(8deg); } 50% { transform: translateY(-7px) rotate(8deg); } }
-.rc-badge { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgb(255 255 255 / .2); color: #fff; font-size: .8125rem; font-weight: 800; backdrop-filter: blur(4px); }
-.rc-badge i { color: #fff; font-size: 1rem; }
+.rc-badge { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: #fff; color: var(--green-ink); font-size: .8125rem; font-weight: 800; }
+.rc-badge i { color: var(--green); font-size: 1rem; }
 .rc-row { display: flex; align-items: center; gap: 16px; margin-top: 20px; }
 .rc-info { flex: 1; min-width: 0; }
-.rc-who { font-size: .9375rem; opacity: .9; font-weight: 600; }
+.rc-who { font-size: .9375rem; font-weight: 600; }
 .rc-big { display: flex; align-items: baseline; gap: 7px; margin-top: 2px; }
 .rc-big strong { font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em; }
 .rc-big span { font-size: 1.0625rem; font-weight: 700; opacity: .92; }
-.rc-left { margin-top: 12px; font-size: .9375rem; font-weight: 600; opacity: .95; }
+.rc-left { margin-top: 12px; font-size: .9375rem; font-weight: 600; }
 .rc-left strong { font-weight: 800; }
 /* 원형 진행률 링 */
 .rc-ring { position: relative; width: 112px; height: 112px; flex: none; }
@@ -291,7 +291,7 @@ select.cell-edit { width: auto; background-image: none; padding-right: 8px; }
 .tally .bad { color: var(--red-ink); background: var(--red-soft); border-color: transparent; } .tally .bad i { color: var(--red); }
 .tally .mid { color: var(--ink-2); } .tally .mid i { color: var(--ink-3); }
 .full { margin-top: 28px; display: grid; gap: 12px; }
-.full .check { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); border-left: 5px solid var(--c); overflow: hidden; transition: box-shadow .2s, border-color .2s; }
+.full .check { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; transition: box-shadow .2s, border-color .2s; }
 .full .check[data-s="fail"] { box-shadow: 0 10px 30px -16px rgb(224 70 70 / .4); }
 .full details > summary {
   display: grid; grid-template-columns: 26px 1fr auto 20px; align-items: center; gap: 16px;
