@@ -134,6 +134,8 @@ app/
     sample/                     샘플 학생의 성적 캡처와 인식 결과
     samples/                    시험용 샘플 텍스트(붙여넣기 탭)와 인식 결과
     gsap.js, theme.js           화면 연출, 다크 모드 토글
+    i18n.js                     영어 전환(상단 EN 버튼). 기본은 한국어이고 한국어일 때는 화면을 바꾸지 않음
+    sw.js, manifest.webmanifest PWA(앱 설치, 오프라인 첫 화면). 서비스 워커는 네트워크 우선이라 배포 즉시 새 파일을 씀
     login.html, terms.html, privacy.html
   test/engine.test.js           진단 엔진 테스트
   scripts/                      데이터 검사, 샘플 캡처 생성, 보조 테스트

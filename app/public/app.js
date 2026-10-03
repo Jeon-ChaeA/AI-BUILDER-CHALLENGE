@@ -23,8 +23,9 @@ const trialUsed = () => store.get('jg.trialUsed') === '1';
 function renderTrial() {
   const pass = hasPass(), used = trialUsed();
   // 상단바 배지는 한 줄로 둔다. 480px 이하에서는 짧은 문구(.t-narrow)로 바꿔 로고·버튼과 함께 들어가게 한다.
+  // 휴대폰 폭에서도 PRD FR-05 문구('이용권 사용 중')가 글자로 보여야 해서 아이콘만 남기지 않는다.
   const label = (wide, narrow) => `<span class="t-wide">${wide}</span><span class="t-narrow">${narrow}</span>`;
-  $('trialText').innerHTML = pass ? label(`이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>`, '<i class="ph ph-check"></i>이용권')
+  $('trialText').innerHTML = pass ? label(`이용권 사용 중<span class="until"> · ${esc(store.get('jg.passUntil'))}까지</span>`, '이용권 사용 중')
     : used ? label('무료 체험을 사용했어요', '체험 완료') : label('무료 체험 1회 남음', '무료 1회');
   $('trial').title = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
   $('trial').classList.toggle('used', used && !pass);
