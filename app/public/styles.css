@@ -99,12 +99,17 @@ i[class*="ph"] { font-size: 1.15em; line-height: 1; }
 .brand-logo { display: block; width: 104px; flex: none; }
 .brand-logo img { display: block; width: 100%; height: auto; }
 .brand-logo .logo-dark { display: none; }
+.brand-en { display: none; align-items: center; gap: 7px; color: var(--ink); font-size: 1rem; font-weight: 800; white-space: nowrap; }
+.brand-en img { width: 34px; height: 28px; object-fit: contain; }
+.brand-en .logo-en-dark { display: none; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .brand-logo .logo-light { display: none; }
   :root:not([data-theme="light"]) .brand-logo .logo-dark { display: block; }
 }
 :root[data-theme="dark"] .brand-logo .logo-light { display: none; }
 :root[data-theme="dark"] .brand-logo .logo-dark { display: block; }
+:root[data-theme="dark"] .brand-en .logo-en-light { display: none; }
+:root[data-theme="dark"] .brand-en .logo-en-dark { display: block; }
 .trial {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 9px 16px; border-radius: 6px; font-size: .875rem; font-weight: 700;
@@ -464,7 +469,7 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
 .install-btn:hover { color: var(--green-ink); border-color: var(--green-2); }
 .install-btn[hidden] { display: none; }
 html[data-locale="en"] .brand-logo { display: none; }
-html[data-locale="en"] .brand::after { content: "Graduation Outlook"; }
+html[data-locale="en"] .brand-en { display: inline-flex; }
 html[data-locale="en"] .quote::before { content: "Original requirement (Korean)"; display: block; margin-bottom: 6px; color: var(--ink-3); font-size: .75rem; font-weight: 700; }
 
 @media (min-width: 1440px) {
@@ -952,7 +957,8 @@ a.btn, a.btn:hover { text-decoration: none; }
   .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tabs label span { font-size: .625rem; }
   .top-actions { gap: 4px; }
-  html[data-locale="en"] .brand::after { font-size: .75rem; }
+  html[data-locale="en"] .brand-en { gap: 4px; font-size: .75rem; }
+  html[data-locale="en"] .brand-en img { width: 30px; height: 25px; }
   .brand-controls { gap: 5px; }
   .brand-settings { gap: 3px; }
   .brand-settings .icon-btn { width: 32px; height: 32px; }

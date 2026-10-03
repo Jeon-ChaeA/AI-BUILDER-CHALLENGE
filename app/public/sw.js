@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jolupgak-shell-v12';
+const CACHE_NAME = 'jolupgak-shell-v13';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -18,6 +18,8 @@ const APP_SHELL = [
   '/apple-touch-icon.png',
   '/brand/logo-light.svg',
   '/brand/logo-dark.svg',
+  '/brand/symbol-light.svg',
+  '/brand/symbol-dark.svg',
   '/data/calendar.json',
   '/data/categories.json',
   '/data/curriculum.json',
