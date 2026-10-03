@@ -68,3 +68,16 @@
 ## 7. 품질 바닥선
 
 라이트/다크 · 모바일 반응형(가로 스크롤 없음) · `:focus-visible` · `.sr-only` · 색+아이콘+텍스트 병기 · `prefers-reduced-motion` · 대비 WCAG AA · 인쇄(`@media print`)는 진단·계획·날짜만 한 장.
+
+
+## 9. 최종 확정 로고 (2026-10-03)
+
+사용자가 직접 수정한 `artifacts/branding/joleopgak-05-editable copy.svg`를 최종 원본으로 확정했다. 학사모·체크와 글자의 벡터 형태를 그대로 사용한다.
+
+- 딥그린 `#123D2E` + 졸업 골드 `#C5A04E`
+- 다크모드에서는 그린 영역을 아이보리 `#F7F5EE`로 반전하고 골드는 유지한다.
+- 웹 로고: `app/public/brand/logo-light.svg`, `logo-dark.svg`
+- 파비콘: 시스템 테마를 따르는 `favicon.svg`, 호환용 `favicon.ico`
+- 홈 화면 아이콘: `apple-touch-icon.png` (180px)
+- 확정 원본·투명 PNG·심볼·미리보기: `artifacts/branding/final/`
+- 헤더·푸터는 전체 로고를 사용하고 운영체제의 색상 모드에 따라 자동 전환한다.

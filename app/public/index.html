@@ -6,7 +6,9 @@
   <title>졸업각</title>
   <meta name="description" content="성적 화면 한 장이면 국민대 소프트웨어학부 졸업요건과 대조해 부족한 것, 다음 학기 계획, 마감 일정을 알려 주는 졸업요건 진단 서비스">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231a7f45'/%3E%3Cpath d='M16 9 6 13l10 4 10-4-10-4Z' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M10 16v4c0 1.4 2.7 2.4 6 2.4s6-1 6-2.4v-4' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
@@ -20,13 +22,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#top" aria-label="졸업각 처음으로">
-      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 7 4 12l12 5 12-5-12-5Z"/>
-        <path d="M8 15v5c0 1.8 3.6 3 8 3s8-1.2 8-3v-5"/>
-        <path class="tassel" d="M28 12.5v6.5"/>
-        <circle class="tassel" cx="28" cy="20.5" r="1.4"/>
-      </svg>
-      <span>졸업각</span>
+      <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
     </a>
     <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
   </header>
@@ -182,7 +178,7 @@
     <div class="foot-grid">
       <div>
         <p class="brand small">
-          <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 7 4 12l12 5 12-5-12-5Z"/><path d="M8 15v5c0 1.8 3.6 3 8 3s8-1.2 8-3v-5"/></svg>졸업각
+          <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
         </p>
         <p class="muted">학생이 만든 독립 프로젝트예요. 국민대학교 공식 서비스가 아니에요.</p>
       </div>

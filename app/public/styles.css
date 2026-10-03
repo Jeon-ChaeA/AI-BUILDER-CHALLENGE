@@ -20,7 +20,7 @@
   --red-ink: #a52f24;        /* soft 배경 위 텍스트 대비용(같은 빨강 계열) */
   --red-soft: #fbe8e5;
 
-  --grad: linear-gradient(135deg, #22a05c 0%, #1a7f45 58%, #0f5c31 100%);
+  --grad: linear-gradient(135deg, #167a40 0%, #0f5f33 58%, #0a4d2a 100%);
 
   --g0: #e3e7e2; --g1: #b5e2c1; --g2: #6cc48a; --g3: #2b9a58;
 
@@ -78,8 +78,8 @@ i[class*="ph"] { font-size: 1.15em; line-height: 1; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.04em; }
-.mark { width: 30px; height: 30px; fill: none; stroke: var(--green); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.mark .tassel { stroke: var(--green-ink); }
+.brand-logo { display: block; width: 144px; flex: none; }
+.brand-logo img { display: block; width: 100%; height: auto; }
 .trial {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 9px 16px; border-radius: 999px; font-size: .875rem; font-weight: 700;
@@ -386,7 +386,7 @@ body:has([data-link="cn"]:is(:hover, :focus-within)) .date[data-link="cn"] { bor
 .foot-grid { display: grid; grid-template-columns: 1fr 1.6fr auto; gap: 28px; align-items: start; }
 .foot p + p { margin-top: 5px; }
 .brand.small { font-size: 1.0625rem; margin-bottom: 6px; }
-.brand.small .mark { width: 22px; height: 22px; }
+.brand.small .brand-logo { width: 120px; }
 .print-note { display: none; }
 
 /* ---------- 반응형 ---------- */
