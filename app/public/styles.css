@@ -507,3 +507,15 @@ select.cell-edit.bad { color: var(--red); border-color: var(--red); font-weight:
 .course-table .grade select.cell-edit { font-variant-numeric: tabular-nums; }
 .tscroll { overflow-x: auto; position: relative; }
 .terms { grid-template-columns: minmax(0, 1fr); }
+
+/* 상단바 로그인 상태 (auth-ui.js) */
+.top-right { display: inline-flex; align-items: center; gap: 10px; }
+.auth-nav { display: inline-flex; align-items: center; gap: 8px; }
+.auth-email { font-size: .875rem; font-weight: 600; color: var(--ink-2); max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-sm { min-height: 36px; padding: 0 14px; font-size: .875rem; }
+a.btn, a.btn:hover { text-decoration: none; }
+@media (max-width: 560px) {
+  .trial { display: none; }
+  .auth-email { display: none; }
+}
+@media print { .top-right { display: none !important; } }

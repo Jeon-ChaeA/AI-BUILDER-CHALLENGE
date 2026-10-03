@@ -24,7 +24,17 @@
     <a class="brand" href="#top" aria-label="졸업각 처음으로">
       <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
     </a>
-    <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+    <div class="top-right">
+      <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+      <nav class="auth-nav" id="authGuest" aria-label="계정">
+        <a class="btn btn-secondary btn-sm" href="/login.html">로그인</a>
+        <a class="btn btn-primary btn-sm" href="/login.html?mode=signup">회원가입</a>
+      </nav>
+      <nav class="auth-nav" id="authUser" aria-label="계정" hidden>
+        <span class="auth-email" id="authEmail"></span>
+        <button class="btn btn-secondary btn-sm" type="button" id="logoutBtn">로그아웃</button>
+      </nav>
+    </div>
   </header>
 
   <main id="top">
@@ -263,6 +273,7 @@
   </dialog>
 
   <script src="schedule.js"></script>
+  <script src="auth-ui.js"></script>
   <script type="module" src="app.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
