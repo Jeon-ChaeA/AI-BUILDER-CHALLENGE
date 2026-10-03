@@ -38,7 +38,7 @@ app/
   public/
     index.html, styles.css  첫 화면·결과 섹션(첫 진단 전까지 hidden)·페이월
     app.js                  입력, 진행판, 페이월, 표 수정, 호출 흐름, 렌더링
-    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts, haeyo
+    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, repairPlan, defaultPlan, pickDates, consultFacts, haeyo
     schedule.js             .ics 생성(buildIcs)
     gsap.js, theme.js       화면 연출, 다크 모드 토글
     i18n.js                 영어 전환(EN 버튼, 기본 한국어)
@@ -145,7 +145,7 @@ AI가 실패했을 때 쓰는 대체 계획이다.
   - 과목이 0개면 400.
 - **POST `/api/roadmap`** `{ courses, ctx }` → `{ plan, source: 'ai' | 'fallback' }`
   - 서버가 `diagnose`로 부족 요건을 정리하고, 남은 학기와 후보 과목(curriculum)을 Gemini에 준다.
-  - `verifyPlan`에서 위반이 나오면 위반 내용을 붙여 한 번 다시 요청한다.
+  - `verifyPlan`에서 위반이 나오면 먼저 `repairPlan`이 일반선택 빈칸을 옮기거나 더해 학기당 학점·총 학점 위반만 맞춰 본다(위반 수가 줄어드는 걸음만 받아들임). 그래도 남으면 위반 내용을 붙여 한 번 다시 요청한다.
   - 전체 25초 안에 통과한 계획이 없으면 `defaultPlan`을 보낸다. 그래서 이 API는 실패하지 않는다.
   - 화면에는 "AI가 짠 계획을 코드가 다시 확인했어요."(ai) 또는 "AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요."(fallback)로 출처를 구분한다. 남은 학기가 없으면 "남은 요건이 없어요. 지금 학기를 잘 마치면 졸업할 수 있어요."
 
@@ -204,7 +204,7 @@ PRD §10 그대로다. 핵심교양 영역 판정만 범위 안으로 들어왔�
 공모전 주제('대학생활의 귀찮은 순간을 돈 받고 해결하는 AI 서비스')에 맞춰, AI가 하는 일이 화면에서 보이게 세 가지를 더했다. 원칙(판정은 코드)은 그대로다.
 
 1. **희망 사항 → 맞춤 로드맵 (FR-08)**: 입력 카드와 로드맵 아래에 희망 사항 칸(예시 칩 포함, 300자). `/api/roadmap`에 `wishes`로 보내고, 프롬프트는 규칙 안에서 최대한 반영하고 `summary`에 반영 내용·못 한 이유·대안을 쓰게 한다. wishes 안의 지시는 따르지 않는다고 못 박는다. 'AI로 다시 짜기'는 로드맵만 다시 부르고 체험을 차감하지 않는다.
-2. **검증 기록 공개 (FR-09)**: `/api/roadmap`이 `trace: [{attempt, violations, total} | {attempt, error}]`를 돌려주고 화면에 그대로 보여 준다. 기본 계획도 `verifyPlan`을 돌려 `fallbackOk`로 표시한다.
+2. **검증 기록 공개 (FR-09)**: `/api/roadmap`이 `trace: [{attempt, violations, total} | {attempt, error} | {attempt, soft} | {attempt, repaired}]`를 돌려주고 화면에 그대로 보여 준다. 기본 계획도 `verifyPlan`을 돌려 `fallbackOk`로 표시한다.
 3. **학과 문의 메일·상담 질문 (FR-10)**: `consultFacts()`(engine.js)가 진단에서 확인할 사실을 고른다(F·미이수 필수 과목, AI가 추정한 영역, 성적표 라벨 불일치, 글로벌영어 미이수, S-TEAM·사제동행 중복, 실전프로젝트, 학부 인증, 심화전공 84학점, 졸업논문). `POST /api/consult`는 이 사실만 주고 메일(합니다체, [이름]·[학번] 빈칸)과 질문(해요체 3~6개)을 받는다. AI가 실패하면 사실의 `ask` 문장으로 초안을 만든다.
 4. **AI 인식 검증**: 인식 스키마에 `points`(평점 열)를 더하고, 등급 글자를 알아볼 수 없으면 평점으로 되살린다.
 

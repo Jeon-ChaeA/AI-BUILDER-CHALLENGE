@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
 import authRouter, { withUser } from './auth.js';
 import {
-  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, vagueTerms, defaultPlan, termSem, termLabel, consultFacts, haeyo,
+  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, vagueTerms, repairPlan, defaultPlan, termSem, termLabel, consultFacts, haeyo,
 } from './public/engine.js';
 
 const PORT = process.env.PORT || 3000;
@@ -236,7 +236,8 @@ app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
   const terms = planTerms(courses, ctx, data);
   if (!terms.length) return res.json({ plan: [], source: 'done', trace: [] });
 
-  // AI 계획을 코드로 검증한다. 어기면 위반 내용을 붙여 한 번 더 묻고, 그래도 안 되면 기본 계획을 준다.
+  // AI 계획을 코드로 검증한다. 산수 위반은 코드가 맞추고(repairPlan), 그 밖의 위반은 내용을 붙여 한 번 더 묻고,
+  // 그래도 안 되면 기본 계획을 준다.
   // trace는 화면에 그대로 보여 준다: 몇 번째 초안이 어떤 규칙을 어겼는지.
   const deadline = Date.now() + 25_000;
   const input = roadmapInput(courses, ctx, terms, wishes);
@@ -267,6 +268,12 @@ app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
       }
       trace.push({ attempt, violations: errs.slice(0, 8), total: errs.length });
       if (!errs.length) return res.json({ ...ok, trace });
+      // 학기당 학점·총 학점 같은 산수만 어겼으면 AI에 다시 묻지 않고 일반선택 빈칸으로 맞춘다.
+      const fixed = repairPlan(plan, courses, ctx, data);
+      if (!fixed.errs.length) {
+        trace.push({ attempt, repaired: fixed.fixes });
+        return res.json({ ...ok, plan: fixed.plan, trace });
+      }
       console.warn(`[roadmap] attempt ${attempt}: ${errs.length} violations`);
     } catch (err) {
       console.error('[roadmap]', err?.message ?? err);

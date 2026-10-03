@@ -112,7 +112,7 @@
     '졸업까지': 'Until graduation', '남았어요': 'remaining', '가능': 'eligible', '초안': 'draft',
     '처리 중': 'Processing', '완료': 'Complete', '실패': 'Failed', '저장본 사용': 'Using saved sample',
     '코드': 'Code', '무료 1회': '1 free trial', '졸업 credits': 'Credits to graduate',
-    '남은 학기 없음': 'No semesters remaining', 'AI 초안': 'AI draft', '수정안': 'revision',
+    '남은 학기 없음': 'No semesters remaining', 'AI 초안': 'AI draft', '코드 보정': 'Code adjustment', '수정안': 'revision',
     '위반': 'violation', '보완': 'adjustment', '규칙 모두 통과': 'All rules passed',
     'AI 응답 실패': 'AI response failed', '기본 계획 통과': 'Fallback plan passed', '일부 요건 미달': 'Some requirements are still unmet',
     '조치 필요 없음': 'No action needed', '희망 사항 반영 중': 'Applying your goals', 'AI가 읽는 중': 'AI is reading',

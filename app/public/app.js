@@ -205,6 +205,7 @@ function renderPlan() {
   // AI 초안 → 코드 검증 → 수정 요청 기록
   const steps = state.trace.map((t, i, all) => {
     const head = t.attempt === 1 ? 'AI 초안' : `${all[i - 1]?.soft ? '보완할 점' : '위반 내용'}을 AI에 돌려주고 받은 ${t.attempt}차 수정안`;
+    if (t.repaired) return `<li class="t-ok"><b>코드 보정</b> 학점 계산만 어긋나서, 개설 학기 제약이 없는 일반선택 빈칸만 고쳤고 같은 검증을 통과했어요.<ul>${t.repaired.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
     if (t.error) return `<li class="t-bad"><b>${head}</b> AI 응답을 받지 못했어요.</li>`;
     if (t.soft) return `<li><b>${head}</b> 규칙은 모두 지켰어요. 다만 보완할 점 ${t.total}건을 찾아 AI에 다시 요청했어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
     if (!t.total) return `<li class="t-ok"><b>${head}</b> 코드 검증 통과: 학기당 ${max}학점, 중복 수강, 개설 학기·학년, 졸업요건 7개를 모두 지켰어요.</li>`;
@@ -359,9 +360,12 @@ function flowPlanResult() {
   const { source, trace, fallbackOk } = state;
   if (source === 'done') { flow.set('plan', 'skip', '남은 학기 없음'); flow.set('verify', 'skip'); return; }
   if (source === 'ai') {
-    const revised = trace.length > 1 && !state.kept;
-    flow.set('plan', 'done', revised ? `${trace.length}차 수정안` : 'AI 초안');
-    flow.set('verify', 'done', revised ? `${trace[0].soft ? '보완' : '위반'} ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
+    const repaired = trace.at(-1)?.repaired;
+    const drafts = trace.filter((t) => !t.repaired).length;
+    const revised = drafts > 1 && !state.kept;
+    flow.set('plan', 'done', revised ? `${drafts}차 수정안` : 'AI 초안');
+    flow.set('verify', 'done', repaired ? `위반 ${trace.at(-2).total}건 → 코드 보정 후 통과`
+      : revised ? `${trace[0].soft ? '보완' : '위반'} ${trace[0].total}건 → 수정 후 통과` : '규칙 모두 통과');
     return;
   }
   flow.set('plan', 'warn', trace.some((t) => t.error) || !trace.length ? 'AI 응답 실패' : 'AI 계획 규칙 위반');
