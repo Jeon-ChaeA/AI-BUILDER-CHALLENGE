@@ -744,7 +744,7 @@ html[data-locale="en"] .quote::before { content: "Original requirement (Korean)"
   .hero, .hero-copy, .intake { min-width: 0; width: 100%; }
   .intake { padding: 12px; }
   .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tabs label span { font-size: .625rem; }
+  .tabs label span { font-size: .75rem; } /* 12px 아래로는 줄이지 않는다 */
 }
 /* ===== 기능 연결분 (mvp): 결과 표 수정, 진행 상태, 페이월, AI 희망 사항·검증 기록·학과 문의 ===== */
 input[type="text"], input[type="email"], input[type="password"] { width: 100%; min-height: 48px; font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r); padding: 10px 14px; transition: border-color .2s, box-shadow .2s; }
@@ -960,7 +960,7 @@ a.btn, a.btn:hover { text-decoration: none; }
   .hero, .hero-copy, .intake { min-width: 0; width: 100%; }
   .intake { padding: 12px; }
   .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tabs label span { font-size: .625rem; }
+  .tabs label span { font-size: .75rem; } /* 12px 아래로는 줄이지 않는다 */
   .top-actions { gap: 4px; }
   html[data-locale="en"] .brand-en { gap: 4px; font-size: .75rem; }
   html[data-locale="en"] .brand-en img { width: 30px; height: 25px; }
