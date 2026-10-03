@@ -29,20 +29,30 @@ PRD의 FR-01~07이 배포 URL에서 '샘플 학생' 탭(기본 선택)으로 '�
 
 ## 구조
 
+처음 설계(FR-01~07)에 FR-08~11과 로그인·약관을 더한 현재 구조다. 파일별 역할은 README '폴더 구조'와 같다.
+
 ```
 app/
-  server.js                 POST /api/parse, POST /api/roadmap, IP당 요청 제한
+  server.js                 POST /api/parse, /api/roadmap, /api/consult, GET /api/health, IP당 요청 제한
+  auth.js, db.js            POST /api/auth/signup·login·logout, GET /api/auth/me (bcrypt, httpOnly 세션, SQLite)
   public/
-    index.html, styles.css  목업 유지, 결과 섹션은 첫 진단 전까지 hidden
-    app.js                  목업 렌더러 재사용. 입력, 페이월, 표 수정, 호출 흐름
-    engine.js               순수 함수: normalize, diagnose, verifyPlan, defaultPlan, pickDates
+    index.html, styles.css  첫 화면·결과 섹션(첫 진단 전까지 hidden)·페이월
+    app.js                  입력, 진행판, 페이월, 표 수정, 호출 흐름, 렌더링
+    engine.js               순수 함수: sanitizeCourses, analyze, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, pickDates, consultFacts
+    schedule.js             .ics 생성(buildIcs)
+    gsap.js, theme.js       화면 연출, 다크 모드 토글
+    login.html, terms.html, privacy.html
     data/requirements.json  research_notes JSON 그대로
     data/curriculum.json    research_notes JSON 그대로 (+ 구 과목명 별칭)
-    data/calendar.json      calendar.md 표 → JSON, 일정마다 rule 키
+    data/categories.json    이수구분·등급 별칭과 평점표
+    data/calendar.json      calendar.md 표 → JSON, 일정마다 trigger 키
     data/core_areas.json    { "과목명": "창의", ... } 요람 교양교육과정 기준
     sample/capture.png      김국민 가상 캡처 (화면에 '가상 학생' 표기)
     sample/parsed.json      위 캡처의 인식 결과 저장본
+    samples/                시험용 샘플 텍스트와 인식 결과
+  lib/roadmap.mjs           초기 로드맵 규칙 참조 구현 (test:roadmap 교차 검증용, 서버는 쓰지 않음)
   test/engine.test.js       node:test
+  scripts/                  데이터 검사, 샘플 캡처 생성, 보조 테스트
 ```
 
 ## 데이터 모양
@@ -112,15 +122,16 @@ AI가 실패했을 때 쓰는 대체 계획이다.
 
 이렇게 만든 계획은 반드시 `verifyPlan`을 통과해야 하고, 테스트로 보장한다.
 
-### pickDates(checks, plan, courses, today) → 일정 목록
-`calendar.json`의 일정마다 붙은 `rule` 키로 고른다. 이미 지난 일정은 빼고, 이유 문장은 코드가 만든다.
+### pickDates({ diag, plan, courses, ctx, data, today }) → 일정 목록
+`calendar.json`의 일정마다 붙은 `trigger` 키로 고른다. 끝난 일정은 빼고, 이유 문장은 일정의 `reason`에 진단 결과를 붙여 코드가 만든다. 시작일 순으로 정렬한다.
 
-| rule | 보여 줄 때 | 이유 예시 |
+| trigger | 보여 줄 때 | 이유 예시 |
 |---|---|---|
-| `seasonal` | 계획에 18학점 이상인 학기가 있거나 재수강할 F가 있음 | "2027-1학기가 18학점으로 꽉 차요. 계절학기로 3~6학점을 미리 덜어 둘 수 있어요." |
-| `grades` | 수강 중인 과목이 있음 | "필수 과목인 알고리즘 성적을 확인하세요." |
-| `nextReg` | 계획에 그 학기가 있음 | "컴퓨터네트워크 재수강, 다학제간캡스톤디자인을 꼭 담으세요." |
-| `graduation` | 계획상 그 학위수여식에 졸업함 | |
+| `hasCreditShortage` | 수강 중 학점까지 더해도 총 학점이 모자람. 계절학기 신청 일정은 18학점 이상인 계획 학기가 있으면 이유를 바꿈 | "2027-1학기가 18학점으로 꽉 차요. 계절학기로 3~6학점을 미리 덜어 둘 수 있어요." |
+| `always` | 항상. 성적 공시 일정은 수강 중인 필수 지정 과목이 있으면 이유를 바꿈 | "필수 과목인 알고리즘 성적을 확인하세요." |
+| `hasNextSemesterCourses` | 계획 학기가 있음. 수강신청 일정은 다음 학기 필수·재수강 과목 이름을 넣음 | "컴퓨터네트워크 재수강, 다학제간캡스톤디자인을 꼭 담으세요." |
+| `isGraduatingSemester` | 남은 계획 학기가 없음(이번 학기에 요건을 다 채움) | |
+| `none` | 보여 주지 않음 | |
 
 ## 서버 API
 
@@ -160,7 +171,7 @@ AI가 실패했을 때 쓰는 대체 계획이다.
 ## 데이터 준비
 
 - `requirements.json`, `curriculum.json`: research_notes의 JSON 블록을 옮긴다. curriculum에는 진로로드맵(2025-11-10) 표기의 별칭을 더한다.
-- `calendar.json`: calendar.md §1 표 중에서 rule에 걸리는 일정만 옮긴다.
+- `calendar.json`: calendar.md §1 표의 일정을 옮기고 일정마다 `trigger` 키를 붙인다.
 - `core_areas.json`: 2023 요람(없으면 2026 요람)의 교양교육과정에서 핵심교양 과목과 영역을 수집한다.
   - 찾지 못하면 빈 객체로 두고 AI 추정에 맡긴다.
   - 샘플 학생의 핵심교양 과목은 이 목록에 있는 실제 과목명으로 고른다.

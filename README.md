@@ -63,7 +63,7 @@ PRD의 요구사항(FR)이 배포된 화면 어디에서 보이고, 어느 코�
 | 호출 | 엔드포인트 | 입력 | 출력(JSON 스키마) | 실패 시 |
 |------|-----------|------|------------------|--------|
 | 성적 인식 | `POST /api/parse` | 캡처 최대 5장 또는 텍스트 | `courses[]` (학기·코드·과목명·학점·이수구분·등급·평점) | 샘플 학생은 저장된 인식 결과로 진행, 그 외에는 안내 |
-| 수강 로드맵 | `POST /api/roadmap` | 이수내역, 남은 요건, 개설 과목, 희망 사항 | `terms[]`, `summary` | 위반 피드백 재요청 1회 → 기본 계획 |
+| 수강 로드맵 | `POST /api/roadmap` | 이수내역, 남은 요건, 개설 과목, 희망 사항 | AI: `plan[]`(학기별 과목·이유), `summary` → API 응답: `plan`, `source`(`ai`·`fallback`·`done`), `summary`, `trace`(검증 기록), `fallbackOk` | 위반 피드백 재요청 1회 → 기본 계획 |
 | 학과 문의 | `POST /api/consult` | 코드가 고른 확인 사항 | `subject`, `body`, `questions[]` | 코드가 만든 기본 문안 |
 
 - 모델: `gemini-flash-latest` (`GEMINI_MODEL`로 변경), `@google/genai`, 구조화 출력(`responseJsonSchema`), `thinkingLevel: LOW`.
@@ -114,6 +114,8 @@ npm run test:sample    # 샘플 학생 데이터 7개
 npm run validate:data  # 졸업요건·교육과정 JSON 검사
 ```
 
+main에 push하거나 PR을 열면 GitHub Actions(`.github/workflows/test.yml`)가 위 5종을 Node 22에서 자동으로 돌립니다.
+
 ## 폴더 구조
 
 ```
@@ -126,9 +128,11 @@ app/
   public/
     index.html, app.js          화면과 화면 로직
     engine.js                   진단 엔진 (서버·브라우저 공용 순수 함수)
-    schedule.js                 학사 일정 선택과 .ics 생성
+    schedule.js                 .ics 생성(줄 접기·이스케이프). 일정 고르기는 engine.js pickDates
     data/*.json                 졸업요건, 교육과정, 이수구분, 학사일정, 핵심교양 영역
     sample/                     샘플 학생의 성적 캡처와 인식 결과
+    samples/                    시험용 샘플 텍스트(붙여넣기 탭)와 인식 결과
+    gsap.js, theme.js           화면 연출, 다크 모드 토글
     login.html, terms.html, privacy.html
   test/engine.test.js           진단 엔진 테스트
   scripts/                      데이터 검사, 샘플 캡처 생성, 보조 테스트

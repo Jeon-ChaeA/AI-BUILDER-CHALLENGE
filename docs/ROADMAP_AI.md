@@ -1,5 +1,7 @@
 # 수강 로드맵 AI 연결 가이드 (백엔드용 초안)
 
+> **현재 상태(2026-10-03)**: 이 문서는 PR #4 당시의 초안이다. 실제 서버는 `lib/roadmap.mjs`의 `planRoadmap` 대신 `app/public/engine.js`의 `planTerms`·`tidyPlan`·`verifyPlan`·`defaultPlan`과 `server.js`의 `ROADMAP_SYSTEM`·`ROADMAP_SCHEMA`를 쓴다. 위반이 있으면 위반 내용을 붙여 한 번 더 요청한다(최대 2회, 전체 25초). `lib/roadmap.mjs`는 `npm run test:roadmap`의 교차 검증용 참조 구현으로 남아 있다. 현재 흐름은 README의 'AI 사용 방식'을 본다.
+
 FR-03 "AI 계획 + 코드 검증"에서 **AI를 부르는 쪽**(`app/server.js`)이 붙일 프롬프트, 입력, JSON 스키마 초안이다. 검증과 기본 로드맵은 `app/lib/roadmap.mjs`가 이미 한다. `server.js`는 고치지 않았고, 아래를 보고 백엔드 담당이 붙인다.
 
 ## 흐름
