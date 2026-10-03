@@ -188,7 +188,7 @@ const ROADMAP_SCHEMA = {
 | `source` | 뜻 | 화면 |
 |---|---|---|
 | `ai` | AI 계획이 모든 검증을 통과해서 그대로 씀 | 로드맵 표시 |
-| `default` | 기본 로드맵으로 바꿈. 이유는 `fallbackReason` | 로드맵 표시. "AI 계획을 쓰지 못해 기본 계획을 보여 드려요" 같은 안내를 붙이면 좋다 |
+| `default` | 기본 로드맵으로 바꿈. 이유는 `fallbackReason` | 로드맵 표시. "AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요." 안내를 붙인다(현재 화면 문구) |
 
 `fallbackReason`: `no-ai`(askAi 없음), `ai-error`(예외 또는 시간 초과, `aiError`에 메시지), `invalid`(규칙 위반, `aiViolations`에 목록), `shortfall`(규칙은 지켰지만 기본 로드맵보다 졸업 학점을 덜 채움).
 
