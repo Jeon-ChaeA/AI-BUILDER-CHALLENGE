@@ -1,11 +1,17 @@
-const CACHE_NAME = 'jolupgak-shell-v8';
+const CACHE_NAME = 'jolupgak-shell-v10';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/engine.js',
   '/i18n.js',
+  '/theme.js',
+  '/auth-ui.js',
   '/schedule.js',
+  '/login.html',
+  '/privacy.html',
+  '/terms.html',
   '/manifest.webmanifest',
   '/pwa-icon.svg',
   '/favicon.svg',
@@ -14,6 +20,12 @@ const APP_SHELL = [
   '/brand/logo-light.svg',
   '/brand/logo-dark.svg',
   '/data/calendar.json',
+  '/data/categories.json',
+  '/data/curriculum.json',
+  '/data/requirements.json',
+  '/data/core_areas.json',
+  '/sample/capture.png',
+  '/sample/parsed.json',
 ];
 
 self.addEventListener('install', (event) => {

@@ -941,4 +941,13 @@ a.btn, a.btn:hover { text-decoration: none; }
   .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tabs label span { font-size: .625rem; }
   .top-actions { gap: 4px; }
+  html[data-locale="en"] .brand::after { font-size: .75rem; }
+  .brand-controls { gap: 5px; }
+  .brand-settings { gap: 3px; }
+  .brand-settings .icon-btn { width: 32px; height: 32px; }
+  .brand-settings .segmented-btn { min-width: 27px; min-height: 30px; padding: 0 4px; }
+  .install-btn { min-width: 30px; min-height: 32px; padding: 0 6px; }
+  .trial { min-width: 30px; min-height: 30px; padding: 5px; }
+  .auth-guest { gap: 0; }
+  .auth-guest .top-login { width: 30px; min-height: 32px; justify-content: center; padding: 0; }
 }
