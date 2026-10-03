@@ -464,7 +464,7 @@ body:has([data-link="act"]:is(:hover, :focus-within)) .date[data-link="act"] { b
 .install-btn:hover { color: var(--green-ink); border-color: var(--green-2); }
 .install-btn[hidden] { display: none; }
 html[data-locale="en"] .brand-logo { display: none; }
-html[data-locale="en"] .brand::after { content: "GraduationGak"; }
+html[data-locale="en"] .brand::after { content: "Graduation Outlook"; }
 html[data-locale="en"] .quote::before { content: "Original requirement (Korean)"; display: block; margin-bottom: 6px; color: var(--ink-3); font-size: .75rem; font-weight: 700; }
 
 @media (min-width: 1440px) {

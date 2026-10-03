@@ -14,7 +14,7 @@
     ['label[for="year"]', 'Current year'], ['label[for="term"]', 'Semester'],
     ['.wish > .field-label', 'Your goals (optional, AI uses these in the plan)'],
     ['#wishes', 'Example: I want a career in web or security. I would like a lighter final semester.'],
-    ['#flowTitle', 'How GraduationGak checks your progress'],
+    ['#flowTitle', 'How Graduation Outlook checks your progress'],
     ['[data-step="parse"] .fs-txt b', 'Read your transcript'], ['[data-step="parse"] .fs-txt small', 'AI turns the screenshot or text into a course table'],
     ['[data-step="judge"] .fs-txt b', 'Check 9 graduation requirements'], ['[data-step="judge"] .fs-txt small', 'The same grades always produce the same result'],
     ['[data-step="plan"] .fs-txt b', 'Plan your remaining semesters'], ['[data-step="plan"] .fs-txt small', 'Your goals shape the semester-by-semester plan'],
@@ -48,7 +48,7 @@
     ['.paywall .muted', 'Available through February 28, 2027.'],
     ['.pay-actions button[value="pay"]', 'Try demo payment (no charge)'], ['.pay-actions button[value="cancel"]', 'Close'],
     ['.foot-links a:nth-child(1)', 'Terms of use'], ['.foot-links a:nth-child(2)', 'Privacy policy'], ['.foot-links a:nth-child(3)', 'Data sources'],
-    ['.copy', '© 2026 GraduationGak · Made by Team 5'], ['#reset', 'Reset demo'],
+    ['.copy', '© 2026 Graduation Outlook · Made by Team 5'], ['#reset', 'Reset demo'],
   ]);
   const dynamicEn = new Map(Object.entries({
     '통과': 'Complete', '조치 필요': 'Needs attention', '진행 중': 'In progress', '학과 확인': 'Confirm with department',
@@ -154,7 +154,7 @@
     root.dataset.locale = locale;
     root.lang = locale;
     try { localStorage.setItem('jg.locale', locale); } catch {}
-    document.title = locale === 'en' ? 'GraduationGak · Graduation planner' : '졸업각';
+    document.title = locale === 'en' ? 'Graduation Outlook · Graduation planner' : '졸업각';
     document.querySelector('meta[name="description"]').content = locale === 'en'
       ? 'Check Kookmin University Software major graduation requirements, plan your next semesters, and track deadlines.'
       : '성적 화면 한 장이면 국민대 소프트웨어학부 졸업요건과 대조해 부족한 것, 다음 학기 계획, 마감 일정을 알려 주는 졸업요건 진단 서비스';
@@ -164,7 +164,7 @@
       if (previousLocale === 'en') location.reload();
       return;
     }
-    document.querySelector('.brand').setAttribute('aria-label', locale === 'en' ? 'GraduationGak home' : '졸업각 처음으로');
+    document.querySelector('.brand').setAttribute('aria-label', locale === 'en' ? 'Graduation Outlook home' : '졸업각 처음으로');
     for (const [selector, text] of staticEn) {
       const elements = document.querySelectorAll(selector);
       if (!elements.length) continue;
@@ -210,9 +210,9 @@
       const swatch = el.querySelector('i');
       el.replaceChildren(...(swatch ? [swatch, document.createTextNode(` ${legend[i]}`)] : [document.createTextNode(legend[i])]));
     });
-    document.querySelectorAll('.brand-logo img').forEach((img) => img.alt = 'GraduationGak');
+    document.querySelectorAll('.brand-logo img').forEach((img) => img.alt = 'Graduation Outlook');
     document.querySelectorAll('.pane-sample strong').forEach((el) => { el.textContent = 'Kim Kookmin'; });
-    document.querySelector('#pwaInstall').setAttribute('aria-label', 'Install GraduationGak');
+    document.querySelector('#pwaInstall').setAttribute('aria-label', 'Install Graduation Outlook');
     document.querySelector('[role="group"]').setAttribute('aria-label', 'Language settings');
     document.querySelector('#themeToggle').setAttribute('aria-label', root.dataset.locale === 'en'
       ? (root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode')
