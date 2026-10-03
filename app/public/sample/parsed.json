@@ -1,0 +1,390 @@
+{
+ "_comment": "가상 학생 김국민(2023학번, 2025년 휴학 2학기, 지금 3학년 2학기)의 인식 결과 저장본. sample/capture.png와 같은 내용. AI 인식이 실패할 때 쓴다.",
+ "student": {
+  "name": "김국민",
+  "year": 3,
+  "term": 2
+ },
+ "courses": [
+  {
+   "term": "2023-1",
+   "code": "001020E",
+   "name": "English Conversation Ⅰ",
+   "credits": 2,
+   "category": "기초교양",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": "000200D",
+   "name": "글쓰기(공학인증)",
+   "credits": 3,
+   "category": "기초교양",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": "1143704",
+   "name": "소프트웨어적사고",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "A+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": "1324404",
+   "name": "소프트웨어프로젝트Ⅰ",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": "0367203",
+   "name": "S-TEAM Class",
+   "credits": 1,
+   "category": "전공선택",
+   "grade": "P",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": null,
+   "name": "공학기초수학",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-1",
+   "code": null,
+   "name": "철학의물음들",
+   "credits": 3,
+   "category": "핵심교양",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": "000540C",
+   "name": "College English Ⅰ",
+   "credits": 2,
+   "category": "기초교양",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": "015680H",
+   "name": "객체지향프로그래밍",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": "0156205",
+   "name": "응용통계학",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": "1324803",
+   "name": "유레카프로젝트",
+   "credits": 1,
+   "category": "전공선택",
+   "grade": "A+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": null,
+   "name": "선형대수",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "C+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": null,
+   "name": "소프트웨어프로젝트Ⅱ",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2023-2",
+   "code": null,
+   "name": "음악의이해",
+   "credits": 3,
+   "category": "핵심교양",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": "0156405",
+   "name": "자료구조",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": "0192806",
+   "name": "C++프로그래밍",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": null,
+   "name": "논리회로설계",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": null,
+   "name": "웹클라이언트컴퓨팅",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "A+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": null,
+   "name": "논리와소통",
+   "credits": 3,
+   "category": "핵심교양",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-1",
+   "code": null,
+   "name": "취·창업과진로설계",
+   "credits": 2,
+   "category": "자유교양",
+   "grade": "P",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": "0156305",
+   "name": "이산수학",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": "0157004",
+   "name": "컴퓨터구조",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "C+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": null,
+   "name": "모바일프로그래밍",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": null,
+   "name": "데이터과학",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": null,
+   "name": "세계역사의이해",
+   "credits": 3,
+   "category": "핵심교양",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2024-2",
+   "code": null,
+   "name": "경영학원론",
+   "credits": 3,
+   "category": "일반선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": "0156105",
+   "name": "운영체제",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": "0384502",
+   "name": "데이터베이스",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B+",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": "0155605",
+   "name": "컴퓨터네트워크",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "F",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": null,
+   "name": "프로그래밍언어론",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "B0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": null,
+   "name": "SW기술영어Ⅰ",
+   "credits": 1,
+   "category": "전공선택",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-1",
+   "code": null,
+   "name": "심리학의이해",
+   "credits": 3,
+   "category": "일반선택",
+   "grade": "A0",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": "0384403",
+   "name": "알고리즘",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": null,
+   "name": "컴파일러",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": null,
+   "name": "인공지능",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": null,
+   "name": "클라우드컴퓨팅",
+   "credits": 3,
+   "category": "전공선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": null,
+   "name": "SW기술영어Ⅱ",
+   "credits": 1,
+   "category": "전공선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  },
+  {
+   "term": "2026-2",
+   "code": null,
+   "name": "마케팅원론",
+   "credits": 3,
+   "category": "일반선택",
+   "grade": "",
+   "area": null,
+   "areaGuess": false
+  }
+ ]
+}

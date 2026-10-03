@@ -221,12 +221,6 @@
       "evidence": { "quote": "졸업논문 제출 - 다학제간캡스톤디자인(캡스톤디자인) 결과보고서로 대체", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
     },
     {
-      "id": "liberal-arts-areas",
-      "label": "핵심교양 5개 영역별 3학점 이상",
-      "message": "핵심교양은 총 학점만 확인해요. 영역별 3학점은 학과 사무실에서 확인해 주세요.",
-      "evidence": { "quote": "5개의 핵심역량 영역별 최소 3학점 이상 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
-    },
-    {
       "id": "major-track",
       "label": "심화전공 / 부전공 / 다전공 선택",
       "message": "이번 진단은 심화전공(단일 전공)을 기준으로 해요. 부전공·다전공은 지원하지 않아요.",
