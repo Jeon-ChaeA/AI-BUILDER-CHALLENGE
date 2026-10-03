@@ -1,4 +1,5 @@
-// FR-03 로드맵 검증과 기본 로드맵. AI 호출은 하지 않는 순수 함수 모음이다.
+// FR-03 로드맵 검증, 기본 로드맵, 그리고 AI 계획을 검증해 쓰는 planRoadmap.
+// 이 파일은 Gemini를 직접 부르지 않는다. AI 호출은 planRoadmap에 함수(askAi)로 받는다.
 // 규칙의 근거는 docs/DATA.md의 "로드맵" 절과 requirements.json이다.
 //
 // 학생(student):
@@ -11,9 +12,11 @@
 //   warningTwice        false     성적경고 연속 2회
 //   missingCoreAreas    ['창의']  비어 있는 핵심교양 영역(기본 로드맵의 슬롯 이름용). 생략 가능
 //
-// 로드맵(roadmap): { terms: [{ term: '2027-1', items: [...] }] }
+// 로드맵(roadmap): { terms: [{ term: '2027-1', items: [...], why?: '추천 이유' }] }
 //   과목 항목  { name, code? }  학점은 curriculum.json 값을 쓴다
 //   슬롯 항목  { slot, category: '핵심교양'|'자유교양'|'일반선택', credits }  과목 목록이 없는 칸
+// 마무리한 로드맵(finalizeRoadmap, buildDefaultRoadmap, planRoadmap의 결과)은 학기마다
+//   credits(학점 합계, 코드가 계산)와 why(추천 이유)가 있고, 과목 항목에 kind('required'|'retake')가 붙는다.
 
 const ROMAN = { 'Ⅰ': 'i', 'Ⅱ': 'ii', 'Ⅲ': 'iii', 'Ⅳ': 'iv', 'Ⅴ': 'v' };
 const SLOT_CATEGORIES = ['핵심교양', '자유교양', '일반선택'];
@@ -128,6 +131,10 @@ export function validateRoadmap(roadmap, student, data) {
   let liberal = (student.earned?.기초교양 ?? 0) + (student.earned?.핵심교양 ?? 0) + (student.earned?.자유교양 ?? 0);
 
   terms.forEach((t, i) => {
+    if (!t || typeof t !== 'object' || !Array.isArray(t.items)) {
+      bad('FORMAT', t?.term ?? null, null, `${i + 1}번째 학기의 형식이 올바르지 않아요.`);
+      return;
+    }
     const tp = plan[i];
     if (!tp || t.term !== tp.term) {
       bad('TERM_SEQUENCE', t.term, null, `${i + 1}번째 학기는 ${tp ? tp.term : '(없음)'}이어야 해요.`);
@@ -136,7 +143,11 @@ export function validateRoadmap(roadmap, student, data) {
     let total = 0;
     let coreFree = 0; // 핵심교양+자유교양 (학기당 8학점 상한)
 
-    for (const item of t.items ?? []) {
+    for (const item of t.items) {
+      if (!item || typeof item !== 'object') {
+        bad('FORMAT', t.term, null, '과목 항목의 형식이 올바르지 않아요.');
+        continue;
+      }
       if (item.slot !== undefined) {
         if (!SLOT_CATEGORIES.includes(item.category) || !Number.isInteger(item.credits) || item.credits <= 0) {
           bad('SLOT_INVALID', t.term, item.slot, `슬롯 '${item.slot}'의 이수구분이나 학점이 올바르지 않아요.`);
@@ -180,7 +191,8 @@ export function validateRoadmap(roadmap, student, data) {
 // AI가 실패했을 때 쓰는 기본 로드맵.
 // 1) 빠진 필수과목 2) 부족한 전공선택, 핵심·자유교양 슬롯 3) 총학점 136까지 전공선택 과목과 일반선택 슬롯으로 채운다.
 // 항목은 그때그때 학점 합이 가장 적은 학기에 놓아서 학기 부담을 고르게 나눈다.
-// 반환: { roadmap, unplaced: [{ name|slot, reason }], shortfall }  shortfall은 못 채운 총학점이다.
+// 반환: { roadmap, unplaced: [{ name|slot, reason }], shortfall, projectedTotal }  shortfall은 못 채운 총학점이다.
+// 학기마다 credits(학점 합계)와 why(추천 이유)가 들어 있다.
 export function buildDefaultRoadmap(student, data) {
   const { requirements, curriculum } = data;
   const plan = termPlan(student, requirements);
@@ -258,8 +270,141 @@ export function buildDefaultRoadmap(student, data) {
     }
   }
 
-  const roadmap = { terms: rows.map((r) => ({ term: r.tp.term, items: r.items })) };
-  return { roadmap, unplaced, shortfall: Math.max(0, need136()) };
+  const done = finalizeRoadmap({ terms: rows.map((r) => ({ term: r.tp.term, items: r.items })) }, student, data);
+  return { roadmap: done.roadmap, unplaced, shortfall: done.shortfall, projectedTotal: done.projectedTotal };
+}
+
+// 로드맵을 화면에 보여 줄 모양으로 마무리한다. 항목 이름을 교육과정 이름으로 맞추고,
+// 학기 학점 합계(credits)는 항상 코드가 계산하며, 추천 이유(why)는 whys[i]가 있으면 그것을, 없으면 코드가 만든 문장을 쓴다.
+// 검증을 통과한 로드맵에만 쓴다. 반환: { roadmap, projectedTotal, shortfall }
+export function finalizeRoadmap(roadmap, student, data, whys = []) {
+  const taken = takenSets(student, data);
+  const plan = termPlan(student, data.requirements);
+  const terms = roadmap.terms.map((t) => {
+    const items = t.items.map((item) => {
+      if (item.slot !== undefined) return { slot: item.slot, category: item.category, credits: item.credits };
+      const c = findCourse(data, item);
+      const kind = taken.retake.has(c) ? 'retake' : c.required ? 'required' : null;
+      return { name: c.name, ...(c.code ? { code: c.code } : {}), ...(kind ? { kind } : {}) };
+    });
+    const credits = items.reduce((s, i) => s + (i.credits ?? findCourse(data, i).credits), 0);
+    return { term: t.term, credits, items };
+  });
+  const projectedTotal = (student.earned?.total ?? 0) + terms.reduce((s, t) => s + t.credits, 0);
+  const shortfall = Math.max(0, data.requirements.totalCredits.min - projectedTotal);
+  terms.forEach((t, i) => {
+    const given = typeof whys[i] === 'string' ? whys[i].trim().slice(0, 200) : '';
+    t.why = given || explainTerm(t, { data, semester: plan[i]?.semester ?? parseTerm(t.term)?.semester, isLast: i === terms.length - 1, projectedTotal, shortfall });
+  });
+  return { roadmap: { terms }, projectedTotal, shortfall };
+}
+
+// 학기 추천 이유를 항목에서 읽어 만든 문장. 조사가 붙는 자리를 피해서 목록 형태로 쓴다.
+export function explainTerm(term, { data, semester, isLast, projectedTotal, shortfall }) {
+  const names = (list) => list.map((i) => i.name).join(', ');
+  const courses = term.items.filter((i) => i.name !== undefined);
+  const slots = term.items.filter((i) => i.slot !== undefined);
+  const retake = courses.filter((i) => i.kind === 'retake');
+  const required = courses.filter((i) => i.kind === 'required');
+  const electives = courses.filter((i) => !i.kind);
+  const onlyThisTerm = [...retake, ...required].filter((i) => findCourse(data, i).offered !== 'all');
+  const parts = [];
+  if (retake.length) parts.push(`재수강: ${names(retake)}.`);
+  if (required.length) parts.push(`필수 과목: ${names(required)}.`);
+  if (onlyThisTerm.length) parts.push(`${semester}학기에만 열리는 과목(${names(onlyThisTerm)})이라 이 학기에 넣었어요.`);
+  if (electives.length) parts.push(`전공 선택 ${electives.reduce((s, i) => s + findCourse(data, i).credits, 0)}학점으로 졸업 학점을 채워요.`);
+  const pick = slots.filter((s) => s.category !== '일반선택');
+  if (pick.length) parts.push(`${pick.map((s) => `${s.slot} ${s.credits}학점`).join(', ')}은 과목을 직접 골라 주세요.`);
+  const general = slots.filter((s) => s.category === '일반선택').reduce((sum, s) => sum + s.credits, 0);
+  if (general) parts.push(`일반선택 ${general}학점은 과목을 직접 골라 주세요.`);
+  if (!parts.length) parts.push('이 학기에 더 들을 과목이 없어요.');
+  if (isLast) {
+    parts.push(shortfall > 0
+      ? `계획한 학점을 모두 들어도 졸업까지 ${shortfall}학점이 모자라요.`
+      : `이 학기까지 마치면 총 ${projectedTotal}학점이 돼요.`);
+  }
+  return parts.join(' ');
+}
+
+// AI에게 줄 입력 JSON. 남은 학기(학년·학점 한도), 채워야 할 학점, 그리고 학기별로 들을 수 있는 후보 과목을 코드가 미리 걸러 준다.
+// 이미 들은 과목, 개설 학기·수강 학년이 안 맞는 과목, 실전프로젝트(전공 66학점 조건부)는 후보에 없다.
+export function describeRoadmapTask(student, data) {
+  const { requirements, curriculum } = data;
+  const plan = termPlan(student, requirements);
+  const taken = takenSets(student, data);
+  const earned = student.earned ?? {};
+  const cap = requirements.liberalArtsCap;
+  const min = (category) => requirements.categoryMins.find((m) => m.category === category).min;
+  const short = (category) => Math.max(0, min(category) - (earned[category] ?? 0));
+
+  const candidates = curriculum.courses
+    .filter((c) => !taken.courses.has(c) && !(c.oneOf && taken.groups.has(c.oneOf)) && !c.countsTowardMajor66)
+    .map((c) => ({
+      name: c.name,
+      credits: c.credits,
+      required: !!c.required,
+      ...(taken.retake.has(c) ? { retake: true } : {}),
+      ...(c.oneOf ? { oneOf: c.oneOf } : {}),
+      eligibleTerms: plan.filter((tp) => !blocker(c, tp, taken.retake.has(c))).map((tp) => tp.term),
+    }))
+    .filter((c) => c.eligibleTerms.length > 0);
+
+  return {
+    terms: plan.map((tp, i) => ({ term: tp.term, grade: tp.grade, creditLimit: creditLimit(student, requirements, i) })),
+    needs: {
+      totalCredits: Math.max(0, requirements.totalCredits.min - (earned.total ?? 0)),
+      majorElectiveCredits: short('전공선택'),
+      coreLiberalCredits: short('핵심교양'),
+      freeLiberalCredits: short('자유교양'),
+      ...(student.missingCoreAreas?.length ? { missingCoreAreas: student.missingCoreAreas } : {}),
+    },
+    liberalArts: { perTermMax: cap.perSemesterMax, totalMax: cap.max, earned: (earned.기초교양 ?? 0) + (earned.핵심교양 ?? 0) + (earned.자유교양 ?? 0) },
+    candidates,
+  };
+}
+
+// AI가 비워 둔 칸(null, 빈 문자열)을 지운다. 구조화 출력이 선택 필드를 null로 채워 보내는 경우가 있다.
+function cleanProposal(p) {
+  if (!p || !Array.isArray(p.terms)) return p;
+  const clean = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== '')) : o);
+  return { ...p, terms: p.terms.map((t) => (t && typeof t === 'object' ? { ...t, items: Array.isArray(t.items) ? t.items.map(clean) : t.items } : t)) };
+}
+
+const withTimeout = (promise, ms) => {
+  let id;
+  const timer = new Promise((_, reject) => { id = setTimeout(() => reject(new Error(`AI 응답이 ${ms}ms 안에 오지 않았어요.`)), ms); });
+  return Promise.race([promise, timer]).finally(() => clearTimeout(id));
+};
+
+// AI 계획 → 코드 검증 → 실패하면 기본 로드맵 (PRD §8). AI 호출은 askAi가 맡는다.
+//   askAi({ student, data, terms, task })  task는 describeRoadmapTask의 결과(AI에게 줄 입력 JSON). 로드맵 제안 { terms: [{ term, items, why? }] }을 돌려주는 함수(Promise 가능). 생략하면 기본 로드맵만 쓴다.
+//   timeoutMs                         AI 응답을 기다리는 시간. 기본 30초
+// 기본 로드맵으로 바꾸는 경우: askAi가 없음, 예외, 시간 초과, 규칙 위반, 기본 로드맵보다 졸업 학점을 덜 채움.
+// 반환: { source: 'ai'|'default', roadmap, projectedTotal, shortfall, unplaced, fallbackReason, aiViolations }
+//   fallbackReason은 source가 default일 때만 있다(no-ai | ai-error | invalid | shortfall). AI 응답에서는 항목 이름·학점·kind·credits를
+//   코드가 다시 정리하고, why는 AI가 쓴 문장을 쓰되 비어 있으면 코드가 만든 문장으로 채운다.
+export async function planRoadmap({ student, data, askAi, timeoutMs = 30_000 }) {
+  const fallback = buildDefaultRoadmap(student, data);
+  const useDefault = (fallbackReason, extra = {}) => ({ source: 'default', ...fallback, fallbackReason, aiViolations: [], ...extra });
+  if (typeof askAi !== 'function') return useDefault('no-ai');
+
+  let proposal;
+  try {
+    const task = describeRoadmapTask(student, data);
+    proposal = cleanProposal(await withTimeout(Promise.resolve().then(() => askAi({ student, data, terms: task.terms, task })), timeoutMs));
+  } catch (err) {
+    return useDefault('ai-error', { aiError: String(err?.message ?? err) });
+  }
+
+  const aiViolations = validateRoadmap(proposal, student, data);
+  if (aiViolations.length) return useDefault('invalid', { aiViolations });
+
+  const done = finalizeRoadmap(proposal, student, data, proposal.terms.map((t) => t?.why));
+  if (done.shortfall > fallback.shortfall) {
+    const message = `AI 계획은 졸업까지 ${done.shortfall}학점이 모자란데 기본 로드맵은 ${fallback.shortfall}학점만 모자라요.`;
+    return useDefault('shortfall', { aiViolations: [{ rule: 'SHORTFALL', term: null, item: null, message }] });
+  }
+  return { source: 'ai', ...done, unplaced: [], aiViolations: [] };
 }
 
 // 서버에서 쓰기 편하도록 JSON 두 개를 읽는다. 경로는 app/public/data 기준이다.
