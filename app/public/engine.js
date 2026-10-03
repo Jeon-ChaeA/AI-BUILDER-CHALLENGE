@@ -536,6 +536,56 @@ export function vagueTerms(plan, courses, ctx, data) {
   });
 }
 
+// AI 계획이 학기당 학점·총 학점 같은 산수만 어겼으면 코드가 일반선택 빈칸으로 맞춘다.
+// 일반선택은 개설 학기·학년 제약이 없어서 옮기거나 더해도 다른 규칙이 깨지지 않는다.
+// verifyPlan 위반 수가 줄어드는 한 걸음씩만 받아들이고, 고친 내용(fixes)은 검증 기록에 그대로 보여 준다.
+export function repairPlan(plan, courses, ctx, data) {
+  const max = data.req.maxCreditsPerSemester.base;
+  const load = (p) => p.courses.reduce((s, c) => s + c.credits, 0);
+  const isFree = (c) => c.generic && c.category === '일반선택';
+  const clone = (pl) => pl.map((p) => ({ ...p, courses: p.courses.map((c) => ({ ...c })) }));
+  const addFree = (p, n) => {
+    const f = p.courses.find(isFree);
+    if (f) f.credits += n; else p.courses.push({ name: '일반선택', credits: n, category: '일반선택', generic: true });
+  };
+  let cur = clone(plan);
+  let errs = verifyPlan(cur, courses, ctx, data);
+  const fixes = [];
+  for (let step = 0; step < 6 && errs.length; step++) {
+    let best = null;
+    const consider = (next, note) => {
+      const e = verifyPlan(next, courses, ctx, data);
+      if (e.length < (best ? best.errs.length : errs.length)) best = { plan: next, errs: e, note };
+    };
+    cur.forEach((from, i) => {
+      // 넘친 학기의 일반선택 빈칸을 자리가 있는 학기로 옮긴다
+      const excess = load(from) - max;
+      const f = from.courses.find(isFree);
+      if (excess > 0 && f) {
+        cur.forEach((to, j) => {
+          const n = Math.min(excess, f.credits, max - load(to));
+          if (i === j || n <= 0) return;
+          const next = clone(cur);
+          next[i].courses.find(isFree).credits -= n;
+          next[i].courses = next[i].courses.filter((c) => c.credits > 0);
+          addFree(next[j], n);
+          consider(next, `${from.term} 일반선택 ${n}학점을 ${to.term}로 옮겼어요`);
+        });
+      }
+      // 총 학점이 모자라면 자리가 있는 학기에 일반선택을 더한다
+      for (let n = 1; n <= max - load(from); n++) {
+        const next = clone(cur);
+        addFree(next[i], n);
+        consider(next, `${from.term}에 일반선택 ${n}학점을 더했어요`);
+      }
+    });
+    if (!best) break;
+    ({ plan: cur, errs } = best);
+    fixes.push(best.note);
+  }
+  return { plan: cur, errs, fixes };
+}
+
 // AI가 실패했을 때 쓰는 계획. 필수 → 전공 → 교양 → 일반선택 순서로 채운다.
 export function defaultPlan(courses, ctx, data) {
   const P = prep(data);

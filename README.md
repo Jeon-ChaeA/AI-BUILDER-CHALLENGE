@@ -24,7 +24,7 @@ PRD의 요구사항(FR)이 배포된 화면 어디에서 보이고, 어느 코�
 |----|-------------|----------|
 | FR-01 성적 입력과 이수내역 정리 (AI) | 입력 카드 세 탭 → '진단 시작' → '01 이수내역' 표, "총 N과목 · N학점" | `server.js` `POST /api/parse` (Gemini 구조화 출력) → `engine.js` `sanitizeCourses` → `app.js` `renderLog` |
 | FR-02 졸업요건 진단과 위험 경고 | '02 졸업요건 진단'의 9개 항목, 원문과 cs.kookmin.ac.kr 출처 | `engine.js` `analyze`, `diagnose` → `app.js` `renderChecks` |
-| FR-03 수강 로드맵 (AI 계획 + 코드 검증) | '03 수강 로드맵'의 학기별 과목·학점·이유 | `server.js` `POST /api/roadmap` → `engine.js` `planTerms`, `tidyPlan`, `verifyPlan`, `defaultPlan` |
+| FR-03 수강 로드맵 (AI 계획 + 코드 검증) | '03 수강 로드맵'의 학기별 과목·학점·이유 | `server.js` `POST /api/roadmap` → `engine.js` `planTerms`, `tidyPlan`, `verifyPlan`, `repairPlan`, `defaultPlan` |
 | FR-04 학사 마감 일정 | '04 학사 마감 일정'의 D-day, '캘린더에 추가(.ics)' | `engine.js` `pickDates` → `schedule.js` `buildIcs` |
 | FR-05 무료 체험 1회와 이용권 (하드페이월) | 상단 '무료 체험 1회 남음', 두 번째 진단의 이용권 창, '요금' 섹션 | `app.js` `renderTrial`, `openPaywall`, `diagnoseNow` |
 | FR-06 이수내역 수정 후 다시 진단 | 이수내역 표의 칸 수정·행 삭제 → '다시 진단' | `app.js` `renderLog`(표 편집), `analyze` |
@@ -46,7 +46,8 @@ PRD의 요구사항(FR)이 배포된 화면 어디에서 보이고, 어느 코�
                                           ▼
                   [코드] verifyPlan: 이미 들은 과목, 학기 학점 한도, 요건 충족, 연속 학기 검사
                         ├─ 통과 → 사용
-                        ├─ 위반 → 위반 내용을 붙여 AI에 1회 재요청
+                        ├─ 학점 계산만 어긋남 → repairPlan: 일반선택 빈칸을 옮기거나 더해 맞춤(같은 검증 통과)
+                        ├─ 그 밖의 위반 → 위반 내용을 붙여 AI에 1회 재요청
                         └─ 그래도 실패 → defaultPlan(교육과정 순서 기본 계획, 같은 검증 통과)
                                           │
                   [코드] pickDates: 진단 결과에 맞는 학사 마감만 → .ics
@@ -63,7 +64,7 @@ PRD의 요구사항(FR)이 배포된 화면 어디에서 보이고, 어느 코�
 | 호출 | 엔드포인트 | 입력 | 출력(JSON 스키마) | 실패 시 |
 |------|-----------|------|------------------|--------|
 | 성적 인식 | `POST /api/parse` | 캡처 최대 5장 또는 텍스트 | `courses[]` (학기·코드·과목명·학점·이수구분·등급·평점) | 샘플 학생은 저장된 인식 결과로 진행, 그 외에는 안내 |
-| 수강 로드맵 | `POST /api/roadmap` | 이수내역, 남은 요건, 개설 과목, 희망 사항 | AI: `plan[]`(학기별 과목·이유), `summary` → API 응답: `plan`, `source`(`ai`·`fallback`·`done`), `summary`, `trace`(검증 기록), `fallbackOk` | 위반 피드백 재요청 1회 → 기본 계획 |
+| 수강 로드맵 | `POST /api/roadmap` | 이수내역, 남은 요건, 개설 과목, 희망 사항 | AI: `plan[]`(학기별 과목·이유), `summary` → API 응답: `plan`, `source`(`ai`·`fallback`·`done`), `summary`, `trace`(검증 기록), `fallbackOk` | 학점 계산 위반은 코드 보정, 그 밖의 위반은 피드백 재요청 1회 → 기본 계획 |
 | 학과 문의 | `POST /api/consult` | 코드가 고른 확인 사항 | `subject`, `body`, `questions[]` | 코드가 만든 기본 문안 |
 
 - 모델: `gemini-flash-latest` (`GEMINI_MODEL`로 변경), `@google/genai`, 구조화 출력(`responseJsonSchema`), `thinkingLevel: LOW`.
@@ -108,7 +109,7 @@ docker compose up --build   # http://127.0.0.1:3300
 
 ```bash
 cd app
-npm test               # 진단 엔진 23개 (무작위 성적 300건 퍼즈 포함)
+npm test               # 진단 엔진 24개 (무작위 성적 300건 퍼즈 포함)
 npm run test:schedule  # 학사 일정·.ics 10개
 npm run test:roadmap   # 로드맵 규칙 참조 구현(lib/roadmap.mjs) 교차 검증 35개
 npm run test:sample    # 샘플 학생 데이터 7개

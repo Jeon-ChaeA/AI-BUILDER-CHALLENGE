@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { AREAS as E_AREAS } from '../public/engine.js';
 import {
-  diagnose, verifyPlan, vagueTerms, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, haeyo, tidyPlan, consultFacts,
+  diagnose, verifyPlan, vagueTerms, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, haeyo, tidyPlan, repairPlan, consultFacts,
 } from '../public/engine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8'));
@@ -280,4 +280,39 @@ test('haeyo: AI 문장 끝의 합니다체를 해요체로 바꾸고, 모르는 
   assert.equal(haeyo('2학기에 신청하면 됩니다. 계획을 드립니다.'), '2학기에 신청하면 돼요. 계획을 드려요.');
   assert.equal(haeyo('합니다체 설명이 문장 가운데 있는 경우'), '합니다체 설명이 문장 가운데 있는 경우');
   assert.equal(haeyo(undefined), '');
+});
+
+test('repairPlan: 학기당 학점·총 학점만 어긴 계획은 일반선택 빈칸으로 맞추고, 다른 위반은 그대로 둔다', () => {
+  const base = defaultPlan(sample, ctx, data);
+  assert.deepEqual(verifyPlan(base, sample, ctx, data), []);
+  const free = (n) => ({ name: '일반선택', credits: n, category: '일반선택', generic: true });
+  const clone = () => structuredClone(base);
+
+  // 2027-1을 15학점으로 줄이고 2027-2에 일반선택 3학점을 얹어 21학점(19학점 초과)
+  const over = clone();
+  over[0].courses = over[0].courses.filter((c) => c.name !== '시스템최신기술');
+  over[1].courses.push(free(3));
+  assert.match(verifyPlan(over, sample, ctx, data).join(), /2027-2: 21학점으로 학기당 19학점을 넘어요/);
+  const r1 = repairPlan(over, sample, ctx, data);
+  assert.deepEqual(r1.errs, []);
+  assert.deepEqual(r1.plan.map((p) => p.courses.reduce((s, c) => s + c.credits, 0)), [17, 19]);
+  assert.deepEqual(r1.fixes, ['2027-2 일반선택 2학점을 2027-1로 옮겼어요']);
+  assert.equal(over[1].courses.at(-1).credits, 3, '입력 계획은 바꾸지 않는다');
+
+  // 총 학점이 3학점 모자란 계획
+  const short = clone();
+  short[1].courses = short[1].courses.filter((c) => c.name !== '운영체제의실제');
+  assert.match(verifyPlan(short, sample, ctx, data).join(), /총 이수학점/);
+  const r2 = repairPlan(short, sample, ctx, data);
+  assert.deepEqual(r2.errs, []);
+  assert.deepEqual(r2.fixes, ['2027-2에 일반선택 3학점을 더했어요']);
+  assert.deepEqual(r2.plan.map((p) => p.courses.reduce((t, c) => t + c.credits, 0)), [18, 18]);
+
+  // 필수 과목을 개설되지 않는 학기에 넣은 위반은 산수로 못 고치니 그대로 남는다
+  const wrong = clone();
+  const net = wrong[0].courses.findIndex((c) => c.name === '컴퓨터네트워크');
+  wrong[1].courses.push(...wrong[0].courses.splice(net, 1));
+  wrong[1].courses = wrong[1].courses.filter((c) => c.name !== '운영체제의실제');
+  const r3 = repairPlan(wrong, sample, ctx, data);
+  assert.ok(r3.errs.length > 0);
 });
