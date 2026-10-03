@@ -31,45 +31,50 @@
     .to('.intake', { opacity: 1, y: 0 }, '-=0.42')
     .to('.pr', { opacity: 1, y: 0 }, '-=0.50');
 
-  // 2) 리포트 카드: 진행률 링이 차고 숫자가 올라온다
-  const ring = document.querySelector('.rc-ring .prog');
-  if (ring) {
-    const C = 2 * Math.PI * 52;
-    gsap.set(ring, { strokeDasharray: C, strokeDashoffset: C });
-    gsap.to(ring, { strokeDashoffset: C * (1 - 0.62), duration: 1.1, ease: E, delay: 0.55 });
-  }
-  const pct = document.querySelector('.rc-pct strong');
-  const earned = document.querySelector('.rc-big strong');
-  if (pct) countTo(pct, 62, { dur: 1.1, delay: 0.55 });
-  if (earned) countTo(earned, 84, { dur: 1.1, delay: 0.55 });
+  // 2) 리포트 카드: 진행률 링이 차고 숫자가 올라온다. 수치는 app.js가 계산해 jg:hero로 보낸다.
+  document.addEventListener('jg:hero', ({ detail: { pct: p, earned: e } }) => {
+    const ring = document.querySelector('.rc-ring .prog');
+    if (ring) {
+      const C = 2 * Math.PI * 52;
+      gsap.fromTo(ring, { strokeDashoffset: C }, { strokeDashoffset: C * (1 - p / 100), duration: 1.1, ease: E, delay: 0.55 });
+    }
+    const pct = document.querySelector('.rc-pct strong');
+    const earned = document.querySelector('.rc-big strong');
+    if (pct) countTo(pct, p, { dur: 1.1, delay: 0.55 });
+    if (earned) countTo(earned, e, { dur: 1.1, delay: 0.55 });
+  }, { once: true });
 
-  // 3) 전 섹션 스크롤 리빌 (은은하게, 들어올 때 한 번)
+  // 3) 스크롤 리빌 (은은하게, 들어올 때 한 번)
   function reveal(sel, stagger = 0.08) {
-    const els = gsap.utils.toArray(sel);
+    const els = gsap.utils.toArray(sel).filter((el) => !el.dataset.revealed);
     if (!els.length) return;
+    els.forEach((el) => { el.dataset.revealed = '1'; });
     gsap.set(els, { opacity: 0, y: 18 });
     ScrollTrigger.batch(els, {
       start: 'top 88%',
       onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 0.55, ease: E, stagger, overwrite: true }),
     });
   }
-  reveal('.sec > .step');
-  reveal('.sec > h2');
-  reveal('.sec > .sec-lede');
-  reveal('.grass-card');
-  reveal('.verified li', 0.06);
-  reveal('.full .check', 0.06);
-  reveal('.report');
 
-  // 4) 졸업까지의 계획 노드가 선을 따라 올라온다
-  gsap.set('#branch .node', { y: 18 });
-  gsap.to('#branch .node', {
-    opacity: 1, y: 0, duration: 0.5, ease: E, stagger: 0.12,
-    scrollTrigger: { trigger: '#branch', start: 'top 78%' },
-  });
+  // 결과 섹션은 진단 뒤에 그려진다(app.js가 jg:render를 보냄). 그릴 때마다 새로 생긴 요소만 연출한다.
+  document.addEventListener('jg:render', () => {
+    reveal('.sec > .step');
+    reveal('.sec > h2');
+    reveal('.sec > .sec-lede');
+    reveal('.grass-card');
+    reveal('.verified li', 0.06);
+    reveal('.full .check', 0.06);
+    reveal('.report');
 
-  // 5) 마감 일정은 calendar.json을 받은 뒤(비동기) 그려지므로, 채워진 다음에 연출한다
-  function animateDates() {
+    // 4) 졸업까지의 계획 노드가 선을 따라 올라온다 (CSS가 .ganim에서 노드를 숨겨 둔다)
+    const nodes = gsap.utils.toArray('#branch .node');
+    gsap.set(nodes, { y: 18 });
+    gsap.to(nodes, {
+      opacity: 1, y: 0, duration: 0.5, ease: E, stagger: 0.12,
+      scrollTrigger: { trigger: '#branch', start: 'top 78%' },
+    });
+
+    // 5) 마감 D-day가 0에서 올라온다
     reveal('.date', 0.08);
     document.querySelectorAll('.dday').forEach((el) => {
       const m = el.textContent.match(/D-(\d+)/);
@@ -77,14 +82,6 @@
       el.textContent = 'D-0';
       countTo(el, +m[1], { prefix: 'D-', dur: 1, scroll: true });
     });
-    ScrollTrigger.refresh(); // 날짜가 들어와 높이가 바뀌었으니 트리거 위치 갱신
-  }
-  const dateList = document.getElementById('dateList');
-  if (dateList && dateList.children.length) animateDates();
-  else if (dateList) {
-    const mo = new MutationObserver(() => {
-      if (dateList.children.length) { mo.disconnect(); animateDates(); }
-    });
-    mo.observe(dateList, { childList: true });
-  }
+    ScrollTrigger.refresh(); // 섹션이 열려 높이가 바뀌었으니 트리거 위치 갱신
+  });
 })();

@@ -53,10 +53,27 @@ export function requireUser(req, res, next) {
 
 const router = express.Router();
 
+// 요청 본문은 믿지 않는다. 문자열만 받고, 이메일은 공백을 빼고 소문자로 맞춘다.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function readCredentials(body) {
+  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const password = typeof body?.password === 'string' ? body.password : '';
+  return { email, password };
+}
+
 router.post('/signup', (req, res) => {
-  const { email, password } = req.body ?? {};
+  const { email, password } = readCredentials(req.body);
   if (!email || !password) {
     return res.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
+  }
+  if (email.length > 254 || !EMAIL_RE.test(email)) {
+    return res.status(400).json({ error: '이메일 형식이 올바르지 않아요.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: '비밀번호는 8자 이상이어야 해요.' });
+  }
+  if (Buffer.byteLength(password) > 72) { // bcrypt는 72바이트까지만 본다
+    return res.status(400).json({ error: '비밀번호가 너무 길어요. 72바이트 이하로 정해 주세요.' });
   }
   if (findUserByEmail.get(email)) {
     return res.status(409).json({ error: '이미 가입된 이메일이에요.' });
@@ -68,7 +85,7 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-  const { email, password } = req.body ?? {};
+  const { email, password } = readCredentials(req.body);
   if (!email || !password) {
     return res.status(400).json({ error: '이메일과 비밀번호를 모두 입력해 주세요.' });
   }

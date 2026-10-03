@@ -11,6 +11,7 @@
 | `requirements.json` | FR-02 진단·경고, FR-03 검증 | 졸업요건 수치, 필수과목, 수강학점 한도, 재수강 규정, 수동 확인 항목. 판정 항목마다 `evidence`(원문 + URL) |
 | `curriculum.json` | FR-03 로드맵 후보 | 과목 목록(코드·학점·학년·학기) |
 | `calendar.json` | FR-04 일정 | 학사일정과 노출 조건(`trigger`) |
+| `core_areas.json` | FR-02 핵심교양 영역 | 핵심교양 과목명 → 영역(인문Ⅰ·인문Ⅱ·소통·창의·글로벌) |
 
 ## 진단 엔진(②)이 알아야 할 규칙
 
@@ -26,7 +27,8 @@
 - **평점**: 전학년 성적 평점평균 **2.0 이상**이 졸업 조건이다(`gpa.min`). 평점 계산에서 F는 0점으로 넣고, NP·P와 재수강 전 성적(`[R]`)은 뺀다.
 - **초과 학점**: 이수구분별 최저학점을 넘긴 학점은 일반선택으로 인정한다(`overflowRules`). 교양은 합계 50학점(상한)을 넘으면 초과분이 졸업학점 136에 들어가지 않는다(`liberalArtsCap.overCapRule`).
 - **졸업 학기 조건**: 8학기 이상 등록해야 한다(`minRegisteredSemesters`). 휴학 학기는 등록 학기가 아니다.
-- **판정하지 않는 것**: `manualCheck`(졸업인증, 졸업논문, 핵심교양 영역별 3학점, 심화/부전공/다전공)는 "학과 사무실 확인 필요"로 안내만 한다.
+- **판정하지 않는 것**: `manualCheck`(졸업인증, 졸업논문, 심화/부전공/다전공)는 "학과 사무실 확인 필요"로 안내만 한다.
+- **핵심교양 영역**: 영역별 3학점은 코드가 판정한다. 과목의 영역은 ① 성적 화면이나 학생이 정한 값 ② `core_areas.json`(2023·2026 요람 핵심교양 학점 배정표, 근거는 `research_notes/졸업각 데이터/core_areas.md`) ③ AI 추정 순서로 정하고, 추정이면 화면에 표시한다.
 
 ## 로드맵(③·⑤)이 알아야 할 규칙
 
@@ -45,7 +47,10 @@
 AI를 부르지 않는 순수 함수다. 서버가 AI 응답을 검증하거나 AI가 실패했을 때 기본 로드맵을 만들 때 쓴다. 테스트는 `cd app && npm run test:roadmap`.
 
 - `validateRoadmap(roadmap, student, data)` → 위반 목록 `[{rule, term, item, message}]`(비면 통과). 규칙: `TERM_COUNT`, `TERM_SEQUENCE`, `ALREADY_TAKEN`, `DUPLICATE`, `UNKNOWN_COURSE`, `OFFERED`, `YEARS`, `CREDIT_LIMIT`, `LIBERAL_TERM_CAP`, `LIBERAL_TOTAL_CAP`, `SLOT_INVALID`, `FORMAT`.
-- `buildDefaultRoadmap(student, data)` → `{roadmap, unplaced, shortfall}`. 빠진 필수과목 → 부족한 전공선택, 핵심·자유교양 슬롯 → 총학점 136까지 전공선택 과목·일반선택 슬롯 순으로 채우고, 학기 부담이 고르게 나뉘게 한다. 못 놓은 항목은 `unplaced`, 못 채운 총학점은 `shortfall`이다.
+- `buildDefaultRoadmap(student, data)` → `{roadmap, unplaced, shortfall, projectedTotal}`. 빠진 필수과목 → 부족한 전공선택, 핵심·자유교양 슬롯 → 총학점 136까지 전공선택 과목·일반선택 슬롯 순으로 채우고, 학기 부담이 고르게 나뉘게 한다. 못 놓은 항목은 `unplaced`, 못 채운 총학점은 `shortfall`이다.
+- `planRoadmap({student, data, askAi, timeoutMs})` → AI 계획 → 코드 검증 → 실패하면 기본 로드맵(PRD §8). 서버는 `askAi({student, data, terms})`에 Gemini 호출 함수를 넘기면 된다(`{terms:[{term, items, why?}]}`를 돌려주면 됨). 결과는 `{source: 'ai'|'default', roadmap, projectedTotal, shortfall, unplaced, fallbackReason, aiViolations}`이다. 기본 로드맵으로 바꾸는 경우(`fallbackReason`): `no-ai`(askAi 없음), `ai-error`(예외·30초 초과, `aiError`에 메시지), `invalid`(규칙 위반, `aiViolations`에 목록), `shortfall`(규칙은 지켰지만 기본 로드맵보다 졸업 학점을 덜 채움).
+- **화면에 쓰는 모양**: 마무리한 로드맵의 학기마다 `credits`(학기 학점 합계)와 `why`(추천 이유)가 있고, 과목 항목에 `kind`(`required` 필수, `retake` 재수강)가 붙는다. 학점 합계는 AI 값을 믿지 않고 코드가 다시 계산하며, `why`는 AI가 쓴 문장이 있으면 쓰고 비어 있으면 코드가 만든 문장(재수강, 1학기에만 열리는 과목, 직접 골라야 하는 교양, 마지막 학기의 총학점)으로 채운다. 화면에 넣을 때는 HTML 이스케이프가 필요하다(AI 문장이 들어갈 수 있다).
+- AI 프롬프트 초안, 입력 JSON(`describeRoadmapTask`), 응답 스키마, 서버에 붙이는 예시는 [ROADMAP_AI.md](ROADMAP_AI.md)에 있다. `server.js`의 `TASKS` 등록은 백엔드 담당 몫이고, 이 코드는 응답이 그 모양이기만 하면 된다.
 - `data`는 `{requirements, curriculum}` JSON 객체다. `loadData(dir)`로 읽을 수 있다.
 - 학생 입력(`student`)과 로드맵 모양은 파일 맨 위 주석에 있다. 이 모양은 진단 엔진·AI 담당과 맞춰야 하는 **제안**이다. `taken`에는 F·N을 넣지 않고, 다시 들어야 하는 과목은 `retake`에 넣는다.
 - 로드맵 항목은 과목(`{name, code?}`, 학점은 curriculum 값) 또는 슬롯(`{slot, category, credits}`)이다. curriculum.json에는 교양 과목이 없어서 핵심교양·자유교양·일반선택은 슬롯으로 표현한다.

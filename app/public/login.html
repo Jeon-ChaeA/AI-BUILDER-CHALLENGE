@@ -5,102 +5,151 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>로그인 · 졸업각</title>
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231a7f45'/%3E%3Cpath d='M8 8l10 8M8 24l10-8h7' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    .auth-wrap { max-width: 380px; margin: 10vh auto; padding: 0 20px; }
-    .auth-card { background: var(--card, #fff); border: 1px solid rgba(0,0,0,.08); border-radius: 16px; padding: 28px 24px; }
-    .auth-brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; margin-bottom: 4px; }
-    .auth-brand .mark { width: 28px; height: 28px; }
-    .auth-brand .mark path { stroke: #1a7f45; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .auth-brand .mark circle { fill: #1a7f45; }
-    .auth-sub { color: #6b7280; font-size: 14px; margin: 0 0 20px; }
-    .auth-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
-    .auth-tabs button { flex: 1; padding: 9px; border: 1px solid rgba(0,0,0,.12); background: transparent; border-radius: 9px; cursor: pointer; font: inherit; }
-    .auth-tabs button[aria-selected="true"] { background: #1a7f45; color: #fff; border-color: #1a7f45; }
-    .auth-field { display: block; margin-bottom: 14px; }
-    .auth-field span { display: block; font-size: 13px; margin-bottom: 6px; color: #374151; }
-    .auth-field input { width: 100%; padding: 11px 12px; border: 1px solid rgba(0,0,0,.15); border-radius: 9px; font: inherit; box-sizing: border-box; }
-    .auth-submit { width: 100%; padding: 12px; border: 0; border-radius: 9px; background: #1a7f45; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-    .auth-submit:disabled { opacity: .6; cursor: default; }
-    .auth-msg { margin: 14px 0 0; font-size: 14px; min-height: 20px; }
-    .auth-msg.err { color: #c0392b; }
-    .auth-msg.ok { color: #1a7f45; }
-    .auth-me { font-size: 14px; }
-    .auth-me a { color: #1a7f45; }
-  </style>
+  <script src="theme.js"></script>
 </head>
 <body>
-  <div class="auth-wrap">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 7l11 9M6 25l11-9h9"/><circle cx="26" cy="16" r="2.6"/></svg>
-        <span>졸업각</span>
-      </div>
-      <p class="auth-sub">이메일로 로그인하고 진단을 저장해 보세요.</p>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="졸업각 홈으로">
+      <span class="brand-logo"><img class="logo-light" src="brand/logo-light.svg" alt="졸업각" width="764" height="215"><img class="logo-dark" src="brand/logo-dark.svg" alt="졸업각" width="764" height="215"></span>
+    </a>
+    <div class="top-actions"><a class="top-login" href="/"><i class="ph ph-arrow-left"></i><span>진단으로 돌아가기</span></a><button class="icon-btn" type="button" id="themeToggle" aria-label="다크 모드로 바꾸기"><i class="ph ph-moon"></i></button></div>
+  </header>
 
-      <div id="loggedOut">
-        <div class="auth-tabs" role="tablist">
-          <button id="tabLogin" role="tab" aria-selected="true">로그인</button>
-          <button id="tabSignup" role="tab" aria-selected="false">회원가입</button>
+  <main class="auth">
+    <section class="auth-card" aria-labelledby="authTitle">
+      <div class="auth-top">
+        <svg class="cap-illu" viewBox="0 0 128 112" aria-hidden="true">
+          <defs>
+            <linearGradient id="capBoard" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6dbdf"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="64" cy="96" rx="30" ry="6" fill="rgb(0 0 0 / .18)"/>
+          <path d="M40 56v16q0 12 24 12t24-12V56" fill="#c3c9ce"/>
+          <path d="M64 20 120 46 64 72 8 46Z" fill="url(#capBoard)"/>
+          <path d="M64 20 120 46 64 72Z" fill="#f1f3f5"/>
+          <circle cx="64" cy="46" r="4.5" fill="#1f9a53"/>
+          <path d="M64 46 102 40v34" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="102" cy="78" r="5.5" fill="#ffffff"/>
+        </svg>
+        <h1 id="authTitle">로그인</h1>
+      </div>
+
+      <div class="auth-body">
+        <div id="loggedOut">
+          <div class="auth-tabs" role="tablist" aria-label="로그인 또는 회원가입">
+            <button type="button" role="tab" id="tabLogin" aria-selected="true">로그인</button>
+            <button type="button" role="tab" id="tabSignup" aria-selected="false">회원가입</button>
+          </div>
+
+          <form id="authForm" class="auth-form">
+            <label class="field">
+              <span class="field-label">이메일</span>
+              <input type="email" id="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="name@example.com" required>
+            </label>
+            <label class="field">
+              <span class="field-label">비밀번호 <small class="muted" id="pwHint" hidden>8자 이상</small></span>
+              <span class="pw">
+                <input type="password" id="password" autocomplete="current-password" maxlength="72" required>
+                <button type="button" class="pw-toggle" id="pwToggle" aria-label="비밀번호 보기" aria-pressed="false"><i class="ph ph-eye"></i></button>
+              </span>
+            </label>
+            <button class="btn btn-primary" type="submit" id="submitBtn">로그인</button>
+            <p class="auth-terms" id="terms" hidden>가입하면 <a href="terms.html">이용약관</a>과 <a href="privacy.html">개인정보 처리방침</a>에 동의하게 돼요.</p>
+          </form>
         </div>
 
-        <form id="authForm">
-          <label class="auth-field">
-            <span>이메일</span>
-            <input type="email" id="email" autocomplete="email" required>
-          </label>
-          <label class="auth-field">
-            <span>비밀번호</span>
-            <input type="password" id="password" autocomplete="current-password" required>
-          </label>
-          <button class="auth-submit" type="submit" id="submitBtn">로그인</button>
-        </form>
-      </div>
+        <div class="auth-done" id="loggedIn" hidden>
+          <span class="auth-avatar" id="avatar" aria-hidden="true"></span>
+          <p class="auth-me"><strong id="meEmail"></strong> 님으로 로그인했어요.</p>
+          <div class="auth-actions">
+            <a class="btn btn-primary" href="/"><i class="ph-fill ph-magic-wand"></i>진단하러 가기</a>
+            <button class="btn btn-secondary" type="button" id="logoutBtn">로그아웃</button>
+          </div>
+        </div>
 
-      <div id="loggedIn" hidden>
-        <p class="auth-me"><strong id="meEmail"></strong> 님으로 로그인했어요.</p>
-        <p class="auth-me"><a href="/">홈으로 가기</a></p>
-        <button class="auth-submit" type="button" id="logoutBtn" style="margin-top:14px;background:#6b7280;">로그아웃</button>
+        <p class="status" id="msg" role="status" aria-live="polite"></p>
       </div>
+    </section>
+  </main>
 
-      <p class="auth-msg" id="msg" role="status"></p>
-    </div>
-  </div>
+  <footer class="foot">
+    <nav class="foot-links" aria-label="정책과 출처">
+      <a href="terms.html">이용약관</a>
+      <a href="privacy.html"><strong>개인정보 처리방침</strong></a>
+      <a href="terms.html#data">데이터 출처</a>
+    </nav>
+    <div class="foot-bottom"><p class="copy">© 2026 졸업각 · Made by 5조의마법사</p></div>
+  </footer>
 
   <script>
     const $ = (id) => document.getElementById(id);
-    let mode = 'login';
-
-    function setMode(next) {
-      mode = next;
-      $('tabLogin').setAttribute('aria-selected', String(mode === 'login'));
-      $('tabSignup').setAttribute('aria-selected', String(mode === 'signup'));
-      $('submitBtn').textContent = mode === 'login' ? '로그인' : '회원가입';
-      $('password').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
-      say('');
-    }
+    let mode = new URLSearchParams(location.search).get('mode') === 'signup' ? 'signup' : 'login';
 
     function say(text, kind) {
       const el = $('msg');
       el.textContent = text;
-      el.className = 'auth-msg' + (kind ? ' ' + kind : '');
+      el.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    function setMode(next) {
+      mode = next;
+      const signup = mode === 'signup';
+      $('tabLogin').setAttribute('aria-selected', String(!signup));
+      $('tabSignup').setAttribute('aria-selected', String(signup));
+      $('authTitle').textContent = signup ? '회원가입' : '로그인';
+      document.title = (signup ? '회원가입' : '로그인') + ' · 졸업각';
+      $('submitBtn').textContent = signup ? '가입하기' : '로그인';
+      $('password').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+      $('password').minLength = signup ? 8 : 0;
+      $('pwHint').hidden = !signup;
+      $('terms').hidden = !signup;
+      say('');
     }
 
     function showLoggedIn(user) {
       $('loggedOut').hidden = true;
       $('loggedIn').hidden = false;
       $('meEmail').textContent = user.email;
+      $('avatar').textContent = user.email.trim().charAt(0).toUpperCase();
+      $('authTitle').textContent = '내 계정';
+    }
+
+    function showLoggedOut() {
+      $('loggedIn').hidden = true;
+      $('loggedOut').hidden = false;
+      $('password').value = '';
+      setMode(mode);
     }
 
     $('tabLogin').addEventListener('click', () => setMode('login'));
     $('tabSignup').addEventListener('click', () => setMode('signup'));
 
+    $('pwToggle').addEventListener('click', () => {
+      const show = $('password').type === 'password';
+      $('password').type = show ? 'text' : 'password';
+      $('pwToggle').setAttribute('aria-pressed', String(show));
+      $('pwToggle').setAttribute('aria-label', show ? '비밀번호 숨기기' : '비밀번호 보기');
+      $('pwToggle').innerHTML = `<i class="ph ${show ? 'ph-eye-slash' : 'ph-eye'}"></i>`;
+    });
+
     $('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (mode === 'signup' && $('password').value.length < 8) {
+        say('비밀번호는 8자 이상이어야 해요.', 'error');
+        $('password').focus();
+        return;
+      }
+      const label = $('submitBtn').textContent;
       $('submitBtn').disabled = true;
+      $('submitBtn').textContent = mode === 'signup' ? '가입하는 중' : '로그인하는 중';
       say('');
       try {
         const res = await fetch('/api/auth/' + mode, {
@@ -108,31 +157,30 @@
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ email: $('email').value, password: $('password').value }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          say(data.error || '문제가 생겼어요.', 'err');
+          say(data.error || '문제가 생겼어요. 잠시 후 다시 시도해 주세요.', 'error');
         } else {
           showLoggedIn(data.user);
           say(mode === 'signup' ? '가입이 끝났어요.' : '로그인했어요.', 'ok');
         }
       } catch {
-        say('네트워크 오류가 났어요.', 'err');
+        say('서버에 연결하지 못했어요. 네트워크를 확인해 주세요.', 'error');
       } finally {
         $('submitBtn').disabled = false;
+        $('submitBtn').textContent = label;
       }
     });
 
     $('logoutBtn').addEventListener('click', async () => {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      $('loggedIn').hidden = true;
-      $('loggedOut').hidden = false;
+      await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+      showLoggedOut();
       say('로그아웃했어요.', 'ok');
     });
 
-    // 이미 로그인되어 있으면 상태 반영
-    fetch('/api/auth/me').then((r) => r.json()).then((d) => {
-      if (d.user) showLoggedIn(d.user);
-    });
+    setMode(mode);
+    // 이미 로그인되어 있으면 계정 화면을 보여 준다
+    fetch('/api/auth/me').then((r) => r.json()).then((d) => { if (d.user) showLoggedIn(d.user); }).catch(() => {});
   </script>
 </body>
 </html>
