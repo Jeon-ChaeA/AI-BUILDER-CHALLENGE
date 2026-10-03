@@ -51,7 +51,7 @@ Graduation requirements are scattered: the department homepage has them by admis
   - automatic ON국민 scraping
   - other departments or admission years
   - double majors and transfers
-  - detailed 교양 area rules, 졸업인증 and 졸업작품
+  - 졸업인증 and 졸업작품
   - messenger or email notifications
 - Results are guidance. The page must say that the final check belongs to the department office (학과 사무실).
 - Requirement data comes from cs.kookmin.ac.kr and is still being collected and verified.
