@@ -15,12 +15,22 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
+ <header class="topbar">
     <a class="brand" href="#top" aria-label="졸업각 처음으로">
       <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 7l11 9M6 25l11-9h9"/><circle cx="26" cy="16" r="2.6"/></svg>
       <span>졸업각</span>
     </a>
-    <span class="trial" id="trial"><i class="ph ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+    <div class="top-right">
+      <span class="trial" id="trial"><i class="ph ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+      <nav class="auth-nav" id="authGuest">
+        <a class="btn btn-secondary btn-sm" href="/login.html">로그인</a>
+        <a class="btn btn-primary btn-sm" href="/login.html?mode=signup">회원가입</a>
+      </nav>
+      <nav class="auth-nav" id="authUser" hidden>
+        <span class="auth-email" id="authEmail"></span>
+        <button class="btn btn-secondary btn-sm" type="button" id="logoutBtn">로그아웃</button>
+      </nav>
+    </div>
   </header>
 
   <main id="top">
@@ -157,5 +167,8 @@
   </footer>
 
   <script src="app.js"></script>
+  <script src="auth-ui.js"></script>
+</body>
+
 </body>
 </html>

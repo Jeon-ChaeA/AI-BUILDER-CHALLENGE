@@ -72,6 +72,16 @@ i[class*="ph"] { font-size: 1.15em; line-height: 1; }
   background: var(--green-soft); color: var(--green-ink);
 }
 .trial.used { background: var(--sunken); color: var(--ink-2); }
+[hidden] { display: none !important; }
+.top-right { display: inline-flex; align-items: center; gap: 10px; }
+.auth-nav { display: inline-flex; align-items: center; gap: 8px; }
+.auth-email { font-size: .875rem; font-weight: 600; color: var(--ink-2); max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-sm { min-height: 36px; padding: 0 14px; font-size: .875rem; }
+a.btn, a.btn:hover { text-decoration: none; }
+@media (max-width: 560px) {
+  .trial { display: none; }
+  .auth-email { display: none; }
+}
 
 main { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 

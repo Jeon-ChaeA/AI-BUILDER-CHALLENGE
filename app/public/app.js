@@ -266,3 +266,34 @@ addEventListener('afterprint', () => closed.forEach((d) => (d.open = false)));
 new IntersectionObserver((entries, io) => {
   if (entries.some((e) => e.isIntersecting)) { $('branch').classList.add('drawn'); io.disconnect(); }
 }, { threshold: 0.2 }).observe($('branch'));
+
+
+// 상단바 로그인 상태. /api/auth/me로 확인해 게스트/로그인 UI를 전환한다.
+(() => {
+  const guest = document.getElementById('authGuest');
+  const user = document.getElementById('authUser');
+  console.log('[auth-ui] guest=', guest, 'user=', user);
+  if (!guest || !user) {
+    console.warn('[auth-ui] authGuest 또는 authUser 요소를 못 찾음 — index.html의 id 확인 필요');
+    return;
+  }
+
+  function render(me) {
+    const loggedIn = Boolean(me);
+    console.log('[auth-ui] render loggedIn=', loggedIn, 'me=', me);
+    guest.hidden = loggedIn;      // 로그인 → 로그인/회원가입 숨김
+    user.hidden = !loggedIn;      // 로그인 → 이메일+로그아웃 표시
+    if (loggedIn && me.email) document.getElementById('authEmail').textContent = me.email;
+  }
+
+  fetch('/api/auth/me')
+    .then((r) => r.json())
+    .then((d) => render(d.user))
+    .catch((e) => { console.error('[auth-ui] /me 실패', e); render(null); });
+
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    render(null);
+  });
+})();
+
