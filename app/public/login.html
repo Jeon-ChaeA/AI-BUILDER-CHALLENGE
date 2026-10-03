@@ -83,6 +83,11 @@
       say('');
     }
 
+    // 상단바 '회원가입' 버튼은 /login.html?mode=signup으로 온다.
+    addEventListener('DOMContentLoaded', () => {
+      if (new URLSearchParams(location.search).get('mode') === 'signup') setMode('signup');
+    });
+
     function say(text, kind) {
       const el = $('msg');
       el.textContent = text;

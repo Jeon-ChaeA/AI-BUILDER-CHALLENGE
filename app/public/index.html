@@ -4,29 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>졸업각</title>
-  <meta name="description" content="성적 화면을 올리면 국민대 소프트웨어학부 졸업요건과 대조해 부족한 것, 다음 학기 계획, 마감 일정을 알려 주는 졸업요건 진단 서비스">
+  <meta name="description" content="성적 화면 한 장이면 국민대 소프트웨어학부 졸업요건과 대조해 부족한 것, 다음 학기 계획, 마감 일정을 알려 주는 졸업요건 진단 서비스">
   <meta name="color-scheme" content="light dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231a7f45'/%3E%3Cpath d='M8 8l10 8M8 24l10-8h7' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/joungkyun/font-d2coding/d2coding.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // GSAP 연출 플래그. reduced-motion이면 켜지 않아 모든 요소가 처음부터 보인다.
+    if (!matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
+  </script>
 </head>
 <body>
- <header class="topbar">
+  <header class="topbar">
     <a class="brand" href="#top" aria-label="졸업각 처음으로">
-      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 7l11 9M6 25l11-9h9"/><circle cx="26" cy="16" r="2.6"/></svg>
-      <span>졸업각</span>
+      <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
     </a>
     <div class="top-right">
-      <span class="trial" id="trial"><i class="ph ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
-      <nav class="auth-nav" id="authGuest">
+      <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+      <nav class="auth-nav" id="authGuest" aria-label="계정">
         <a class="btn btn-secondary btn-sm" href="/login.html">로그인</a>
         <a class="btn btn-primary btn-sm" href="/login.html?mode=signup">회원가입</a>
       </nav>
-      <nav class="auth-nav" id="authUser" hidden>
+      <nav class="auth-nav" id="authUser" aria-label="계정" hidden>
         <span class="auth-email" id="authEmail"></span>
         <button class="btn btn-secondary btn-sm" type="button" id="logoutBtn">로그아웃</button>
       </nav>
@@ -34,35 +38,36 @@
   </header>
 
   <main id="top">
+    <!-- 첫 화면 -->
     <section class="hero">
       <div class="hero-copy">
-        <h1>이대로 졸업할&nbsp;수 있을까요?</h1>
-        <p class="lede">성적 화면을 올리면 졸업요건과 한 줄씩 대조해서,<br>부족한 것과 다음에 들을 과목을 알려 드려요.</p>
+        <h1>이대로 <span class="hl">졸업</span>할 수<br>있을까요?</h1>
+        <p class="lede">성적 화면 한 장이면 돼요. AI가 읽고 졸업요건과 한 줄씩 대조해서, 내 희망에 맞춘 남은 학기 계획과 학과 문의 메일까지 챙겨 드려요.</p>
 
         <form class="intake" id="intake">
           <fieldset class="tabs">
             <legend class="sr-only">성적 입력 방법</legend>
             <input type="radio" name="src" id="src-sample" value="sample" checked>
-            <label for="src-sample"><i class="ph ph-user-circle"></i>샘플 학생</label>
+            <label for="src-sample"><i class="ph ph-user-circle"></i><span>샘플 학생</span></label>
             <input type="radio" name="src" id="src-capture" value="capture">
-            <label for="src-capture"><i class="ph ph-image"></i>캡처 올리기</label>
+            <label for="src-capture"><i class="ph ph-image"></i><span>캡처 올리기</span></label>
             <input type="radio" name="src" id="src-paste" value="paste">
-            <label for="src-paste"><i class="ph ph-clipboard-text"></i>붙여넣기</label>
+            <label for="src-paste"><i class="ph ph-clipboard-text"></i><span>붙여넣기</span></label>
           </fieldset>
 
           <div class="pane pane-sample">
             <p><strong>김국민</strong> <span class="tag">가상 학생</span></p>
-            <p class="muted">2023학번, 2025년에 두 학기 휴학하고 지금 3학년 2학기예요.</p>
+            <p class="muted">2023학번, 2025년에 두 학기 휴학하고 지금 3학년 2학기예요. 성적 화면 캡처를 AI가 직접 읽어요.</p>
           </div>
-          <label class="pane pane-capture drop">
-            <input type="file" accept="image/png,image/jpeg,image/webp" multiple>
+          <label class="pane pane-capture drop" id="drop">
+            <input type="file" id="files" accept="image/png,image/jpeg,image/webp" multiple>
             <i class="ph ph-upload-simple"></i>
-            <span>ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
-            <small>PNG, JPG, WEBP 최대 5장</small>
+            <span id="dropText">ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요</span>
+            <small>학사서비스 → 성적정보 → 전체학기 성적조회(학부) · PNG, JPG, WEBP 최대 5장</small>
           </label>
           <div class="pane pane-paste">
             <label for="paste">성적 화면 텍스트</label>
-            <textarea id="paste" rows="4" placeholder="ON국민 성적 조회 화면을 전체 선택해 복사한 뒤 붙여넣으세요"></textarea>
+            <textarea id="paste" rows="4" placeholder="ON국민 학사서비스 → 성적정보 → 전체학기 성적조회(학부) 화면을 전체 선택해 복사한 뒤 붙여넣으세요"></textarea>
           </div>
 
           <div class="fields">
@@ -72,41 +77,73 @@
             </div>
             <div class="field">
               <label class="field-label" for="year">지금 학년</label>
-              <select id="year"><option>1학년</option><option>2학년</option><option selected>3학년</option><option>4학년</option></select>
+              <select id="year"><option value="1">1학년</option><option value="2">2학년</option><option value="3" selected>3학년</option><option value="4">4학년</option></select>
             </div>
             <div class="field">
               <label class="field-label" for="term">학기</label>
-              <select id="term"><option>1학기</option><option selected>2학기</option></select>
+              <select id="term"><option value="1">1학기</option><option value="2" selected>2학기</option></select>
             </div>
           </div>
 
-          <button class="btn btn-primary" type="submit"><i class="ph-fill ph-play"></i>진단 시작</button>
+          <div class="field wish">
+            <label class="field-label" for="wishes">희망 사항 <span class="muted">(선택, AI가 계획에 반영해요)</span></label>
+            <textarea id="wishes" rows="2" maxlength="300" placeholder="예: 웹·보안 쪽으로 취업하고 싶어요. 마지막 학기는 가볍게 듣고 싶어요."></textarea>
+            <div class="wish-chips" data-for="wishes">
+              <button type="button" class="wchip">웹·정보보호 트랙 관심</button>
+              <button type="button" class="wchip">AI·데이터 트랙 관심</button>
+              <button type="button" class="wchip">마지막 학기는 가볍게</button>
+              <button type="button" class="wchip">계절학기도 괜찮아요</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" type="submit" id="go"><i class="ph-fill ph-magic-wand"></i>내 졸업각 보기</button>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
           <p class="fine"><i class="ph ph-shield-check"></i>이름과 학번은 지우고 올려 주세요. 성적은 저장하지 않고, 분석을 위해 Google Gemini로만 보내요.</p>
         </form>
       </div>
 
-      <aside class="pr" aria-label="샘플 학생 졸업 체크 미리보기">
-        <div class="pr-head">
-          <i class="ph ph-git-pull-request pr-icon"></i>
-          <div class="pr-title">
-            <strong>김국민 <i class="ph ph-arrow-right"></i> 졸업</strong>
-            <span class="muted">2028년 2월 졸업 예정, 체크 9개</span>
+      <!-- 졸업 리포트 카드 (미리보기) -->
+      <aside class="pr" aria-label="샘플 학생 졸업 리포트 미리보기">
+        <div class="rc-top">
+          <svg class="cap-illu" viewBox="0 0 128 112" aria-hidden="true">
+            <defs>
+              <linearGradient id="capBoard" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfe9d8"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="64" cy="96" rx="30" ry="6" fill="rgb(0 0 0 / .18)"/>
+            <path d="M40 56v16q0 12 24 12t24-12V56" fill="#bfe3cc"/>
+            <path d="M64 20 120 46 64 72 8 46Z" fill="url(#capBoard)"/>
+            <path d="M64 20 120 46 64 72Z" fill="#eaf6ef"/>
+            <circle cx="64" cy="46" r="4.5" fill="#0f5c31"/>
+            <path d="M64 46 102 40v34" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="102" cy="78" r="5.5" fill="#ffffff"/>
+          </svg>
+          <span class="rc-badge"><i class="ph-fill ph-confetti"></i><span id="heroBadge">2028년 2월 졸업 가능</span></span>
+          <div class="rc-row">
+            <div class="rc-info">
+              <p class="rc-who">김국민님은 지금</p>
+              <div class="rc-big"><strong id="heroEarned">84</strong><span id="heroTotal">/ 136학점</span></div>
+              <p class="rc-left">졸업까지 <strong id="heroLeft">52학점</strong> 남았어요</p>
+            </div>
+            <div class="rc-ring" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="prog" cx="60" cy="60" r="52"/></svg>
+              <div class="rc-pct"><strong id="heroPct">62</strong><span>%</span></div>
+            </div>
           </div>
-          <span class="tag">샘플</span>
         </div>
         <ol class="checks compact run" id="heroChecks"></ol>
-        <div class="merge">
-          <i class="ph-fill ph-git-merge"></i>
-          <p><strong>조치 필요 1개</strong>만 해결하면 2028년 2월에 졸업할 수 있어요.</p>
-        </div>
+        <p class="rc-foot"><i class="ph-fill ph-seal-check"></i><span id="heroFoot">딱 <strong>1개</strong>만 해결하면 돼요</span></p>
       </aside>
     </section>
 
-    <section class="sec" id="log" aria-labelledby="log-h">
-      <h2 id="log-h">지금까지 <span class="num">84</span>학점을 들었어요</h2>
-      <p class="sec-lede">5개 학기 동안 32과목을 들었고, F 받은 1과목은 학점에서 뺐어요.</p>
+    <!-- 학점 지도 + 이수내역 -->
+    <section class="sec" id="log" aria-labelledby="log-h" hidden>
+      <p class="step"><span>01</span>지금까지 들은 학점</p>
+      <h2 id="log-h"></h2>
+      <p class="sec-lede" id="logLede"></p>
       <div class="grass-card">
-        <div class="grass" id="grass" role="img" aria-label="학기별 수강 과목 격자"></div>
+        <div class="grass" id="grass" role="img" aria-label="학기별 수강 과목 지도"></div>
         <div class="legend">
           <span><i class="sw l1"></i>1학점</span><span><i class="sw l2"></i>2학점</span><span><i class="sw l3"></i>3학점</span>
           <span><i class="sw f"></i>F</span><span><i class="sw now"></i>수강 중</span>
@@ -115,39 +152,88 @@
       <div class="terms" id="terms"></div>
       <div class="log-actions">
         <button class="btn btn-secondary" type="button" id="rerun"><i class="ph ph-arrow-clockwise"></i>다시 진단</button>
-        <span class="muted">학점이나 이수구분이 틀렸으면 칸을 눌러 고친 뒤 다시 진단하세요.</span>
+        <span class="muted">학점, 이수구분, 성적, 핵심교양 영역이 틀렸으면 칸을 고치거나 행을 지운 뒤 다시 진단하세요. 무료 체험은 줄지 않아요.</span>
       </div>
     </section>
 
-    <section class="sec" id="checks" aria-labelledby="checks-h">
-      <h2 id="checks-h">체크 9개 중 1개는 지금 손봐야 해요</h2>
+    <!-- 졸업 체크 -->
+    <section class="sec" id="checks" aria-labelledby="checks-h" hidden>
+      <p class="step"><span>02</span>졸업요건 체크</p>
+      <h2 id="checks-h"></h2>
       <p class="tally" id="tally"></p>
       <ol class="checks full" id="fullChecks"></ol>
     </section>
 
-    <section class="sec" id="plan" aria-labelledby="plan-h">
-      <h2 id="plan-h">2028년 2월에 졸업하는 계획</h2>
-      <p class="sec-lede">AI가 짠 계획을 코드가 다시 확인했어요.</p>
-      <ul class="verified">
+    <!-- 졸업까지 가는 길 -->
+    <section class="sec" id="plan" aria-labelledby="plan-h" hidden>
+      <p class="step"><span>03</span>졸업까지 가는 길</p>
+      <h2 id="plan-h"></h2>
+      <p class="sec-lede" id="planLede"></p>
+      <div class="ai-note" id="planSummary" hidden></div>
+      <details class="trace" id="traceBox" open hidden>
+        <summary><i class="ph ph-robot"></i>AI 계획 검증 기록</summary>
+        <ol id="trace"></ol>
+      </details>
+      <ul class="verified" id="verified">
         <li><i class="ph-fill ph-check-circle"></i>이미 들은 과목 없음</li>
-        <li><i class="ph-fill ph-check-circle"></i>학기당 19학점 이하</li>
+        <li><i class="ph-fill ph-check-circle"></i>학기당 19학점 이하, 개설 학기 맞춤</li>
         <li><i class="ph-fill ph-check-circle"></i>부족한 요건 모두 채움</li>
       </ul>
       <ol class="branch" id="branch"></ol>
+      <form class="replan" id="replan">
+        <label class="field-label" for="wishes2">희망 사항을 바꿔서 다시 짜 볼까요?</label>
+        <textarea id="wishes2" rows="2" maxlength="300" placeholder="예: 엔터프라이즈SW 쪽 과목 위주로, 4학년 1학기는 15학점 정도로"></textarea>
+        <div class="wish-chips" data-for="wishes2">
+          <button type="button" class="wchip">웹·정보보호 트랙 관심</button>
+          <button type="button" class="wchip">AI·데이터 트랙 관심</button>
+          <button type="button" class="wchip">마지막 학기는 가볍게</button>
+        </div>
+        <button class="btn btn-secondary" type="submit" id="replanGo"><i class="ph ph-sparkle"></i>AI로 다시 짜기</button>
+      </form>
     </section>
 
-    <section class="sec" id="dates" aria-labelledby="dates-h">
+    <!-- 마감 일정 -->
+    <section class="sec" id="dates" aria-labelledby="dates-h" hidden>
+      <p class="step"><span>04</span>챙겨야 할 마감</p>
       <h2 id="dates-h">놓치면 안 되는 날짜</h2>
       <ol class="dates" id="dateList"></ol>
       <button class="btn btn-secondary" type="button" id="ics"><i class="ph ph-calendar-plus"></i>캘린더에 추가 (.ics)</button>
     </section>
 
-    <section class="report" aria-labelledby="report-h">
+    <!-- 학과 문의 -->
+    <section class="sec" id="consult" aria-labelledby="consult-h" hidden>
+      <p class="step"><span>05</span>학과에 물어볼 것</p>
+      <h2 id="consult-h">물어볼 건 AI가 메일로 써 드려요</h2>
+      <p class="sec-lede">코드가 판정하지 못했거나 규정 해석이 필요한 항목을 진단 결과에서 골랐어요. AI는 이 사실만으로 문의 메일과 상담 질문을 써요.</p>
+      <ul class="facts" id="facts"></ul>
+      <button class="btn btn-primary" type="button" id="consultGo"><i class="ph ph-envelope-simple"></i>AI로 문의 메일 쓰기</button>
+      <p class="status" id="consultStatus" role="status" aria-live="polite"></p>
+      <div class="consult-out" id="consultOut" hidden>
+        <div>
+          <h3>지도교수 상담 질문</h3>
+          <ol class="questions" id="questions"></ol>
+        </div>
+        <div class="mail">
+          <h3>교학팀 문의 메일 초안</h3>
+          <label class="field-label" for="mailSubject">제목</label>
+          <input id="mailSubject" type="text">
+          <label class="field-label" for="mailBody">본문 <span class="muted">([이름], [학번]은 직접 채워 주세요)</span></label>
+          <textarea id="mailBody" rows="12"></textarea>
+          <div class="mail-actions">
+            <button class="btn btn-secondary" type="button" id="copyMail"><i class="ph ph-copy"></i>메일 복사</button>
+            <a class="btn btn-quiet" id="mailto" href="#"><i class="ph ph-paper-plane-tilt"></i>메일 앱으로 열기</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 리포트 CTA -->
+    <section class="report" id="report" aria-labelledby="report-h" hidden>
       <div>
         <h2 id="report-h">지도교수 상담에 들고 가세요</h2>
-        <p>진단 요약, 손볼 것, 학기 계획, 날짜를 한 장에 정리해 드려요.</p>
+        <p>진단 요약, 손볼 것, 학기 계획, 날짜, 상담 질문을 한 장에 정리해 드려요.</p>
       </div>
-      <button class="btn btn-primary" type="button" id="print"><i class="ph ph-printer"></i>리포트 인쇄/PDF 저장</button>
+      <button class="btn btn-primary" type="button" id="print"><i class="ph ph-printer"></i>리포트 인쇄 / PDF 저장</button>
     </section>
   </main>
 
@@ -155,7 +241,9 @@
     <p class="print-note">본 결과는 참고용이며 최종 확인은 학과 사무실에서 해 주세요.</p>
     <div class="foot-grid">
       <div>
-        <p class="brand small"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 7l11 9M6 25l11-9h9"/><circle cx="26" cy="16" r="2.6"/></svg>졸업각</p>
+        <p class="brand small">
+          <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
+        </p>
         <p class="muted">학생이 만든 독립 프로젝트예요. 국민대학교 공식 서비스가 아니에요.</p>
       </div>
       <div>
@@ -166,9 +254,29 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
-  <script src="auth-ui.js"></script>
-</body>
+  <dialog class="paywall" id="paywall" aria-labelledby="pay-h">
+    <form method="dialog">
+      <p class="tag">무료 체험을 다 썼어요</p>
+      <h2 id="pay-h">한 학기 이용권 <span class="num">9,900원</span></h2>
+      <ul class="perks">
+        <li><i class="ph-fill ph-check-circle"></i>진단과 다시 진단 무제한</li>
+        <li><i class="ph-fill ph-check-circle"></i>희망 사항을 반영한 AI 수강 로드맵</li>
+        <li><i class="ph-fill ph-check-circle"></i>마감 일정 캘린더(.ics)</li>
+        <li><i class="ph-fill ph-check-circle"></i>AI 학과 문의 메일과 상담용 리포트</li>
+      </ul>
+      <p class="muted">결제하면 2027-02-28까지 쓸 수 있어요.</p>
+      <div class="pay-actions">
+        <button class="btn btn-primary" value="pay"><i class="ph ph-credit-card"></i>테스트 결제하기 (실제 청구 없음)</button>
+        <button class="btn btn-quiet" value="cancel">닫기</button>
+      </div>
+    </form>
+  </dialog>
 
+  <script src="schedule.js"></script>
+  <script src="auth-ui.js"></script>
+  <script type="module" src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="gsap.js"></script>
 </body>
 </html>

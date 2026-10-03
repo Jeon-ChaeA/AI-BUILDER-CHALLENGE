@@ -1,95 +1,33 @@
-// 졸업각 메인페이지 목업. 샘플 학생 '김국민'(가상)의 진단 결과를 그린다.
-// 졸업요건 수치는 research_notes/졸업각 데이터/requirements.md (cs.kookmin.ac.kr 2023학번 기준).
-// ponytail: 진단 결과는 지금 SAMPLE에 미리 계산해 둔 값. 규칙 엔진이 붙으면 이 객체를 계산 결과로 바꾼다.
-
-const SRC_DEPT = { href: 'https://cs.kookmin.ac.kr/major/graduated/13', label: '소프트웨어학부 2023학년도 입학생 졸업요건' };
-const SRC_RULE = { href: 'https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do', label: '국민대 학사안내 졸업요건 (학사규정 제95조)' };
-
-const C = (n, c, cat, g, extra = {}) => ({ n, c, cat, g, ...extra });
-const SAMPLE = {
-  terms: [
-    { code: '2023-1', label: '1학년 1학기', courses: [
-      C('English Conversation Ⅰ', 2, '기초교양', 'A0'), C('글쓰기', 3, '기초교양', 'B+'),
-      C('소프트웨어적사고', 3, '전공선택', 'A+', { req: 1 }), C('소프트웨어프로젝트Ⅰ', 3, '전공선택', 'B+', { req: 1 }),
-      C('S-TEAM Class', 1, '전공선택', 'P', { req: 1 }), C('공학기초수학', 3, '전공선택', 'B0'),
-      C('논리와비판적사고', 3, '핵심교양', 'A0', { area: '인문Ⅰ' }) ] },
-    { code: '2023-2', label: '1학년 2학기', courses: [
-      C('College English Ⅰ', 2, '기초교양', 'B+'), C('객체지향프로그래밍', 3, '전공선택', 'A0', { req: 1 }),
-      C('응용통계학', 3, '전공선택', 'B0', { req: 1 }), C('유레카프로젝트', 1, '전공선택', 'A+', { req: 1 }),
-      C('선형대수', 3, '전공선택', 'C+'), C('소프트웨어프로젝트Ⅱ', 3, '전공선택', 'B+'),
-      C('현대사회와윤리', 3, '핵심교양', 'A0', { area: '인문Ⅱ' }) ] },
-    { code: '2024-1', label: '2학년 1학기', courses: [
-      C('자료구조', 3, '전공선택', 'B+', { req: 1 }), C('C++프로그래밍', 3, '전공선택', 'A0', { req: 1 }),
-      C('논리회로설계', 3, '전공선택', 'B0'), C('웹클라이언트컴퓨팅', 3, '전공선택', 'A+'),
-      C('말하기와토론', 3, '핵심교양', 'B+', { area: '소통' }), C('대학생활과진로', 2, '자유교양', 'P') ] },
-    { code: '2024-2', label: '2학년 2학기', courses: [
-      C('이산수학', 3, '전공선택', 'B0', { req: 1 }), C('컴퓨터구조', 3, '전공선택', 'C+', { req: 1 }),
-      C('모바일프로그래밍', 3, '전공선택', 'A0'), C('데이터과학', 3, '전공선택', 'B+'),
-      C('글로벌문화의이해', 3, '핵심교양', 'A0', { area: '글로벌' }), C('경영학원론', 3, '일반선택', 'B+') ] },
-    { code: '2025-1', label: '휴학', leave: true },
-    { code: '2025-2', label: '휴학', leave: true },
-    { code: '2026-1', label: '3학년 1학기', courses: [
-      C('운영체제', 3, '전공선택', 'B0', { req: 1 }), C('데이터베이스', 3, '전공선택', 'B+', { req: 1 }),
-      C('컴퓨터네트워크', 3, '전공선택', 'F', { req: 1, link: 'cn' }), C('프로그래밍언어론', 3, '전공선택', 'B0'),
-      C('SW 기술영어Ⅰ', 1, '전공선택', 'A0'), C('심리학의이해', 3, '일반선택', 'A0') ] },
-    { code: '2026-2', label: '3학년 2학기', now: true, courses: [
-      C('알고리즘', 3, '전공선택', '', { req: 1 }), C('컴파일러', 3, '전공선택', ''), C('인공지능', 3, '전공선택', ''),
-      C('클라우드컴퓨팅', 3, '전공선택', ''), C('SW 기술영어Ⅱ', 1, '전공선택', ''), C('마케팅원론', 3, '일반선택', '') ] },
-  ],
-  // 정렬: 조치 필요 → 진행 중 → 통과 → 학과 확인. 코드는 요건마다 고정.
-  checks: [
-    { id: 'CHK-06', name: '필수 지정 과목', s: 'fail', have: 12, need: 15, unit: '과목', link: 'cn',
-      note: '컴퓨터네트워크가 F예요. 1학기에만 열려서 2027-1학기에 꼭 다시 들어야 해요.',
-      quote: '전공선택 과목 중 필수 지정 과목 15개 이수', src: SRC_DEPT,
-      related: ['컴퓨터네트워크 2026-1 F', '알고리즘 2026-2 수강 중', '다학제간캡스톤디자인 2027-1 계획'] },
-    { id: 'CHK-01', name: '총 이수학점', s: 'pending', have: 84, need: 136, unit: '학점',
-      note: '계획대로면 2027-2학기에 136학점을 채워요.', quote: '총 학점 136학점', src: SRC_DEPT,
-      related: ['지금 듣는 16학점 포함 시 100학점'] },
-    { id: 'CHK-03', name: '핵심교양', s: 'pending', have: 12, need: 15, unit: '학점',
-      note: '창의 영역 3학점이 비어 있어요. 2027-1학기 계획에 넣었어요.',
-      quote: '[인문Ⅰ] [인문Ⅱ] [소통] [창의] [글로벌] 5개의 핵심역량 영역별 최소 3학점 이상 이수', src: SRC_DEPT,
-      related: ['인문Ⅰ 3', '인문Ⅱ 3', '소통 3', '글로벌 3', '창의 0'] },
-    { id: 'CHK-05', name: '전공 (전공선택)', s: 'pending', have: 57, need: 66, unit: '학점',
-      note: '지금 듣는 전공 13학점이 끝나면 통과해요.',
-      quote: '필수 41학점 + 전공선택 과목 중 25학점 이상 이수, 소계 66', src: SRC_DEPT, related: ['필수 지정 33학점', '그 외 전공 24학점'] },
-    { id: 'CHK-08', name: '등록 학기', s: 'pending', have: 6, need: 8, unit: '학기',
-      note: '지금 학기가 6학기째예요. 2027-2학기가 8학기째예요.', quote: '8학기 이상 등록한 자', src: SRC_RULE, related: ['휴학 2학기 제외'] },
-    { id: 'CHK-02', name: '기초교양', s: 'pass', have: 7, need: 7, unit: '학점',
-      note: '지정 3과목을 모두 들었어요.', quote: '기초교양 지정 3과목 모두 이수', src: SRC_DEPT,
-      related: ['English Conversation Ⅰ', '글쓰기', 'College English Ⅰ'] },
-    { id: 'CHK-04', name: '자유교양', s: 'pass', have: 2, need: 2, unit: '학점',
-      note: '대학생활과진로 2학점으로 채웠어요.', quote: '자유교양 최저 2학점', src: SRC_DEPT, related: ['대학생활과진로 P'] },
-    { id: 'CHK-07', name: '평점평균', s: 'pass', have: '3.42', need: '2.0', unit: '',
-      note: '4.5 만점 기준이에요. P 과목은 빼고 F는 0점으로 넣었어요.', quote: '전학년 성적이 평점평균 2.0 이상인 자', src: SRC_RULE, related: ['84학점 기준'] },
-    { id: 'CHK-09', name: '학부 인증, 졸업논문, 전공능력', s: 'skip',
-      note: '자동으로 판정하지 않아요. 학과 사무실에서 확인해 주세요.',
-      quote: '다음 역량기반 졸업 요건 중 택1. 졸업논문은 캡스톤디자인 결과보고서로 대체', src: SRC_DEPT,
-      related: ['평점 3.5 이상이면 자동 인증', '캡스톤 결과보고서'] },
-  ],
-  plan: [
-    { code: '2026-2', label: '3학년 2학기', now: true, load: 16,
-      courses: [['알고리즘', 3, 'req'], ['컴파일러', 3], ['인공지능', 3], ['클라우드컴퓨팅', 3], ['SW 기술영어Ⅱ', 1], ['마케팅원론', 3]],
-      why: '지금 듣는 학기예요. 끝나면 전공 66학점을 채워요.' },
-    { code: '2027-1', label: '4학년 1학기', load: 19, link: 'cn',
-      courses: [['컴퓨터네트워크', 3, 'retake'], ['다학제간캡스톤디자인', 3, 'req'], ['핵심교양 창의 영역', 3], ['소프트웨어공학', 3],
-        ['웹서버컴퓨팅', 3], ['소프트웨어의실제', 2], ['SW 기술영어Ⅲ', 1], ['산업체특강', 1]],
-      why: '컴퓨터네트워크와 캡스톤은 1학기에만 열려요. 학점이 꽉 차니 계절학기로 미리 덜어 두면 좋아요.' },
-    { code: '2027-2', label: '4학년 2학기', load: 17,
-      courses: [['소프트웨어아키텍처', 3], ['정보보호와시스템보안', 3], ['소프트웨어융합최신기술', 3], ['학부연구참여(UROP) Ⅱ', 2], ['일반선택 2과목', 6]],
-      why: '남은 17학점을 채우면 총 136학점이 돼요.' },
-  ],
-  dates: [
-    { title: '동계 계절학기 수강신청', start: '2026-11-24', end: '2026-11-26',
-      why: '2027-1학기가 19학점으로 꽉 차요. 계절학기로 3~6학점을 미리 덜어 둘 수 있어요.' },
-    { title: '2학기 성적 공시', start: '2026-12-15', end: '2026-12-28',
-      why: '필수 과목인 알고리즘 성적을 확인하세요. 이의신청은 12.23~12.28이에요.' },
-    { title: '2027-1학기 수강신청', start: '2027-02-11', end: '2027-02-24', link: 'cn',
-      why: '컴퓨터네트워크 재수강과 캡스톤을 꼭 담으세요. 둘 다 1학기에만 열려요.' },
-  ],
-};
+// 졸업각 화면. 판정은 engine.js가 하고, 이 파일은 입력·호출·그리기만 맡는다.
+import * as E from './engine.js';
 
 const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+const PASS_UNTIL = '2027-02-28';
+const SAMPLE_CTX = { ordinal: 6, termNow: '2026-2' }; // 샘플 학생은 2026-2학기 시점 스냅숏
+const MAX_FILES = 5, MAX_BYTES = 10 * 1024 * 1024;
+
+let data, sample;
+const state = { courses: [], ctx: null, diag: null, plan: [], source: '', summary: '', trace: [], wishes: '', dates: [] };
+let busy = false;
+
+// ---------- 저장소: 막혀 있어도 화면은 돌아가야 한다 ----------
+const store = {
+  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* 무시 */ } },
+};
+const todayIso = () => new Date().toLocaleDateString('sv-SE');
+const hasPass = () => { const u = store.get('jg.passUntil'); return !!u && todayIso() <= u; };
+const trialUsed = () => store.get('jg.trialUsed') === '1';
+
+function renderTrial() {
+  const pass = hasPass(), used = trialUsed();
+  $('trialText').textContent = pass ? `이용권 사용 중 · ${store.get('jg.passUntil')}까지` : used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
+  $('trial').classList.toggle('used', used && !pass);
+  $('trial').classList.toggle('pass', pass);
+}
+
+// ---------- 공통 조각 ----------
 const ICON = {
   pass: '<i class="ph-fill ph-check-circle done"></i>',
   fail: '<i class="ph-fill ph-x-circle done"></i>',
@@ -99,23 +37,120 @@ const ICON = {
 const LABEL = { pass: '통과', fail: '조치 필요', pending: '진행 중', skip: '학과 확인' };
 const status = (s) => `<span class="st" title="${LABEL[s]}">${ICON[s]}<i class="ph ph-spinner-gap spin"></i><span class="sr-only">${LABEL[s]}</span></span>`;
 const metric = (k) => (k.need == null ? '' : `${k.have}/${k.need}${k.unit}`);
-const linkAttr = (k) => (k.link ? ` data-link="${k.link}"` : '');
+const linkAttr = (o) => (o.link ? ` data-link="${o.link}"` : '');
+const load = (cs) => cs.reduce((s, c) => s + c.credits, 0);
+const replay = (el) => { el.classList.remove('run'); void el.offsetWidth; el.classList.add('run'); };
 
-function renderHeroChecks() {
-  $('heroChecks').innerHTML = SAMPLE.checks.map((k, i) => `
+function setStatus(kind, text) {
+  const el = $('status');
+  el.className = `status${kind ? ` ${kind}` : ''}`;
+  el.innerHTML = text ? `${kind === 'busy' ? '<i class="ph ph-spinner-gap"></i>' : kind === 'error' ? '<i class="ph ph-warning-circle"></i>' : '<i class="ph ph-info"></i>'}${esc(text)}` : '';
+}
+function setBusy(on) {
+  busy = on;
+  for (const id of ['go', 'rerun', 'replanGo', 'consultGo']) $(id).disabled = on;
+  // 진단 중에는 표를 잠근다. 새 이수내역으로 바뀐 뒤 옛 표의 행 번호로 고치는 일을 막는다.
+  $('log').inert = on;
+}
+
+// ---------- hero 미리보기: 샘플 학생을 엔진으로 계산 ----------
+function renderHero() {
+  const diag = E.diagnose(sample.courses, SAMPLE_CTX, data);
+  const plan = E.defaultPlan(sample.courses, SAMPLE_CTX, data);
+  const grad = E.gradDate(plan.at(-1)?.term ?? SAMPLE_CTX.termNow);
+  $('heroChecks').innerHTML = diag.checks.map((k, i) => `
     <li class="check" data-s="${k.s}" style="--i:${i}"${linkAttr(k)} tabindex="0">
       ${status(k.s)}<span class="name">${esc(k.name)}</span><span class="metric">${k.s === 'skip' ? '학과 확인' : metric(k)}</span>
     </li>`).join('');
+  // 졸업 리포트 카드: 수치는 모두 엔진 계산값. gsap.js가 jg:hero를 받아 링과 숫자를 움직인다.
+  const total = data.req.totalCredits.min, counted = diag.summary.counted;
+  const pct = Math.min(100, Math.round((counted / total) * 100));
+  const f = diag.summary.failCount;
+  $('heroBadge').textContent = `${grad} 졸업 가능`;
+  $('heroEarned').textContent = counted;
+  $('heroTotal').textContent = `/ ${total}학점`;
+  $('heroLeft').textContent = `${Math.max(0, total - counted)}학점`;
+  $('heroPct').textContent = pct;
+  $('heroFoot').innerHTML = f ? `딱 <strong>${f}개</strong>만 해결하면 돼요` : '손볼 것 없이 순조로워요';
+  const ring = document.querySelector('.rc-ring .prog');
+  if (ring) ring.style.strokeDashoffset = String(2 * Math.PI * 52 * (1 - pct / 100));
+  document.dispatchEvent(new CustomEvent('jg:hero', { detail: { pct, earned: counted } }));
 }
 
-function renderFullChecks() {
-  const n = (s) => SAMPLE.checks.filter((k) => k.s === s).length;
+// ---------- 이수내역 ----------
+const regularOf = (t) => { const [y, s] = t.split('-'); return s === '여름' ? `${y}-1` : s === '겨울' ? `${y}-2` : t; };
+
+function renderLog() {
+  const { summary, A } = state.diag;
+  const progCount = A.eff.filter((r) => r.inProgress).length;
+  $('log-h').innerHTML = `지금까지 <span class="num">${summary.earned}</span>학점을 들었어요`;
+  $('logLede').textContent = `${summary.doneTerms}개 학기 동안 ${summary.doneCourses}과목을 들었고`
+    + (summary.fails.length ? `, F 받은 ${summary.fails.length}과목은 학점에서 뺐어요.` : '.')
+    + (progCount ? ` 지금 ${progCount}과목 ${summary.prog}학점을 듣고 있어요.` : '');
+
+  // 잔디: 첫 학기부터 지금 학기까지 정규 학기마다 한 칸. 계절학기는 앞 학기 칸에 붙인다.
+  const terms = [...new Set(state.courses.map((c) => regularOf(c.term)))].sort((a, b) => E.termIdx(a) - E.termIdx(b));
+  const cols = [];
+  if (terms.length) {
+    const last = E.termIdx(state.ctx.termNow) > E.termIdx(terms.at(-1)) ? state.ctx.termNow : terms.at(-1);
+    for (let t = terms[0]; E.termIdx(t) <= E.termIdx(last); t = E.nextTerm(t)) cols.push(t);
+  }
+  $('grass').innerHTML = cols.map((t) => {
+    const recs = A.recs.filter((r) => regularOf(r.term) === t);
+    const cells = recs.map((r) => {
+      const cls = r.gi.kind === 'prog' ? 'now' : r.gi.kind === 'fail' ? 'f' : `l${Math.min(r.credits, 3)}`;
+      return `<span class="cell ${cls}" title="${esc(r.name)} ${r.credits}학점${r.grade ? ` ${esc(r.grade)}` : ' 수강 중'}"></span>`;
+    }).join('');
+    return `<div class="gcol${recs.length ? '' : ' leave'}"${recs.length ? '' : ' title="휴학"'}><div class="gcells">${cells}</div><span class="glabel">${t.slice(2)}</span></div>`;
+  }).join('');
+
+  // 학기별 표: 칸을 고치면 state.courses가 바로 바뀐다. [R]·W·못 읽은 성적은 원문을 선택지로 남긴다.
+  const keepRaw = (r) => r.gi.kind === 'unknown' || r.gi.kind === 'void';
+  const byTerm = new Map();
+  A.recs.forEach((r) => (byTerm.get(r.term) ?? byTerm.set(r.term, []).get(r.term)).push(r));
+  const keys = [...byTerm.keys()].sort((a, b) => E.termIdx(a) - E.termIdx(b));
+  const lastDone = keys.filter((t) => byTerm.get(t).some((r) => r.gi.kind !== 'prog')).at(-1);
+  $('terms').innerHTML = keys.map((t) => {
+    const recs = byTerm.get(t);
+    const prog = recs.every((r) => r.gi.kind === 'prog');
+    const earned = recs.reduce((s, r) => s + (r.gi.kind === 'graded' || r.gi.kind === 'pass' ? r.credits : 0), 0);
+    const [y, s] = t.split('-');
+    return `
+    <details class="term"${t === lastDone || prog ? ' open' : ''}>
+      <summary><i class="ph ph-caret-right chev"></i><strong>${y}년 ${/^\d$/.test(s) ? `${s}학기` : `${s} 계절학기`}</strong><span class="grow mono muted">${t}</span><span class="num">${prog ? `${load(recs)}학점 수강 중` : `${earned}학점`}</span></summary>
+      <div class="tscroll"><table class="course-table">
+        <thead><tr><th>과목</th><th>학점</th><th>이수구분</th><th>성적</th><th><span class="sr-only">삭제</span></th></tr></thead>
+        <tbody>${recs.map((r) => {
+          const area = r.kind === '핵심교양' ? `<select class="cell-edit area-edit" data-f="area" aria-label="${esc(r.name)} 핵심교양 영역">
+              <option value="">영역 모름</option>${E.AREAS.map((a) => `<option${a === r.areaUsed ? ' selected' : ''}>${a}</option>`).join('')}</select>${r.areaSrc === 'guess' ? '<span class="guess">추정</span>' : ''}` : '';
+          const cls = [r.gi.kind === 'fail' && !r.superseded ? 'is-f' : '', r.superseded ? 'is-old' : ''].join(' ').trim();
+          return `
+          <tr data-i="${r.i}"${cls ? ` class="${cls}"` : ''}${r.reqGroup && r.gi.kind === 'fail' && !r.superseded ? ' data-link="act"' : ''}>
+            <td>${esc(r.name)}${r.reqGroup ? '<span class="req">필수</span>' : ''}${area}${r.labelMismatch ? `<span class="area" title="목록에 있는 전공 과목이라 전공으로 셌어요">성적표에는 ${esc(r.category)}</span>` : ''}</td>
+            <td><input class="cell-edit" data-f="credits" type="number" min="1" max="6" value="${r.credits}" aria-label="${esc(r.name)} 학점"></td>
+            <td><select class="cell-edit" data-f="category" aria-label="${esc(r.name)} 이수구분">${E.CATEGORIES.map((x) => `<option${x === r.category ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
+            <td class="grade"><select class="cell-edit${r.gi.kind === 'unknown' ? ' bad' : ''}" data-f="grade" aria-label="${esc(r.name)} 성적">
+              ${[...(keepRaw(r) ? [r.grade] : []), ...E.GRADES, ''].map((g) => `<option value="${esc(g)}"${(r.gi.kind === 'prog' ? '' : keepRaw(r) ? r.grade : r.gi.g) === g ? ' selected' : ''}>${g === '' ? '수강 중' : esc(g)}${keepRaw(r) && g === r.grade ? (r.gi.kind === 'void' ? ' (제외)' : ' (읽지 못함)') : ''}</option>`).join('')}
+            </select></td>
+            <td><button class="row-del" type="button" data-del aria-label="${esc(r.name)} 행 삭제"><i class="ph ph-x"></i></button></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </details>`;
+  }).join('');
+}
+
+// ---------- 체크 ----------
+function renderChecks() {
+  const { checks } = state.diag;
+  const n = (s) => checks.filter((k) => k.s === s).length;
+  $('checks-h').innerHTML = n('fail') ? `체크 ${checks.length}개 중 <span class="num">${n('fail')}</span>개는 지금 손봐야 해요` : `체크 ${checks.length}개 중 지금 손볼 것은 없어요`;
   $('tally').innerHTML = `
     <span class="bad"><i class="ph-fill ph-x-circle"></i>조치 필요 ${n('fail')}</span>
     <span class="mid"><i class="ph ph-circle-dashed"></i>진행 중 ${n('pending')}</span>
     <span class="ok"><i class="ph-fill ph-check-circle"></i>통과 ${n('pass')}</span>
     <span class="mid"><i class="ph ph-minus-circle"></i>학과 확인 ${n('skip')}</span>`;
-  $('fullChecks').innerHTML = SAMPLE.checks.map((k, i) => {
+  $('fullChecks').innerHTML = checks.map((k, i) => {
     const gap = typeof k.have === 'number' && k.have < k.need ? `${k.need - k.have}${k.unit} 부족` : LABEL[k.s];
     return `
     <li class="check" data-s="${k.s}" style="--i:${i}"${linkAttr(k)}>
@@ -128,7 +163,7 @@ function renderFullChecks() {
         </summary>
         <div class="logbox">
           <blockquote class="quote">“${esc(k.quote)}”<br>
-            <a class="src" href="${k.src.href}" target="_blank" rel="noopener"><i class="ph ph-link-simple"></i>${esc(k.src.label)}</a>
+            <a class="src" href="${esc(k.src.href)}" target="_blank" rel="noopener"><i class="ph ph-link-simple"></i>${esc(k.src.label)}</a>
           </blockquote>
           <ul class="related">${k.related.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>
         </div>
@@ -137,125 +172,343 @@ function renderFullChecks() {
   }).join('');
 }
 
-function renderGrass() {
-  $('grass').innerHTML = SAMPLE.terms.map((t) => {
-    const cells = t.leave ? '' : t.courses.map((c) => {
-      const cls = t.now ? 'now' : c.g === 'F' ? 'f' : `l${Math.min(c.c, 3)}`;
-      return `<span class="cell ${cls}" title="${esc(c.n)} ${c.c}학점${c.g ? ` ${c.g}` : ''}"></span>`;
-    }).join('');
-    return `<div class="gcol${t.leave ? ' leave' : ''}"><div class="gcells">${cells}</div><span class="glabel">${t.code.slice(2)}</span></div>`;
-  }).join('');
-}
-
-const CATS = ['기초교양', '핵심교양', '자유교양', '전공선택', '일반선택'];
-function renderTerms() {
-  const done = SAMPLE.terms.filter((t) => !t.leave && !t.now);
-  $('terms').innerHTML = done.map((t, ti) => {
-    const earned = t.courses.reduce((s, c) => s + (c.g === 'F' ? 0 : c.c), 0);
-    return `
-    <details class="term"${ti === done.length - 1 ? ' open' : ''}>
-      <summary><i class="ph ph-caret-right chev"></i><strong>${t.label}</strong><span class="grow mono muted">${t.code}</span><span class="num">${earned}학점</span></summary>
-      <table class="course-table">
-        <thead><tr><th>과목</th><th>학점</th><th>이수구분</th><th>성적</th></tr></thead>
-        <tbody>${t.courses.map((c) => `
-          <tr class="${c.g === 'F' ? 'is-f' : ''}"${c.link ? ` data-link="${c.link}"` : ''}>
-            <td>${esc(c.n)}${c.req ? '<span class="req">필수</span>' : ''}${c.area ? `<span class="area">${c.area}</span>` : ''}</td>
-            <td><input class="cell-edit" type="number" min="0" max="6" value="${c.c}" aria-label="${esc(c.n)} 학점"></td>
-            <td><select class="cell-edit" aria-label="${esc(c.n)} 이수구분">${CATS.map((x) => `<option${x === c.cat ? ' selected' : ''}>${x}</option>`).join('')}</select></td>
-            <td class="grade">${c.g}</td>
-          </tr>`).join('')}</tbody>
-      </table>
-    </details>`;
-  }).join('');
-}
-
+// ---------- 계획 ----------
 function renderPlan() {
-  const nodes = SAMPLE.plan.map((p) => `
-    <li class="node${p.now ? ' now' : ''}"${p.link ? ` data-link="${p.link}"` : ''}>
+  const { plan, source, ctx, diag } = state;
+  const max = data.req.maxCreditsPerSemester.base;
+  const lastTerm = plan.at(-1)?.term ?? ctx.termNow;
+  const grad = E.gradDate(lastTerm);
+  $('plan-h').textContent = `${grad}에 졸업하는 계획`;
+  $('planLede').textContent = source === 'ai' ? 'AI가 짠 계획을 코드가 다시 확인했어요.'
+    : source === 'done' ? '남은 요건이 없어요. 지금 학기를 잘 마치면 졸업할 수 있어요.'
+    : state.fallbackOk ? 'AI 계획을 쓰지 못해서 교육과정 순서로 만든 기본 계획을 보여 드려요. 이 계획도 코드가 확인했어요.'
+    : 'AI 계획을 쓰지 못해서 기본 계획을 보여 드려요. 일부 요건은 이 계획으로 채우지 못하니 학과 사무실과 꼭 상의하세요.';
+  $('verified').hidden = source === 'done' || (source === 'fallback' && !state.fallbackOk);
+
+  // AI 요약과 희망 사항
+  const wish = state.wishes ? `<p class="wish-used"><i class="ph ph-chat-circle-text"></i>반영한 희망 사항: “${esc(state.wishes)}”</p>` : '';
+  $('planSummary').innerHTML = state.summary ? `<p><i class="ph-fill ph-sparkle"></i>${esc(state.summary)}</p>${wish}` : wish;
+  $('planSummary').hidden = !state.summary && !wish;
+
+  // AI 초안 → 코드 검증 → 수정 요청 기록
+  const steps = state.trace.map((t) => {
+    const head = t.attempt === 1 ? 'AI 초안' : `위반 내용을 AI에 돌려주고 받은 ${t.attempt}차 수정안`;
+    if (t.error) return `<li class="t-bad"><b>${head}</b> AI 응답을 받지 못했어요.</li>`;
+    if (!t.total) return `<li class="t-ok"><b>${head}</b> 코드 검증 통과: 학기당 ${max}학점, 중복 수강, 개설 학기·학년, 졸업요건 7개를 모두 지켰어요.</li>`;
+    return `<li class="t-bad"><b>${head}</b> 코드 검증에서 위반 ${t.total}건을 찾았어요.<ul>${t.violations.map((v) => `<li>${esc(v)}</li>`).join('')}</ul></li>`;
+  });
+  if (source === 'fallback') steps.push(state.fallbackOk ? '<li class="t-ok"><b>기본 계획</b> AI 계획을 쓰지 못해 교육과정 순서로 만든 계획으로 바꿨고, 같은 검증을 통과했어요.</li>'
+    : '<li class="t-bad"><b>기본 계획</b> 교육과정 순서로 만든 계획도 일부 요건을 채우지 못했어요.</li>');
+  $('trace').innerHTML = steps.join('');
+  $('traceBox').hidden = !steps.length;
+
+  const chip = ([name, c, k, gen]) => `<li class="chip${k ? ` ${k}` : ''}${gen ? ' gen' : ''}"${k === 'retake' ? ' data-link="act"' : ''}>${k === 'retake' ? '<i class="ph ph-arrow-counter-clockwise"></i>' : ''}${esc(name)}${k === 'retake' ? ' 재수강' : ''}<span class="c">${c}</span></li>`;
+  const node = ({ label, code, now, credits, chips, why, link }) => `
+    <li class="node${now ? ' now' : ''}"${link ? ` data-link="${link}"` : ''}>
       <span class="dot"></span>
       <div class="node-card">
         <div class="node-head">
-          <strong>${p.label}</strong><span class="term-code">${p.code}</span>${p.now ? '<span class="tag">지금 듣는 중</span>' : ''}
-          <span class="load"><b>${p.load}</b>/19학점</span>
+          <strong>${label}</strong><span class="term-code">${code}</span>${now ? '<span class="tag">지금 듣는 중</span>' : ''}
+          <span class="load"><b>${credits}</b>/${max}학점</span>
         </div>
-        <ul class="chips">${p.courses.map(([n, c, k]) => `
-          <li class="chip${k ? ` ${k}` : ''}"${k === 'retake' ? ' data-link="cn"' : ''}>${k === 'retake' ? '<i class="ph ph-arrow-counter-clockwise"></i>' : ''}${esc(n)}${k === 'retake' ? ' 재수강' : ''}<span class="c">${c}</span></li>`).join('')}
-        </ul>
-        <p class="why"><i class="ph ph-sparkle"></i>${esc(p.why)}</p>
+        ${chips.length ? `<ul class="chips">${chips.map(chip).join('')}</ul>` : ''}
+        <p class="why"><i class="ph ph-sparkle"></i>${esc(why)}</p>
       </div>
-    </li>`).join('');
-  $('branch').innerHTML = nodes + `
+    </li>`;
+
+  const nodes = [];
+  const prog = diag.A.eff.filter((r) => r.inProgress);
+  if (prog.length) {
+    const req = prog.filter((r) => r.reqGroup).map((r) => r.name);
+    nodes.push(node({ label: E.termLabel(ctx.ordinal), code: ctx.termNow, now: true, credits: load(prog),
+      chips: prog.map((r) => [r.name, r.credits, r.reqGroup ? 'req' : '']),
+      why: req.length ? `지금 듣는 학기예요. 필수 ${E.josa(req.join(', '), '이/가')} 들어 있으니 꼭 통과하세요.` : '지금 듣는 학기예요.' }));
+  }
+  plan.forEach((p, i) => nodes.push(node({
+    label: E.termLabel(ctx.ordinal + i + 1), code: p.term, credits: load(p.courses),
+    chips: p.courses.map((c) => [c.name, c.credits, c.kind, c.generic]),
+    why: p.why, link: p.courses.some((c) => c.kind === 'retake') ? 'act' : '',
+  })));
+  const total = diag.summary.counted + diag.summary.prog + plan.reduce((s, p) => s + load(p.courses), 0);
+  $('branch').innerHTML = nodes.join('') + `
     <li class="node goal"><span class="dot"><i class="ph-fill ph-check"></i></span>
-      <div class="node-card"><div class="node-head"><strong>2028년 2월 졸업</strong><span class="load"><b>136</b>/136학점</span></div></div>
+      <div class="node-card"><div class="node-head"><strong>${grad} 졸업</strong><span class="load"><b>${total}</b>/${data.req.totalCredits.min}학점</span></div></div>
     </li>`;
 }
 
+// ---------- 날짜 ----------
 const DAY = 86400000;
-const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 const md = (iso) => `${+iso.slice(5, 7)}.${+iso.slice(8, 10)}`;
-function upcomingDates() {
-  return SAMPLE.dates.filter((d) => new Date(`${d.end}T00:00`) >= today());
-}
 function renderDates() {
-  $('dateList').innerHTML = upcomingDates().map((d) => {
-    const left = Math.round((new Date(`${d.start}T00:00`) - today()) / DAY);
+  const { dates } = state;
+  $('dateList').innerHTML = dates.length ? dates.map((d) => {
+    const left = Math.round((new Date(`${d.start}T00:00`) - today0()) / DAY);
+    const toEnd = Math.round((new Date(`${d.end}T00:00`) - today0()) / DAY);
     return `
-    <li class="date"${d.link ? ` data-link="${d.link}"` : ''}>
-      <div><div class="dday">${left > 0 ? `D-${left}` : '진행 중'}</div><div class="when">${md(d.start)}~${md(d.end)}</div></div>
+    <li class="date"${linkAttr(d)}>
+      <div><div class="dday">${left > 0 ? `D-${left}` : '진행 중'}</div><div class="when">${d.start === d.end ? md(d.start) : `${md(d.start)}~${md(d.end)}`}${left <= 0 ? ` · 마감 D-${toEnd}` : ''}</div></div>
       <div><h3>${esc(d.title)}</h3><p>${esc(d.why)}</p></div>
     </li>`;
-  }).join('');
+  }).join('') : '<li class="muted">지금 챙길 마감 일정이 없어요.</li>';
+  $('ics').disabled = !dates.length;
 }
 
+// .ics는 schedule.js(줄 접기·RFC 5545 이스케이프)가 만든다. 이유 문장은 진단에 맞춘 why를 쓴다.
 function downloadIcs() {
-  const ymd = (iso, plus = 0) => new Date(new Date(`${iso}T00:00Z`).getTime() + plus * DAY).toISOString().slice(0, 10).replaceAll('-', '');
-  const events = upcomingDates().map((d, i) => [
-    'BEGIN:VEVENT', `UID:jolupgak-${d.start}-${i}@jolupgak`, `DTSTAMP:${ymd(new Date().toISOString().slice(0, 10))}T000000Z`,
-    `DTSTART;VALUE=DATE:${ymd(d.start)}`, `DTEND;VALUE=DATE:${ymd(d.end, 1)}`,
-    `SUMMARY:${d.title}`, `DESCRIPTION:${d.why}`, 'END:VEVENT'].join('\r\n'));
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//jolupgak//KO', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+  const ics = window.Schedule.buildIcs(state.dates.map((d) => ({ ...d, reason: d.why })));
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: '졸업각-마감일정.ics' });
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-// 무료 체험 표시. 저장소가 막혀 있어도 화면은 돌아가야 한다.
-const store = {
-  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* 무시 */ } },
-};
-function renderTrial() {
-  const used = store.get('jg.trialUsed') === '1';
-  $('trialText').textContent = used ? '무료 체험을 사용했어요' : '무료 체험 1회 남음';
-  $('trial').classList.toggle('used', used);
+// ---------- 호출 ----------
+async function post(url, body, ms) {
+  let r;
+  try {
+    r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(ms) });
+  } catch (err) {
+    throw new Error(err?.name === 'TimeoutError' ? `AI 응답이 ${ms / 1000}초를 넘었어요. 잠시 후 다시 시도해 주세요.` : '서버에 연결하지 못했어요. 네트워크를 확인해 주세요.');
+  }
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json.error ?? 'AI 분석에 실패했어요. 잠시 후 다시 시도해 주세요.');
+  return json;
 }
 
-function replay(el) {
-  el.classList.remove('run');
-  void el.offsetWidth;
-  el.classList.add('run');
+const toB64 = (blob) => new Promise((ok, no) => {
+  const fr = new FileReader();
+  fr.onload = () => ok(String(fr.result).split(',')[1]);
+  fr.onerror = () => no(new Error('파일을 읽지 못했어요.'));
+  fr.readAsDataURL(blob);
+});
+
+async function readInput(src) {
+  if (src === 'sample') {
+    const blob = await (await fetch('sample/capture.png')).blob();
+    return { files: [{ mimeType: 'image/png', data: await toB64(blob) }] };
+  }
+  if (src === 'capture') {
+    const files = [...$('files').files];
+    if (!files.length) throw new Error('성적 화면 캡처를 골라 주세요.');
+    if (files.length > MAX_FILES) throw new Error(`캡처는 ${MAX_FILES}장까지 올릴 수 있어요.`);
+    if (files.some((f) => !/^image\/(png|jpeg|webp)$/.test(f.type))) throw new Error('PNG, JPG, WEBP 이미지만 올릴 수 있어요.');
+    if (files.reduce((s, f) => s + f.size, 0) > MAX_BYTES) throw new Error('캡처 용량이 너무 커요. 합쳐서 10MB 이하로 올려 주세요.');
+    return { files: await Promise.all(files.map(async (f) => ({ mimeType: f.type, data: await toB64(f) }))) };
+  }
+  const text = $('paste').value.trim();
+  if (!text) throw new Error('성적 화면 텍스트를 붙여넣어 주세요.');
+  return { text };
 }
 
-renderHeroChecks();
-renderFullChecks();
-renderGrass();
-renderTerms();
-renderPlan();
-renderDates();
-renderTrial();
+// AI 로드맵. 서버가 코드로 검증하고, 서버에 닿지 못하면 브라우저에서 기본 계획을 만든다.
+async function fetchPlan() {
+  try {
+    const r = await post('/api/roadmap', { courses: state.courses, ctx: state.ctx, wishes: state.wishes }, 35_000);
+    Object.assign(state, { plan: r.plan, source: r.source, fallbackOk: r.fallbackOk !== false, summary: r.summary ?? '', trace: r.trace ?? [] });
+  } catch {
+    const plan = E.defaultPlan(state.courses, state.ctx, data);
+    Object.assign(state, { plan, source: 'fallback', fallbackOk: !E.verifyPlan(plan, state.courses, state.ctx, data).length, summary: '', trace: [{ attempt: 1, error: true }] });
+  }
+  state.dates = E.pickDates({ diag: state.diag, plan: state.plan, courses: state.courses, ctx: state.ctx, data });
+}
 
+// ---------- 학과 문의 메일 ----------
+function resetConsult() {
+  const facts = E.consultFacts(state.courses, state.ctx, data, state.plan);
+  $('facts').innerHTML = facts.map((f) => `<li><b>${esc(f.title)}</b>${esc(f.fact)}</li>`).join('');
+  $('consultOut').hidden = true;
+  $('questions').innerHTML = '';
+  consultStatus('', '');
+}
+function consultStatus(kind, text) {
+  const el = $('consultStatus');
+  el.className = `status${kind ? ` ${kind}` : ''}`;
+  el.textContent = text;
+}
+function syncMailto() {
+  $('mailto').href = `mailto:?subject=${encodeURIComponent($('mailSubject').value)}&body=${encodeURIComponent($('mailBody').value)}`;
+}
+function showConsult({ subject, body, questions }) {
+  $('questions').innerHTML = questions.map((q) => `<li>${esc(q)}</li>`).join('');
+  $('mailSubject').value = subject;
+  $('mailBody').value = body;
+  syncMailto();
+  $('consultOut').hidden = false;
+}
+// AI가 실패해도 코드가 고른 사실로 초안은 준다.
+function fallbackConsult() {
+  const facts = E.consultFacts(state.courses, state.ctx, data, state.plan);
+  return {
+    subject: '소프트웨어학부 졸업요건 확인 문의',
+    body: ['안녕하세요. 소프트웨어학부 [학번] [이름]입니다.', '졸업요건을 확인하다가 몇 가지 여쭙고 싶어 연락드립니다.', '',
+      ...facts.map((f, i) => `${i + 1}. ${f.ask} 여쭙고 싶습니다.`), '', '확인해 주시면 감사하겠습니다.', '[이름] 드림'].join('\n'),
+    questions: facts.slice(0, 6).map((f) => `${f.ask} 궁금해요.`),
+  };
+}
+
+// 이수내역이 정해진 뒤의 단계. '다시 진단'도 여기서 시작한다(AI 인식과 체험 차감 없음).
+async function analyze(notice = '') {
+  state.diag = E.diagnose(state.courses, state.ctx, data);
+  setStatus('busy', state.wishes ? 'AI가 희망 사항을 반영해 남은 학기를 짜고, 코드가 그 계획을 검증하고 있어요.' : 'AI가 남은 학기 계획을 짜고, 코드가 그 계획을 검증하고 있어요.');
+  await fetchPlan();
+  renderLog();
+  renderChecks();
+  renderPlan();
+  renderDates();
+  resetConsult();
+  for (const id of ['log', 'checks', 'plan', 'dates', 'consult', 'report']) $(id).hidden = false;
+  replay($('fullChecks'));
+  setStatus(notice ? 'info' : '', notice);
+  document.dispatchEvent(new CustomEvent('jg:render'));
+}
+
+async function diagnoseNow() {
+  const src = document.querySelector('input[name="src"]:checked').value;
+  setBusy(true);
+  try {
+    let input;
+    try { input = await readInput(src); } catch (err) { setStatus('error', err.message); return; }
+    if (src === 'sample') { $('year').value = '3'; $('term').value = '2'; }
+    state.wishes = $('wishes').value.replace(/\s+/g, ' ').trim();
+    $('wishes2').value = state.wishes;
+    setStatus('busy', 'AI가 성적 화면을 읽고 있어요. 10~20초쯤 걸려요.');
+    let notice = '';
+    try {
+      state.courses = (await post('/api/parse', input, 40_000)).courses;
+    } catch (err) {
+      if (src !== 'sample') { setStatus('error', err.message); return; }
+      state.courses = structuredClone(sample.courses);
+      notice = 'AI 인식이 실패해서 미리 읽어 둔 샘플 결과로 보여 드려요.';
+    }
+    state.ctx = src === 'sample' ? SAMPLE_CTX : { ordinal: (+$('year').value - 1) * 2 + +$('term').value, termNow: E.termNow() };
+    await analyze(notice);
+    if (!hasPass()) store.set('jg.trialUsed', '1');
+    renderTrial();
+    $('checks').scrollIntoView();
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ---------- 이벤트 ----------
 $('intake').addEventListener('submit', (e) => {
   e.preventDefault();
-  store.set('jg.trialUsed', '1');
-  renderTrial();
-  replay($('heroChecks'));
-  replay($('fullChecks'));
-  $('checks').scrollIntoView();
+  if (busy) return;
+  if (trialUsed() && !hasPass()) { $('paywall').returnValue = ''; $('paywall').showModal(); return; }
+  diagnoseNow();
 });
-$('rerun').addEventListener('click', () => { replay($('fullChecks')); $('checks').scrollIntoView(); });
+
+$('paywall').addEventListener('close', () => {
+  if ($('paywall').returnValue !== 'pay') return;
+  store.set('jg.passUntil', PASS_UNTIL);
+  renderTrial();
+  setStatus('info', `테스트 결제가 끝났어요. ${PASS_UNTIL}까지 이용권을 쓸 수 있어요.`);
+  diagnoseNow();
+});
+
+$('rerun').addEventListener('click', async () => {
+  if (busy) return;
+  if (!state.courses.length) { setStatus('error', '이수내역이 비어 있어요. 다시 진단 시작을 눌러 주세요.'); return; }
+  setBusy(true);
+  try { await analyze('고친 이수내역으로 다시 진단했어요.'); $('checks').scrollIntoView(); } finally { setBusy(false); }
+});
+
+$('replan').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (busy || !state.courses.length) return;
+  state.wishes = $('wishes2').value.replace(/\s+/g, ' ').trim();
+  $('wishes').value = state.wishes;
+  setBusy(true);
+  $('replanGo').innerHTML = '<i class="ph ph-spinner-gap"></i>AI가 다시 짜는 중';
+  try {
+    await fetchPlan();
+    renderPlan();
+    renderDates();
+    resetConsult();
+    $('plan').scrollIntoView();
+    document.dispatchEvent(new CustomEvent('jg:render'));
+  } finally {
+    $('replanGo').innerHTML = '<i class="ph ph-sparkle"></i>AI로 다시 짜기';
+    setBusy(false);
+  }
+});
+
+// 희망 사항 예시 칩: 누르면 해당 칸에 문장을 붙인다.
+document.addEventListener('click', (e) => {
+  const chip = e.target.closest('.wchip');
+  if (!chip) return;
+  const t = $(chip.closest('.wish-chips').dataset.for);
+  const v = t.value.trim();
+  if (!v.includes(chip.textContent)) t.value = v ? `${v}, ${chip.textContent}` : chip.textContent;
+  t.focus();
+});
+
+$('consultGo').addEventListener('click', async () => {
+  if (busy || !state.courses.length) return;
+  setBusy(true);
+  consultStatus('busy', 'AI가 진단 결과로 문의 메일과 상담 질문을 쓰고 있어요.');
+  try {
+    showConsult(await post('/api/consult', { courses: state.courses, ctx: state.ctx, plan: state.plan }, 30_000));
+    consultStatus('', '');
+  } catch (err) {
+    showConsult(fallbackConsult());
+    consultStatus('error', `${err.message} 대신 코드가 고른 질문으로 초안을 만들었어요.`);
+  } finally {
+    setBusy(false);
+  }
+});
+$('mailSubject').addEventListener('input', syncMailto);
+$('mailBody').addEventListener('input', syncMailto);
+$('copyMail').addEventListener('click', async () => {
+  const text = `제목: ${$('mailSubject').value}\n\n${$('mailBody').value}`;
+  try { await navigator.clipboard.writeText(text); consultStatus('info', '메일을 복사했어요. 학교 메일에 붙여넣어 보내세요.'); }
+  catch { $('mailBody').select(); consultStatus('info', '본문을 선택해 두었어요. Ctrl+C로 복사하세요.'); }
+});
+
+$('terms').addEventListener('change', (e) => {
+  const el = e.target.closest('[data-f]'), row = e.target.closest('tr[data-i]');
+  if (!el || !row) return;
+  const c = state.courses[+row.dataset.i];
+  if (el.dataset.f === 'credits') c.credits = Math.min(6, Math.max(1, Number(el.value) || c.credits));
+  if (el.dataset.f === 'category') c.category = el.value;
+  if (el.dataset.f === 'grade') c.grade = el.value;
+  if (el.dataset.f === 'area') { c.area = el.value || null; c.areaGuess = false; }
+  setStatus('info', '고친 내용은 다시 진단을 누르면 반영돼요.');
+});
+
+$('terms').addEventListener('click', (e) => {
+  const row = e.target.closest('[data-del]')?.closest('tr[data-i]');
+  if (!row) return;
+  state.courses.splice(+row.dataset.i, 1);
+  state.diag = E.diagnose(state.courses, state.ctx, data);
+  renderLog();
+  setStatus('info', '행을 지웠어요. 다시 진단을 누르면 반영돼요.');
+});
+
+// 캡처: 끌어 놓기와 고른 파일 표시
+const drop = $('drop');
+const showFiles = () => {
+  const n = $('files').files.length;
+  $('dropText').textContent = n ? `${[...$('files').files].map((f) => f.name).join(', ')} (${n}장)` : 'ON국민 성적 화면 캡처를 끌어 놓거나 눌러서 고르세요';
+};
+$('files').addEventListener('change', showFiles);
+drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  drop.classList.remove('over');
+  $('files').files = e.dataTransfer.files;
+  showFiles();
+});
+
 $('ics').addEventListener('click', downloadIcs);
 $('print').addEventListener('click', () => window.print());
-$('reset').addEventListener('click', () => { store.set('jg.trialUsed', null); renderTrial(); });
+$('reset').addEventListener('click', () => {
+  store.set('jg.trialUsed', null);
+  store.set('jg.passUntil', null);
+  renderTrial();
+  setStatus('info', '체험을 초기화했어요. 무료 진단 1회가 다시 생겼어요.');
+});
 
 // 인쇄할 때는 접힌 근거까지 모두 펼친다.
 let closed = [];
@@ -267,33 +520,19 @@ new IntersectionObserver((entries, io) => {
   if (entries.some((e) => e.isIntersecting)) { $('branch').classList.add('drawn'); io.disconnect(); }
 }, { threshold: 0.2 }).observe($('branch'));
 
-
-// 상단바 로그인 상태. /api/auth/me로 확인해 게스트/로그인 UI를 전환한다.
-(() => {
-  const guest = document.getElementById('authGuest');
-  const user = document.getElementById('authUser');
-  console.log('[auth-ui] guest=', guest, 'user=', user);
-  if (!guest || !user) {
-    console.warn('[auth-ui] authGuest 또는 authUser 요소를 못 찾음 — index.html의 id 확인 필요');
+// ---------- 시작 ----------
+async function boot() {
+  const get = async (p) => { const r = await fetch(p); if (!r.ok) throw new Error(p); return r.json(); };
+  try {
+    const [req, cur, cats, cal, areas, s] = await Promise.all(['requirements', 'curriculum', 'categories', 'calendar', 'core_areas'].map((f) => get(`data/${f}.json`)).concat(get('sample/parsed.json')));
+    data = { req, cur, cats, cal, areas };
+    sample = s;
+  } catch {
+    setStatus('error', '졸업요건 데이터를 불러오지 못했어요. 새로고침해 주세요.');
+    $('go').disabled = true;
     return;
   }
-
-  function render(me) {
-    const loggedIn = Boolean(me);
-    console.log('[auth-ui] render loggedIn=', loggedIn, 'me=', me);
-    guest.hidden = loggedIn;      // 로그인 → 로그인/회원가입 숨김
-    user.hidden = !loggedIn;      // 로그인 → 이메일+로그아웃 표시
-    if (loggedIn && me.email) document.getElementById('authEmail').textContent = me.email;
-  }
-
-  fetch('/api/auth/me')
-    .then((r) => r.json())
-    .then((d) => render(d.user))
-    .catch((e) => { console.error('[auth-ui] /me 실패', e); render(null); });
-
-  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
-    render(null);
-  });
-})();
-
+  renderTrial();
+  renderHero();
+}
+boot();

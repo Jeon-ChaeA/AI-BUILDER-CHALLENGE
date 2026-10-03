@@ -1,0 +1,240 @@
+{
+  "_comment": "소프트웨어학부 2023학번 입학자 졸업요건. 모든 판정 항목에 evidence(원문 인용 + 출처 URL)가 붙는다. 출처 원문은 이미지(JPG)라서 quote는 이미지 문구를 그대로 옮겨 적은 것이다.",
+  "id": "kmu-sw-2023",
+  "label": "국민대학교 소프트웨어융합대학 소프트웨어학부 2023학번 입학자",
+  "college": "소프트웨어융합대학",
+  "department": "소프트웨어학부",
+  "admissionYear": 2023,
+  "verifiedAt": "2026-10-03",
+  "sources": {
+    "graduation": {
+      "title": "2023학년도 입학생 졸업요건 (소프트웨어학부 홈페이지)",
+      "url": "https://cs.kookmin.ac.kr/major/graduated/13"
+    },
+    "curriculum": {
+      "title": "교과과정 2023학년도 (소프트웨어학부 홈페이지)",
+      "url": "https://cs.kookmin.ac.kr/major/curriculum2023"
+    },
+    "enrollment": {
+      "title": "2025-2학기 수강신청 종합안내 (학부) - 국민대 학사공지",
+      "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/4/10459/view.do?currentPageNo=1"
+    },
+    "universityGraduation": {
+      "title": "졸업요건 - 국민대학교 학사안내(졸업)",
+      "url": "https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do"
+    },
+    "competencyRule": {
+      "title": "소프트웨어융합대학 역량기반 졸업요건 운영규칙 (2026-06-11 시행)",
+      "url": "https://cs.kookmin.ac.kr/major/graduated/13"
+    }
+  },
+
+  "totalCredits": {
+    "min": 136,
+    "evidence": {
+      "quote": "총 학점 136학점",
+      "url": "https://cs.kookmin.ac.kr/major/graduated/13"
+    }
+  },
+
+  "categoryMins": [
+    {
+      "category": "기초교양",
+      "min": 7,
+      "rule": "기초교양 지정 3과목 모두 이수",
+      "evidence": { "quote": "기초교양 7학점 - 기초교양 지정 3과목 모두 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "category": "핵심교양",
+      "min": 15,
+      "rule": "5개 핵심역량 영역(인문Ⅰ·인문Ⅱ·소통·창의·글로벌)별 최소 3학점 이상 이수",
+      "evidence": { "quote": "핵심교양 15학점 - [인문Ⅰ] [인문Ⅱ] [소통] [창의] [글로벌] 5개의 핵심역량 영역별 최소 3학점 이상 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "category": "자유교양",
+      "min": 2,
+      "evidence": { "quote": "자유교양 2학점", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "category": "전공필수",
+      "min": 41,
+      "rule": "전공선택 과목 중 필수 지정 과목 15개 이수",
+      "evidence": { "quote": "전공 필수 41학점 - 전공선택 과목 중 필수 지정 과목 15개 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "category": "전공선택",
+      "min": 25,
+      "rule": "전공선택 과목 중 25학점 이상 이수",
+      "evidence": { "quote": "전공 선택 25학점 - 전공선택 과목 중 25학점 이상 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "category": "일반선택",
+      "min": 46,
+      "rule": "심화전공은 전공 과목 중 18학점 추가 이수(나머지 28학점은 자유). 부전공은 부전공 과목 18학점. 다전공은 다전공 졸업요건 충족",
+      "evidence": { "quote": "일반선택 46학점 - 심화전공 : 전공 과목 중 18학점 추가 이수", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    }
+  ],
+
+  "subtotals": [
+    { "label": "교양", "categories": ["기초교양", "핵심교양", "자유교양"], "min": 24, "evidence": { "quote": "교양 소계 24", "url": "https://cs.kookmin.ac.kr/major/graduated/13" } },
+    { "label": "전공", "categories": ["전공필수", "전공선택"], "min": 66, "evidence": { "quote": "전공 소계 66", "url": "https://cs.kookmin.ac.kr/major/graduated/13" } }
+  ],
+
+  "requiredCourses": {
+    "_comment": "과목 매칭은 code의 앞 5자리 일치 기준이다(원문: 교과목 코드 7자리 중 앞 5자리가 같으면 동일한 교과목 취급). code가 없으면 name 또는 aliases로 보조 매칭한다. oneOf 그룹은 그룹 안에서 하나만 이수해도 된다.",
+    "codeMatchPrefixLength": 5,
+    "matchRuleEvidence": { "quote": "교과목 코드 7자리 중, 앞 5자리가 같으면 동일한 교과목 취급함", "url": "https://cs.kookmin.ac.kr/major/graduated/13" },
+    "count": 15,
+    "items": [
+      { "code": "1143704", "name": "소프트웨어적사고", "credits": 3, "year": 1, "semester": 1, "category": "전공필수", "aliases": ["과학과소프트웨어적사고", "프로그래밍기초", "소프트웨어적 사고"] },
+      { "code": "1324404", "name": "소프트웨어프로젝트Ⅰ", "credits": 3, "year": 1, "semester": 1, "category": "전공필수", "aliases": ["소프트웨어프로젝트I", "소프트웨어프로젝트 I", "소프트웨어프로젝트 1", "소프트웨어 프로젝트Ⅰ"] },
+      { "code": "0367203", "name": "S-TEAM Class", "credits": 1, "year": 1, "semester": 1, "category": "전공필수", "oneOf": "S-TEAM_OR_사제동행", "aliases": ["S-TEAM", "STEAM Class", "S-TEAM CLASS"] },
+      { "code": "015680H", "name": "객체지향프로그래밍", "credits": 3, "year": 1, "semester": 2, "category": "전공필수", "aliases": ["객체지향 프로그래밍"] },
+      { "code": "0156205", "name": "응용통계학", "credits": 3, "year": 1, "semester": 2, "category": "전공필수", "aliases": [] },
+      { "code": "1324803", "name": "유레카프로젝트", "credits": 1, "year": 1, "semester": 2, "category": "전공필수", "aliases": ["유레카 프로젝트"] },
+      { "code": "0156405", "name": "자료구조", "credits": 3, "year": 2, "semester": 1, "category": "전공필수", "aliases": [] },
+      { "code": "0192806", "name": "C++프로그래밍", "credits": 3, "year": 2, "semester": 1, "category": "전공필수", "aliases": ["C++ 프로그래밍", "C++"] },
+      { "code": "0156305", "name": "이산수학", "credits": 3, "year": 2, "semester": 2, "category": "전공필수", "aliases": [] },
+      { "code": "0157004", "name": "컴퓨터구조", "credits": 3, "year": 2, "semester": 2, "category": "전공필수", "aliases": [] },
+      { "code": "0156105", "name": "운영체제", "credits": 3, "year": 3, "semester": 1, "category": "전공필수", "aliases": [] },
+      { "code": "0155605", "name": "컴퓨터네트워크", "credits": 3, "year": 3, "semester": 1, "category": "전공필수", "aliases": ["컴퓨터 네트워크"] },
+      { "code": "0384502", "name": "데이터베이스", "credits": 3, "year": 3, "semester": 1, "category": "전공필수", "aliases": [] },
+      { "code": "0384403", "name": "알고리즘", "credits": 3, "year": 3, "semester": 2, "category": "전공필수", "aliases": [] },
+      { "code": "0693304", "name": "다학제간캡스톤디자인", "credits": 3, "year": 4, "semester": 1, "category": "전공필수", "aliases": ["다학제간캡스톤디자인I", "다학제간 캡스톤디자인", "캡스톤디자인"] },
+      { "code": "0367202", "name": "사제동행세미나", "credits": 1, "year": 4, "semester": 1, "category": "전공필수", "oneOf": "S-TEAM_OR_사제동행", "aliases": ["사제동행 세미나"] }
+    ],
+    "oneOfGroups": [
+      {
+        "id": "S-TEAM_OR_사제동행",
+        "pick": 1,
+        "members": ["0367203", "0367202"],
+        "evidence": { "quote": "<사제동행세미나>, <S-TEAM Class>는 택 1하여 필수 / <사제동행세미나> 및 <S-TEAM Class>는 최대 4학점까지 이수 가능", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+      }
+    ],
+    "_note": "필수 15개는 위 16개 항목에서 oneOf 그룹이 하나로 계산된 값이다. 전공필수 41학점은 (전체 합 42학점 - 택1 그룹의 1학점)이다. 두 과목을 모두 들으면 둘 다 학점은 인정되지만(최대 4학점), 필수 판정은 하나만 쓰고 남은 학점은 전공선택으로 센다는 해석은 학과 확인이 필요하다.",
+    "evidence": { "quote": "2. 필수 이수 교과과정 (학년·학기별 지정 과목표)", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+  },
+
+  "foundationLiberalArts": {
+    "_comment": "기초교양 지정 3과목. 대체 코드가 여럿인 과목은 codes 중 하나면 이수로 본다.",
+    "items": [
+      { "name": "English Conversation", "codes": ["001020", "036370", "132760"], "credits": 2, "aliases": ["English Conversation Ⅰ", "English Conversation Ⅱ", "English Conversation Advanced", "English Conversation I", "English Conversation II", "English Conversation (Advanced)", "English Conversation I(ABEEK)"] },
+      { "name": "글쓰기", "codes": ["000200"], "credits": 3, "aliases": ["글쓰기(공학인증)"] },
+      { "name": "College English", "codes": ["000540", "036360"], "credits": 2, "aliases": ["College English Ⅰ", "College English Ⅱ", "College English I", "College English II", "College English I(ABEEK)"] }
+    ],
+    "_note": "졸업요건표에는 코드가 6자리(예: 001020)로 적혀 있지만 ON국민 성적 화면에는 7자리로 나온다(예: 글쓰기 000200D, English Conversation 001020E, College English 000540C). 끝의 영문자는 공학인증(ABEEK) 분반 등을 나타내는 것으로 보인다. 따라서 기초교양도 코드의 앞 5자리가 같은지로 비교한다(00020, 00102, 00054 등). 과목명 끝에 붙는 '(공학인증)', '(ABEEK)'는 비교 전에 지운다.",
+    "matchPrefixLength": 5,
+    "evidence": { "quote": "기초교양 지정 3과목 모두 이수 (English Conversation Ⅰ/Ⅱ/Advanced 2학점, 글쓰기 3학점, College English Ⅰ/Ⅱ 2학점)", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+  },
+
+  "gpa": {
+    "min": 2.0,
+    "scale": 4.5,
+    "scope": "전학년 성적 평점평균",
+    "status": "verified",
+    "_note": "졸업 최저 평점은 학과 졸업요건표가 아니라 대학 공통 졸업요건 안내에 있다. 졸업요건표의 '총 취득학점 평점 3.5 이상'은 졸업 필수가 아니라 역량기반 요건(졸업인증)을 채우는 선택지 중 하나다. 환산 만점 4.5는 categories.json 성적 환산표 확인 필요.",
+    "evidence": { "quote": "전학년 성적 평점평균 2.0 이상", "url": "https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do" }
+  },
+
+  "minRegisteredSemesters": {
+    "min": 8,
+    "_note": "8학기 이상 등록한 재학생이 졸업 대상이다. 휴학한 학기는 등록 학기가 아니다. 로드맵의 '남은 정규 학기'는 이 값에서 이미 등록한 학기 수를 뺀 값을 기본으로 한다.",
+    "evidence": { "quote": "8학기(건축대학 건축설계전공은 10학기) 이상 등록한 재학생", "url": "https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do" }
+  },
+
+  "overflowRules": {
+    "toGeneralElective": true,
+    "_note": "이수구분별 최저학점을 넘긴 학점은 일반선택으로 인정한다(이수구분 자체는 일반선택으로 고치지 않는다). 교양·전공·총학점을 모두 채우면 일반선택은 따로 확인하지 않아도 된다. 단, 교양 이수학점이 상한(liberalArtsCap)을 넘으면 넘은 학점은 졸업이수학점 계산에서 제외된다.",
+    "evidence": { "quote": "이수구분별 최저이수학점을 초과하여 이수한 학점도 일반선택으로 인정. 단, 이수구분별 초과 이수학점의 이수구분은 일반선택으로 정정하지 않음. / 교양, 1전공 과정, 총취득학점의 이수요건을 모두 충족할 경우 일반선택은 자연히 충족되므로 별도로 이수학점을 체크할 필요가 없음.", "url": "https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do" }
+  },
+
+  "maxCreditsPerSemester": {
+    "base": 19,
+    "bonus": { "extra": 3, "ifPreviousGpaAtLeast": 3.75, "max": 22 },
+    "restricted": { "max": 14, "when": "성적경고 연속 2회" },
+    "previousGpaNote": "직전학기 성적은 신청학점 기준 평점평균이며 계절학기 성적은 포함하지 않는다. 휴학 후 복학하면 휴학 직전 학기 성적으로 판단한다.",
+    "seasonalMax": 6,
+    "seasonalMaxEvidence": { "quote": "계절학기에는 6학점까지 이수할 수 있다. (학칙 제32조④)", "url": "https://www.kookmin.ac.kr/user/unIntr/unSttu/pdfCmmn/cradle/index.do" },
+    "carryOver": "직전 학기에 신청하지 않은 1~3학점을 이월할 수 있다. 초과신청(3.75 이상)과 함께 쓸 수 없고 성적경고자·휴학자·초과학기자는 대상이 아니다.",
+    "evidence": {
+      "quote": "법과(법학부), 창의공과(공과), 과학기술(삼림과학, 자연과학), 체육, 건축, 소프트웨어융합, 자동차융합 - 19학점 / 직전학기 성적이 3.75 이상인 학생은 3학점 초과 신청 가능 / 성적경고 연속 2회자에 한해 차기학기 14학점으로 제한",
+      "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/4/10459/view.do?currentPageNo=1"
+    },
+    "_note": "출처는 2025-2학기 수강신청 안내다. 2026학년도 안내로 한 번 더 확인할 것."
+  },
+
+  "liberalArtsCap": {
+    "max": 50,
+    "appliesTo": "2013학번 이후 입학자의 재학 중 교양 이수 상한(기초·핵심·자유교양)",
+    "perSemesterMax": 8,
+    "perSemesterAppliesTo": "핵심교양과 자유교양 합산",
+    "overCapRule": "상한을 넘은 교양 학점은 이수한 것으로는 인정하지만 졸업이수학점(136) 계산에는 포함하지 않는다. 넘은 만큼 교양이 아닌 영역에서 더 이수해야 한다. 교양이수학점 = 기초교양 + 핵심교양 + 자유교양(+교양선택).",
+    "basedOn": "입학년도(교과적용년도가 아님)",
+    "evidence": { "quote": "재학중 교양 이수 상한학점 50학점 / 학기당 교양과목 수강신청 제한학점 8학점 (핵심교양 및 자유교양 합산)", "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/4/10459/view.do?currentPageNo=1" },
+    "overCapEvidence": { "quote": "교양이수학점 상한선을 초과하면 초과학점은 졸업이수학점 계산 시 포함되지 않으며(이수한 것으로는 인정), 초과학점 만큼 교양영역을 제외한 영역에서 이수하여야 함. (2013학번 이후 50학점)", "url": "https://www.kookmin.ac.kr/comm/menu/user/5c1cfd2865beb8179130a66c1bb20406/content/index.do" }
+  },
+
+  "retakePolicy": {
+    "replacesPreviousGrade": true,
+    "onlyIfPreviousGradeAtMost": "C+",
+    "maxGradeAfterRetake": "A0",
+    "maxRetakesTotal": 8,
+    "fExcludedFromRetakeCount": true,
+    "transcriptMarker": "기존에 취득한 성적은 해당 학기 성적에 [R]로 표기된다. [R] 행은 학점과 평점 계산에서 제외한다.",
+    "markerStatus": "unverified",
+    "dedupFallback": "실제 성적 화면에서 [R] 표기가 어떻게 나오는지 확인하지 못했다. 표기에 의존하지 않도록, 같은 과목(코드 앞 5자리 또는 정규화한 과목명)이 여러 학기에 나오면 가장 최근 학기의 행만 학점·평점에 넣고 이전 행은 '재수강 전 성적'으로 제외한다. 등급이 R이거나 과목명·등급 칸에 [R]이 보이는 행도 제외한다.",
+    "evidence": { "quote": "재수강을 할 경우 기존의 성적은 삭제되고, 재수강으로 이수한 성적이 최종적으로 남게 됨 / 이미 취득한 교과목의 성적이 C+ 이하인 경우에만 재수강할 수 있으며, 재수강성적은 A0를 초과하여 취득할 수 없음", "url": "https://www.kookmin.ac.kr/user/kmuNews/notice/4/10459/view.do?currentPageNo=1" }
+  },
+
+  "nonCountingGrades": ["F", "NP"],
+
+  "manualCheck": [
+    {
+      "id": "competency-graduation-cert",
+      "label": "대학/학부(과) 인증 (역량기반 졸업요건 중 택 1)",
+      "message": "졸업인증은 서비스에서 판정하지 않아요. 학과 사무실에서 확인해 주세요.",
+      "options": [
+        "단일 정규학기 내(샌드위치학기) 15주 이상 현장실습 이수",
+        "코딩역량 인증제 레벨1 이상 이수",
+        "정보처리기사 취득",
+        "총 취득학점 평점 3.5 이상",
+        "7차학기 이후 전공과목 학점을 21학점 이상 취득한 경우",
+        "공인영어성적표 제출 (TOEIC 750, TOEFL iBT 84, TEPS 690/380, TOEIC SPEAKING 140, OPIc IM, G-TELP LEVEL 2 71, IELTS 6.0)",
+        "공인된 IT 관련 경진대회 수상자인 경우",
+        "진로계획서 제출",
+        "실전프로젝트 1,2,3,4 교과목 중 3개 이상 이수 (전공 66학점에 포함하지 않음)",
+        "AI역량평가 '레벨1' 이상 취득"
+      ],
+      "conflictNote": "2023학번 게시 이미지에는 10가지(가~차)가 있고, 2026학번 이미지(graduated/16)와 첨부 운영규칙(2026-06-11 시행)에는 실전프로젝트·K*코딩역량인증·AI역량평가 3가지만 있다. 2023학번은 현재 게시된 10가지를 따르는 것으로 보되(research_notes 요건 노트 §5), 이미지가 2026년에 교체되었으므로 교학팀(02-910-4790, 5283) 확인이 필요하다. 라·마(평점 3.5, 7차학기 이후 전공 21학점)는 서류 없이 자동 인증된다. 서비스는 판정하지 않고 안내만 한다.",
+      "latestRuleOptions": [
+        "별표1 실전프로젝트 1,2,3,4 중 3과목 이상 이수 (이 경우 해당 학점은 전공 66학점에 포함하지 않음)",
+        "K*코딩역량인증 레벨 1 이상 취득 (PCCP Level 1 이상, ICPC Asia Seoul 지역 본선 진출 이상 등 인정)",
+        "AI역량평가 레벨 1 이상 취득"
+      ],
+      "latestRuleEvidence": { "quote": "제4조(역량기반 졸업요건의 충족) ① ... 1. 별표 1에서 정한 실전프로젝트 이수 기준 충족 2. K*코딩역량인증 레벨 1 이상 취득 3. AI역량평가 레벨 1 이상 취득", "url": "https://cs.kookmin.ac.kr/major/graduated/13" },
+      "evidence": { "quote": "다음 역량기반 졸업 요건 중 택1 (가~차)", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "id": "graduation-thesis",
+      "label": "졸업논문 제출",
+      "message": "졸업논문은 다학제간캡스톤디자인 결과보고서로 대체돼요. 학과 사무실에서 확인해 주세요.",
+      "evidence": { "quote": "졸업논문 제출 - 다학제간캡스톤디자인(캡스톤디자인) 결과보고서로 대체", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    },
+    {
+      "id": "major-track",
+      "label": "심화전공 / 부전공 / 다전공 선택",
+      "message": "이번 진단은 심화전공(단일 전공)을 기준으로 해요. 부전공·다전공은 지원하지 않아요.",
+      "evidence": { "quote": "2017학년도 이후 입학생들은 심화전공 / 부전공 / 다전공(연계/융합전공) 중 1개를 선택하여 이수하여야 함", "url": "https://cs.kookmin.ac.kr/major/graduated/13" }
+    }
+  ],
+
+  "openQuestions": [
+    "S-TEAM Class·사제동행세미나를 둘 다 이수했을 때 남는 1학점 처리: 위 overflowRules에 따라 일반선택으로 인정될 가능성이 높지만 학과 확인 필요",
+    "졸업인증(역량기반 요건): 2023학번에 10가지가 적용되는지 교학팀 확인 권장(manualCheck로 안내만 하므로 MVP 판정에는 영향 없음)",
+    "ON국민 성적 화면의 이수구분 표기(categories.json aliases)와 학수번호 표시 여부: 팀원 실제 화면으로 확인 필요"
+  ],
+
+  "confirmed": [
+    "기초교양 7학점, 일반선택 46학점으로 판정한다(사용자 확인 2026-10-03). 2023 요람은 글로벌영어 1학점을 기초교양에 포함해 8/45이고 학과 현행 이미지와 2026 요람은 7/46인데, 팀이 7/46으로 확정했다. 총 136학점은 같다. 참고: 글로벌영어 미이수자는 이수구분과 관계없이 1학점을 추가로 이수해야 한다(2025.03.31 부칙)."
+  ]
+}
