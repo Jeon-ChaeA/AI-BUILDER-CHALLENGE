@@ -442,12 +442,12 @@ export function tidyPlan(plan, courses, ctx, data) {
   const A = analyze(courses, ctx, data);
   const states = [...A.reqStates, ...A.basicStates];
   return (Array.isArray(plan) ? plan : []).slice(0, 8).map((p) => ({
-    term: String(p?.term ?? ''),
+    term: String(p?.term ?? '').slice(0, 9),
     why: String(p?.why ?? '').slice(0, 300),
     courses: (Array.isArray(p?.courses) ? p.courses : []).slice(0, 12).map((c) => {
       const cat = !c?.generic && P.catalog.find((m) => m.keys.has(nameKey(c?.name)));
       if (!cat) {
-        return { name: String(c?.name ?? '').slice(0, 40), credits: Number(c?.credits) || 0, category: String(c?.category ?? ''),
+        return { name: String(c?.name ?? '').slice(0, 40), credits: Number(c?.credits) || 0, category: String(c?.category ?? '').slice(0, 10),
           ...(c?.generic ? { generic: true } : {}), ...(AREAS.includes(c?.area) ? { area: c.area } : {}) };
       }
       const out = { name: cat.name, credits: cat.credits, category: cat.category === '기초교양' ? '기초교양' : '전공선택' };
@@ -501,6 +501,25 @@ export function verifyPlan(plan, courses, ctx, data) {
   const { checks } = simulate(plan, courses, ctx, data);
   for (const c of checks) if (REQUIRED_PASS.includes(c.id) && c.s !== 'pass') errs.push(`계획을 다 들어도 ${c.name} 요건이 부족해요 (${c.have}/${c.need}${c.unit})`);
   return errs;
+}
+
+// 품질 점검(규칙 위반은 아니다): 고를 전공 과목이 남았는데 '일반선택' 빈칸이 한 학기에 VAGUE_MAX학점을 넘으면
+// 과목 추천이라 하기 어렵다. 서버는 이 지적으로 AI에 한 번만 다시 요청하고, 수정안이 규칙을 어기면 초안을 그대로 쓴다.
+const VAGUE_MAX = 6;
+export function vagueTerms(plan, courses, ctx, data) {
+  const P = prep(data);
+  const A = analyze(courses, ctx, data);
+  const taken = new Set(A.eff.filter((r) => r.earned || r.inProgress).map((r) => r.cat?.name));
+  const used = new Set(plan.flatMap((p) => p.courses.map((c) => c.name)));
+  return plan.flatMap((p, idx) => {
+    const blank = p.courses.filter((c) => c.generic && c.category === '일반선택').reduce((s, c) => s + c.credits, 0);
+    if (blank <= VAGUE_MAX) return [];
+    const yr = studentYear(ctx.ordinal + idx + 1);
+    const open = P.catalog.filter((c) => c.category === '전공선택' && !c.required && c.countsTowardMajor66 !== 'conditional'
+      && !taken.has(c.name) && !used.has(c.name) && (c.offered === 'all' || c.offered === termSem(p.term))
+      && (!c.years || (yr >= c.years[0] && yr <= c.years[1])));
+    return open.length < 2 ? [] : [`${p.term}: 일반선택 빈칸이 ${blank}학점이에요. 일반선택은 한 학기 ${VAGUE_MAX}학점까지만 쓰고, 나머지는 이 학기에 열리는 전공선택 과목명으로 채워 주세요`];
+  });
 }
 
 // AI가 실패했을 때 쓰는 계획. 필수 → 전공 → 교양 → 일반선택 순서로 채운다.

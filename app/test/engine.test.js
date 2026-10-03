@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { AREAS as E_AREAS } from '../public/engine.js';
 import {
-  diagnose, verifyPlan, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan, consultFacts,
+  diagnose, verifyPlan, vagueTerms, defaultPlan, planTerms, pickDates, sanitizeCourses, nameKey, termNow, josa, tidyPlan, consultFacts,
 } from '../public/engine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8'));
@@ -182,6 +182,15 @@ test('tidyPlan은 AI 계획의 과목명·학점을 교육과정에 맞추고 �
   assert.equal(plan[0].courses[1].generic, true);
   assert.equal(plan[0].courses[2].name, '모르는과목');
   assert.deepEqual(plan[1], { term: '', why: '', courses: [] });
+});
+
+test('vagueTerms는 고를 전공 과목이 남았는데 일반선택 빈칸이 큰 학기를 짚는다', () => {
+  const blank = (credits) => [{ term: '2027-1', why: '', courses: [{ name: '일반선택', credits, category: '일반선택', generic: true }] }];
+  assert.equal(vagueTerms(blank(6), sample, ctx, data).length, 0);
+  const v = vagueTerms(blank(14), sample, ctx, data);
+  assert.equal(v.length, 1);
+  assert.match(v[0], /2027-1: 일반선택 빈칸이 14학점/);
+  assert.deepEqual(vagueTerms(defaultPlan(sample, ctx, data), sample, ctx, data), []); // 기본 계획은 지적받지 않는다
 });
 
 test('consultFacts는 진단에서 확인할 사실만 뽑는다', () => {

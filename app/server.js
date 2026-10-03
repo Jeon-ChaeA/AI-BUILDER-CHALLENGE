@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
 import authRouter, { withUser } from './auth.js';
 import {
-  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, defaultPlan, termSem, termLabel, consultFacts,
+  AREAS, sanitizeCourses, diagnose, planTerms, tidyPlan, verifyPlan, vagueTerms, defaultPlan, termSem, termLabel, consultFacts,
 } from './public/engine.js';
 
 const PORT = process.env.PORT || 3000;
@@ -27,7 +27,14 @@ const load = (f) => JSON.parse(readFileSync(new URL(`./public/data/${f}.json`, i
 const data = { req: load('requirements'), cur: load('curriculum'), cats: load('categories'), cal: load('calendar'), areas: load('core_areas') };
 
 // 프롬프트는 서버에만 둔다. 클라이언트가 임의 프롬프트를 보내면 공개 URL에서 키가 악용된다.
+// 공개 URL이라 IP별 제한만으로는 비용 상한이 없다. 하루 호출 수에 전체 상한을 두고, 넘으면 AI 없이
+// 각 API의 대체 경로(기본 계획, 안내 문구)로 넘어간다.
+const AI_DAILY_MAX = Number(process.env.AI_DAILY_MAX) || 3000;
+let aiCalls = 0;
+setInterval(() => { aiCalls = 0; }, 864e5).unref();
+
 async function ask({ system, text, files = [], schema, timeout }) {
+  if (++aiCalls > AI_DAILY_MAX) throw new Error('daily AI budget exhausted');
   const r = await ai.models.generateContent({
     model: MODEL,
     contents: [{ role: 'user', parts: [...files.map((f) => ({ inlineData: { mimeType: f.mimeType, data: f.data } })), { text }] }],
@@ -95,7 +102,7 @@ const ROADMAP_SYSTEM = `너는 국민대학교 소프트웨어학부 2023학번 
 4. 이미 이수했거나 지금 듣는 과목은 넣지 않는다.
 5. missingRequired는 전부 넣는다. retake가 true면 재수강이다. 권장 학기가 이른 것부터 넣는다.
 6. 핵심교양, 자유교양, 일반선택은 과목명을 정하지 말고 generic=true로 넣는다. 핵심교양은 부족한 area를 정한다. 이름은 "핵심교양 (창의)", "자유교양", "일반선택"처럼 쓴다.
-7. 모든 요건(총 136학점, 전공 66학점 중 필수 외 25학점, 핵심교양 영역별 3학점, 자유교양 2학점)을 마지막 학기까지 채운다. 남는 학점은 학생 흥미에 맞을 만한 전공선택 과목으로 먼저 채우고, 그래도 남으면 일반선택으로 채운다.
+7. 모든 요건(총 136학점, 전공 66학점 중 필수 외 25학점, 핵심교양 영역별 3학점, 자유교양 2학점)을 마지막 학기까지 채운다. 남는 학점은 학생 흥미에 맞을 만한 전공선택 과목(candidates의 과목명)으로 먼저 채운다. 일반선택 빈칸은 한 학기에 6학점까지만 쓴다. 학생이 가볍게 듣고 싶어 해도 필요한 학점은 줄일 수 없으니, 빈칸으로 두지 말고 과목을 골라 준다.
 8. why에는 그 학기에 왜 이 과목들을 넣었는지 구체적으로 쓴다. 예: "컴퓨터네트워크와 캡스톤은 1학기에만 열려요."
 9. wishes(학생 희망 사항)가 있으면 위 규칙을 어기지 않는 선에서 최대한 반영한다. 관심 분야는 candidates의 track으로 고른다. 학기 부담 희망은 학기별 학점 배분으로 반영한다.
 10. summary에는 계획 전체를 해요체 2~3문장으로 설명한다. wishes가 있으면 무엇을 어떻게 반영했는지, 규칙 때문에 반영하지 못한 것은 이유와 대안(예: 계절학기)을 쓴다.
@@ -178,21 +185,34 @@ const app = express();
 app.disable('x-powered-by');
 // 앞단 리버스 프록시 한 단계만 믿는다. 프록시가 X-Forwarded-For를 덧붙여야 IP별 제한이 제대로 걸린다.
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '15mb' }));
+// 보안 헤더. nosniff·Referrer-Policy는 앞단 nginx가 붙인다. 외부 자원은 글꼴·아이콘 CSS(jsdelivr, unpkg)와 GSAP(cdnjs)뿐이다.
+app.use((_req, res, next) => {
+  res.set({
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+      + "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
+      + "img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+    'X-Frame-Options': 'DENY',
+    'Strict-Transport-Security': 'max-age=15552000',
+  });
+  next();
+});
+// 본문은 요청 제한을 통과한 뒤에만, 경로마다 필요한 크기까지만 읽는다. 압축 본문은 받지 않는다
+// (작은 gzip이 15MB로 풀리면 JSON 파싱이 이벤트 루프를 막는다. 브라우저는 압축해서 보내지 않는다).
+const json = (size) => express.json({ limit: size, inflate: false });
 app.use(withUser);                     // 로그인 사용자를 req.user에 싣는다
 app.post(['/api/auth/signup', '/api/auth/login'], limit); // 비밀번호 대입을 막는다(/me는 제한하지 않음)
-app.use('/api/auth', authRouter);      // 회원가입/로그인 라우트
+app.use('/api/auth', json('4kb'), authRouter); // 회원가입/로그인 라우트
 app.use(express.static(fileURLToPath(new URL('./public', import.meta.url))));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, model: MODEL }));
 
-app.post('/api/parse', limit, async (req, res) => {
+app.post('/api/parse', limit, json('15mb'), async (req, res) => {
   const { text = '', files = [] } = req.body ?? {};
   if (typeof text !== 'string' || text.length > 50_000 || !Array.isArray(files) || files.length > MAX_FILES) {
     return res.status(400).json({ error: '입력 형식이 올바르지 않아요.' });
   }
   if (!text.trim() && files.length === 0) return res.status(400).json({ error: '캡처나 텍스트를 넣어 주세요.' });
-  if (files.some((f) => !IMAGE_MIME.test(f?.mimeType) || typeof f?.data !== 'string')) {
+  if (files.some((f) => typeof f?.mimeType !== 'string' || !IMAGE_MIME.test(f.mimeType) || typeof f?.data !== 'string')) {
     return res.status(400).json({ error: '이미지는 PNG, JPG, WEBP만 올릴 수 있어요.' });
   }
   try {
@@ -208,7 +228,7 @@ app.post('/api/parse', limit, async (req, res) => {
 
 const cleanText = (v, max) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : '');
 
-app.post('/api/roadmap', limit, async (req, res) => {
+app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
   const courses = sanitizeCourses(req.body?.courses, data.cats);
   const ctx = req.body?.ctx;
   const wishes = cleanText(req.body?.wishes, 300);
@@ -222,16 +242,27 @@ app.post('/api/roadmap', limit, async (req, res) => {
   const input = roadmapInput(courses, ctx, terms, wishes);
   const trace = [];
   let errs = [];
+  let draft = null; // 규칙은 지켰지만 품질 지적(vagueTerms)을 받은 초안. 수정안이 규칙을 어기면 이걸 쓴다.
   for (let attempt = 1; attempt <= 2; attempt++) {
     const left = deadline - Date.now();
     if (left < 5_000) break;
     try {
-      const text = JSON.stringify(input) + (errs.length ? `\n\n이전 계획이 다음 규칙을 어겼어요. 고쳐서 다시 짜 주세요:\n- ${errs.join('\n- ')}` : '');
+      const text = JSON.stringify(input) + (errs.length ? `\n\n이전 계획에서 다음을 고쳐야 해요. 고쳐서 다시 짜 주세요:\n- ${errs.join('\n- ')}` : '');
       const out = await ask({ system: ROADMAP_SYSTEM, text, schema: ROADMAP_SCHEMA, timeout: left });
       const plan = tidyPlan(out.plan, courses, ctx, data);
+      const ok = { plan, source: 'ai', summary: cleanText(out.summary, 400) };
       errs = verifyPlan(plan, courses, ctx, data);
+      if (!errs.length && attempt === 1) {
+        const soft = vagueTerms(plan, courses, ctx, data);
+        if (soft.length) {
+          draft = ok;
+          errs = soft;
+          trace.push({ attempt, violations: soft.slice(0, 8), total: soft.length, soft: true });
+          continue;
+        }
+      }
       trace.push({ attempt, violations: errs.slice(0, 8), total: errs.length });
-      if (!errs.length) return res.json({ plan, source: 'ai', summary: cleanText(out.summary, 400), trace });
+      if (!errs.length) return res.json({ ...ok, trace });
       console.warn(`[roadmap] attempt ${attempt}: ${errs.length} violations`);
     } catch (err) {
       console.error('[roadmap]', err?.message ?? err);
@@ -239,6 +270,7 @@ app.post('/api/roadmap', limit, async (req, res) => {
       break;
     }
   }
+  if (draft) return res.json({ ...draft, trace, kept: 'draft' });
   const plan = defaultPlan(courses, ctx, data);
   res.json({ plan, source: 'fallback', fallbackOk: !verifyPlan(plan, courses, ctx, data).length, trace });
 });
@@ -261,7 +293,7 @@ const CONSULT_SCHEMA = {
   required: ['subject', 'body', 'questions'],
 };
 
-app.post('/api/consult', limit, async (req, res) => {
+app.post('/api/consult', limit, json('256kb'), async (req, res) => {
   const courses = sanitizeCourses(req.body?.courses, data.cats);
   const ctx = req.body?.ctx;
   if (!courses.length || !validCtx(ctx)) return res.status(400).json({ error: '입력 형식이 올바르지 않아요.' });
@@ -289,7 +321,8 @@ app.post('/api/consult', limit, async (req, res) => {
 
 // 깨진 JSON 같은 요청 오류에 스택 대신 짧은 문장을 준다.
 app.use((err, _req, res, _next) => {
-  res.status(err.status ?? 500).json({ error: err.type === 'entity.too.large' ? '올린 파일이 너무 커요.' : '요청을 처리하지 못했어요.' });
+  const msg = err.type === 'entity.too.large' ? '올린 파일이 너무 커요.' : err.type === 'encoding.unsupported' ? '압축한 요청은 받지 않아요.' : '요청을 처리하지 못했어요.';
+  res.status(err.status ?? 500).json({ error: msg });
 });
 
 const server = app.listen(PORT, () => console.log(`listening on :${PORT} (model ${MODEL})`));
