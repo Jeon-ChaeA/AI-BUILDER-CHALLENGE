@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "졸업각 | GraduationGak",
+  "short_name": "졸업각",
+  "description": "졸업요건을 확인하고 남은 학기 계획을 세워 보세요.",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f7f5",
+  "theme_color": "#f6f7f5",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

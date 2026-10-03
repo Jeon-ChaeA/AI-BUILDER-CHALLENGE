@@ -1,11 +1,16 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="light" data-locale="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>졸업각</title>
   <meta name="description" content="성적 화면 한 장이면 국민대 소프트웨어학부 졸업요건과 대조해 부족한 것, 다음 학기 계획, 마감 일정을 알려 주는 졸업요건 진단 서비스">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f7f5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -15,6 +20,10 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
   <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('jg.theme') || 'light';
+      document.documentElement.dataset.locale = localStorage.getItem('jg.locale') || 'ko';
+    } catch {}
     // GSAP 연출 플래그. reduced-motion이면 켜지 않아 모든 요소가 처음부터 보인다.
     if (!matchMedia('(prefers-reduced-motion:reduce)').matches) document.documentElement.classList.add('ganim');
   </script>
@@ -24,7 +33,14 @@
     <a class="brand" href="#top" aria-label="졸업각 처음으로">
       <picture class="brand-logo"><source srcset="brand/logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="brand/logo-light.svg" alt="졸업각" width="764" height="215"></picture>
     </a>
-    <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+    <div class="topbar-actions">
+      <div class="segmented" role="group" aria-label="Display settings">
+        <button class="segmented-btn" id="localeToggle" type="button" aria-label="Switch language">EN</button>
+        <button class="segmented-btn theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode"><i class="ph ph-moon"></i><span class="sr-only">Dark mode</span></button>
+      </div>
+      <button class="install-btn" id="pwaInstall" type="button" hidden><i class="ph ph-download-simple"></i><span>앱 설치</span></button>
+      <span class="trial" id="trial"><i class="ph-fill ph-ticket"></i><span id="trialText">무료 체험 1회 남음</span></span>
+    </div>
   </header>
 
   <main id="top">
@@ -188,10 +204,29 @@
       </div>
       <button class="btn btn-quiet" type="button" id="reset"><i class="ph ph-arrow-counter-clockwise"></i>체험 초기화</button>
     </div>
+    <div class="foot-bottom">
+      <nav class="foot-legal" aria-label="법률 정보">
+        <details class="foot-legal-item">
+          <summary>개인정보처리방침</summary>
+          <p>입력한 성적 텍스트와 업로드 파일은 분석을 위해 Google Gemini API로 전송됩니다. 졸업각 서버에는 성적 정보를 저장하지 않습니다. Google의 데이터 처리는 Google의 관련 정책을 따릅니다.</p>
+        </details>
+        <details class="foot-legal-item">
+          <summary>이용약관</summary>
+          <p>졸업각은 학생이 만든 독립 프로젝트이며 국민대학교 공식 서비스가 아닙니다. 분석 결과는 참고용으로 제공되며 졸업 가능 여부를 보장하지 않습니다. 최종 요건은 학과 사무실에서 확인해 주세요.</p>
+        </details>
+      </nav>
+      <small class="foot-copyright">© 2026 졸업각. All rights reserved.</small>
+    </div>
   </footer>
 
   <script src="schedule.js"></script>
   <script src="app.js"></script>
+  <script src="i18n.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    }
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="gsap.js"></script>

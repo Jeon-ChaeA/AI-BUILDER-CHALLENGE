@@ -218,7 +218,8 @@ async function loadCalendar() {
 
 function downloadIcs() {
   const ics = Schedule.buildIcs(upcomingDates());
-  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: '졸업각-마감일정.ics' });
+  const filename = document.documentElement.dataset.locale === 'en' ? 'GraduationGak-deadlines.ics' : '졸업각-마감일정.ics';
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: filename });
   a.click();
   URL.revokeObjectURL(a.href);
 }
