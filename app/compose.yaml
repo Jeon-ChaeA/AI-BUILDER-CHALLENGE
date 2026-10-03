@@ -6,4 +6,10 @@ services:
       PORT: 3000
     ports:
       - "127.0.0.1:3300:3000"
+    # 회원·세션 SQLite(data/app.db)는 재배포해도 남아야 한다.
+    volumes:
+      - app-data:/app/data
     restart: unless-stopped
+
+volumes:
+  app-data:
