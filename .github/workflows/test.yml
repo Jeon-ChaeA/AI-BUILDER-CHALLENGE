@@ -1,0 +1,26 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm test                 # 진단 엔진
+      - run: npm run validate:data    # 졸업요건·교육과정 JSON
+      - run: npm run test:schedule    # 학사 일정·.ics
+      - run: npm run test:roadmap     # 로드맵 규칙
+      - run: npm run test:sample      # 샘플 학생 데이터
