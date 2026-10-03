@@ -269,10 +269,13 @@ app.post('/api/roadmap', limit, json('256kb'), async (req, res) => {
       trace.push({ attempt, violations: errs.slice(0, 8), total: errs.length });
       if (!errs.length) return res.json({ ...ok, trace });
       // 학기당 학점·총 학점 같은 산수만 어겼으면 AI에 다시 묻지 않고 일반선택 빈칸으로 맞춘다.
-      const fixed = repairPlan(plan, courses, ctx, data);
+      // 학기 수가 넘친 계획은 보정하지 않는다(보정은 verifyPlan만 보므로 늘어난 학기를 그대로 통과시킨다).
+      const fixed = plan.length <= terms.length ? repairPlan(plan, courses, ctx, data) : { errs };
       if (!fixed.errs.length) {
         trace.push({ attempt, repaired: fixed.fixes });
-        return res.json({ ...ok, plan: fixed.plan, trace });
+        // AI 요약은 보정 전 계획 기준이라, 코드가 고친 학점을 요약에도 덧붙여 화면 숫자와 어긋나지 않게 한다.
+        const note = `이 요약은 AI 초안 기준이고, 학점은 코드가 맞췄어요: ${fixed.fixes.join(' ')}`;
+        return res.json({ ...ok, summary: ok.summary ? `${ok.summary} ${note}` : note, plan: fixed.plan, trace });
       }
       console.warn(`[roadmap] attempt ${attempt}: ${errs.length} violations`);
     } catch (err) {
